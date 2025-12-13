@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">小雨超级岛</string>
+    <string name="nav_settings">设定</string>
+    <string name="nav_apps">应用列表</string>
+    <string name="nav_about">关于</string>
+    <string name="title_settings">设定</string>
+    <string name="title_apps">应用列表</string>
+    <string name="title_about">关于</string>
+</resources>

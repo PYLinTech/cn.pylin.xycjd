@@ -1,5 +1,7 @@
 **/.DS_Store
 *.log
+*.md
+!README.md
 .gradle/
 .idea/
 build/
