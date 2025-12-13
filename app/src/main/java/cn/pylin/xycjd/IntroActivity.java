@@ -75,6 +75,13 @@ public class IntroActivity extends AppCompatActivity {
             }
         });
         
+        // 检查是否需要直接跳转到权限设置页面
+        boolean directToPermission = getIntent().getBooleanExtra("direct_to_permission", false);
+        if (directToPermission) {
+            // 直接跳转到权限设置页面
+            viewPager.setCurrentItem(3, false);
+        }
+
         // 设置按钮点击事件
         btnNext.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -195,10 +202,12 @@ public class IntroActivity extends AppCompatActivity {
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
         SharedPreferences.Editor editor = preferences.edit();
         editor.putInt("intro_version", INTRO_VERSION);
-        editor.apply();
+        editor.commit(); // 使用commit()而不是apply()确保同步保存
         
         // 跳转到主页面
         Intent intent = new Intent(this, MainActivity.class);
+        // 检查主界面是否已经存在，如果存在则直接切换过去而不是创建新实例
+        intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT | Intent.FLAG_ACTIVITY_SINGLE_TOP);
         startActivity(intent);
         finish();
     }

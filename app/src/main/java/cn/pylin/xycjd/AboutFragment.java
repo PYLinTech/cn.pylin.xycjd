@@ -14,10 +14,12 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.core.widget.NestedScrollView;
 import androidx.fragment.app.Fragment;
 
 public class AboutFragment extends Fragment {
 
+    private NestedScrollView scrollView;
     private TextView tvVersion;
     private TextView tvWebsite;
     private TextView tvGithub;
@@ -42,10 +44,14 @@ public class AboutFragment extends Fragment {
         // 设置点击事件
         setClickListeners();
         
+        // 设置平滑滚动
+        setupSmoothScrolling();
+        
         return view;
     }
 
     private void initViews(View view) {
+        scrollView = view.findViewById(R.id.nested_scroll_view);
         tvVersion = view.findViewById(R.id.tv_version);
         tvWebsite = view.findViewById(R.id.tv_website);
         tvGithub = view.findViewById(R.id.tv_github);
@@ -55,6 +61,12 @@ public class AboutFragment extends Fragment {
         layoutWebsite = view.findViewById(R.id.layout_website);
         layoutGithub = view.findViewById(R.id.layout_github);
         layoutQqGroup = view.findViewById(R.id.layout_qq_group);
+    }
+
+    private void setupSmoothScrolling() {
+        if (scrollView != null) {
+            scrollView.setNestedScrollingEnabled(true);
+        }
     }
 
     private void setVersionInfo() {

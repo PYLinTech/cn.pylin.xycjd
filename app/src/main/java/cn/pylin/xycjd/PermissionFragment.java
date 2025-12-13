@@ -16,12 +16,14 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.widget.NestedScrollView;
 import androidx.fragment.app.Fragment;
 
 public class PermissionFragment extends Fragment {
 
     private Context mContext;
     private Activity mActivity;
+    private NestedScrollView scrollView;
 
     // UI组件
     private androidx.cardview.widget.CardView permissionItemNotification;
@@ -30,6 +32,9 @@ public class PermissionFragment extends Fragment {
     private androidx.cardview.widget.CardView permissionItemOverlay;
     private TextView overlayStatus;
     private Button overlayBtn;
+    private androidx.cardview.widget.CardView permissionItemQueryAllPackages;
+    private TextView queryAllPackagesStatus;
+    private Button queryAllPackagesBtn;
 
     @Override
     public void onAttach(@NonNull Context context) {
@@ -45,6 +50,7 @@ public class PermissionFragment extends Fragment {
         initViews(view);
         updatePermissionStatus();
         setListeners();
+        setupSmoothScrolling();
         return view;
     }
 
@@ -59,12 +65,29 @@ public class PermissionFragment extends Fragment {
      * 初始化UI组件
      */
     private void initViews(View view) {
+        scrollView = view.findViewById(R.id.nested_scroll_view);
         permissionItemNotification = view.findViewById(R.id.permission_item_notification);
         notificationStatus = view.findViewById(R.id.notification_status);
         notificationBtn = view.findViewById(R.id.notification_btn);
         permissionItemOverlay = view.findViewById(R.id.permission_item_overlay);
         overlayStatus = view.findViewById(R.id.overlay_status);
         overlayBtn = view.findViewById(R.id.overlay_btn);
+        permissionItemQueryAllPackages = view.findViewById(R.id.permission_item_query_all_packages);
+        queryAllPackagesStatus = view.findViewById(R.id.query_all_packages_status);
+        queryAllPackagesBtn = view.findViewById(R.id.query_all_packages_btn);
+    }
+
+    /**
+     * 设置平滑滚动
+     */
+    private void setupSmoothScrolling() {
+        if (scrollView != null) {
+            // 启用平滑滚动
+            scrollView.setNestedScrollingEnabled(true);
+            
+            // 设置滚动速度
+            scrollView.setVerticalScrollbarPosition(View.SCROLLBAR_POSITION_RIGHT);
+        }
     }
 
     /**
@@ -102,6 +125,22 @@ public class PermissionFragment extends Fragment {
                 openOverlaySettings();
             }
         });
+
+        // 查询所有应用包权限项点击事件
+        permissionItemQueryAllPackages.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                openAppSettings();
+            }
+        });
+
+        // 查询所有应用包权限按钮点击事件
+        queryAllPackagesBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                openAppSettings();
+            }
+        });
     }
 
     /**
@@ -128,6 +167,17 @@ public class PermissionFragment extends Fragment {
             overlayStatus.setText(R.string.permission_status_denied);
             overlayStatus.setTextColor(getResources().getColor(R.color.red));
             overlayBtn.setVisibility(View.VISIBLE);
+        }
+
+        // 更新查询所有应用包权限状态
+        if (AppUtils.hasQueryAllPackagesPermission(mContext)) {
+            queryAllPackagesStatus.setText(R.string.permission_status_granted);
+            queryAllPackagesStatus.setTextColor(getResources().getColor(R.color.colorPrimary));
+            queryAllPackagesBtn.setVisibility(View.GONE);
+        } else {
+            queryAllPackagesStatus.setText(R.string.permission_status_denied);
+            queryAllPackagesStatus.setTextColor(getResources().getColor(R.color.red));
+            queryAllPackagesBtn.setVisibility(View.VISIBLE);
         }
     }
 
@@ -156,6 +206,15 @@ public class PermissionFragment extends Fragment {
      */
     private void openOverlaySettings() {
         Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION);
+        intent.setData(android.net.Uri.parse("package:" + mContext.getPackageName()));
+        mActivity.startActivity(intent);
+    }
+
+    /**
+     * 打开应用详情页面（用于查询所有应用包权限）
+     */
+    private void openAppSettings() {
+        Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
         intent.setData(android.net.Uri.parse("package:" + mContext.getPackageName()));
         mActivity.startActivity(intent);
     }

@@ -16,6 +16,10 @@
     <string name="theme_dark">深色模式</string>
     <string name="theme_system">跟随系统</string>
     <string name="theme_changed">主题已切换</string>
+    
+    <!-- 权限设置相关字符串 -->
+    <string name="permission_setting">权限设置</string>
+    <string name="permission_setting_desc">管理应用权限配置</string>
 
     <!-- 关于页面相关字符串 -->
     <string name="app_version">版本 %1$s (%2$d)</string>
@@ -49,7 +53,15 @@
     <string name="permission_notification_listener_desc">用于监听系统通知，实现应用通知管理功能</string>
     <string name="permission_overlay">悬浮窗权限</string>
     <string name="permission_overlay_desc">用于显示悬浮窗，方便您快速操作应用</string>
+    <string name="permission_query_all_packages">查询所有应用包权限</string>
+    <string name="permission_query_all_packages_desc">用于获取设备上所有已安装应用的完整列表</string>
     <string name="permission_status_granted">已授权</string>
     <string name="permission_status_denied">未授权</string>
     <string name="permission_action_grant">去授权</string>
+    <string name="query_all_packages_permission_required">需要查询所有应用包权限才能获取完整的应用列表</string>
+    
+    <!-- 应用列表相关字符串 -->
+    <string name="app_filter_label">应用过滤：</string>
+    <string name="user_app">用户应用</string>
+    <string name="system_app">系统应用</string>
 </resources>
