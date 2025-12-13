@@ -39,6 +39,7 @@
     <string name="intro_permission">Permission Settings</string>
     <string name="intro_next">Next</string>
     <string name="intro_agree">Agree</string>
+    <string name="intro_slide_to_read">Please slide to read</string>
     <string name="intro_finish">Finish</string>
     <string name="intro_loading">Loading content...</string>
     <string name="intro_load_error">Load failed!</string>

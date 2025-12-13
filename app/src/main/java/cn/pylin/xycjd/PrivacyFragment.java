@@ -32,6 +32,13 @@ public class PrivacyFragment extends Fragment {
     private TextView tvLoadError;
     private ScrollView scrollContent;
     private TextView tvContent;
+    
+    // 定义接口用于通知滚动到底部
+    public interface OnScrollToBottomListener {
+        void onScrollToBottom();
+    }
+    
+    private OnScrollToBottomListener scrollToBottomListener;
 
     @Nullable
     @Override
@@ -100,10 +107,29 @@ public class PrivacyFragment extends Fragment {
         scrollContent.setVisibility(View.GONE);
     }
     
+    // 设置滚动到底部监听器
+    public void setOnScrollToBottomListener(OnScrollToBottomListener listener) {
+        this.scrollToBottomListener = listener;
+    }
+    
     private void showContent(String content) {
         loadingContainer.setVisibility(View.GONE);
         tvLoadError.setVisibility(View.GONE);
         scrollContent.setVisibility(View.VISIBLE);
         tvContent.setText(content);
+        
+        // 添加滚动监听
+        scrollContent.setOnScrollChangeListener(new View.OnScrollChangeListener() {
+            @Override
+            public void onScrollChange(View v, int scrollX, int scrollY, int oldScrollX, int oldScrollY) {
+                // 检查是否滚动到底部
+                if (scrollY >= (scrollContent.getChildAt(0).getHeight() - scrollContent.getHeight())) {
+                    // 滚动到底部，通知Activity
+                    if (scrollToBottomListener != null) {
+                        scrollToBottomListener.onScrollToBottom();
+                    }
+                }
+            }
+        });
     }
 }

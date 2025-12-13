@@ -39,6 +39,7 @@
     <string name="intro_permission">权限设置</string>
     <string name="intro_next">下一步</string>
     <string name="intro_agree">同意</string>
+    <string name="intro_slide_to_read">请滑动以阅读</string>
     <string name="intro_finish">完成</string>
     <string name="intro_loading">正在加载内容...</string>
     <string name="intro_load_error">加载失败！</string>

@@ -22,6 +22,12 @@ public class IntroActivity extends AppCompatActivity {
     private ViewPager2 viewPager;
     private Button btnNext;
     private IntroAdapter adapter;
+    
+    // 保存Fragment引用
+    private WelcomeFragment welcomeFragment;
+    private AgreementFragment agreementFragment;
+    private PrivacyFragment privacyFragment;
+    private PermissionFragment permissionFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,14 +44,26 @@ public class IntroActivity extends AppCompatActivity {
         // 初始化适配器
         adapter = new IntroAdapter(this);
         
+        // 创建Fragment实例
+        welcomeFragment = new WelcomeFragment();
+        agreementFragment = new AgreementFragment();
+        privacyFragment = new PrivacyFragment();
+        permissionFragment = new PermissionFragment();
+        
         // 添加Fragment
-        adapter.addFragment(new WelcomeFragment());
-        adapter.addFragment(new AgreementFragment());
-        adapter.addFragment(new PrivacyFragment());
-        adapter.addFragment(new PermissionFragment());
+        adapter.addFragment(welcomeFragment);
+        adapter.addFragment(agreementFragment);
+        adapter.addFragment(privacyFragment);
+        adapter.addFragment(permissionFragment);
         
         // 设置适配器
         viewPager.setAdapter(adapter);
+        
+        // 禁用左右滑动切换
+        viewPager.setUserInputEnabled(false);
+        
+        // 设置滚动监听器
+        setScrollListeners();
         
         // 监听页面变化
         viewPager.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
@@ -77,20 +95,65 @@ public class IntroActivity extends AppCompatActivity {
      * 更新按钮文本
      */
     private void updateButtonText(int position) {
+        // 根据页面位置设置按钮文本
         switch (position) {
             case 0:
                 btnNext.setText(R.string.intro_next);
                 break;
             case 1:
-                btnNext.setText(R.string.intro_agree);
+                btnNext.setText(R.string.intro_slide_to_read);
                 break;
             case 2:
-                btnNext.setText(R.string.intro_agree);
+                btnNext.setText(R.string.intro_slide_to_read);
                 break;
             case 3:
                 btnNext.setText(R.string.intro_finish);
                 break;
         }
+        
+        // 直接根据页面位置设置按钮状态：用户协议和隐私政策页面为灰色不可点击
+        if (position == 1 || position == 2) {
+            btnNext.setEnabled(false);
+            btnNext.setTextColor(getResources().getColor(R.color.white));
+            btnNext.setBackgroundTintList(getResources().getColorStateList(R.color.gray));
+        } else {
+            btnNext.setEnabled(true);
+            btnNext.setTextColor(getResources().getColor(R.color.white));
+            btnNext.setBackgroundTintList(getResources().getColorStateList(R.color.colorPrimary));
+        }
+    }
+    
+    /**
+     * 设置滚动监听器
+     */
+    private void setScrollListeners() {
+        // 设置用户协议页面滚动监听器
+        agreementFragment.setOnScrollToBottomListener(new AgreementFragment.OnScrollToBottomListener() {
+            @Override
+            public void onScrollToBottom() {
+                // 滚动到底部，修改按钮文本和状态
+                if (viewPager.getCurrentItem() == 1) {
+                    btnNext.setText(R.string.intro_agree);
+                    btnNext.setEnabled(true);
+                    btnNext.setTextColor(getResources().getColor(R.color.white));
+                    btnNext.setBackgroundTintList(getResources().getColorStateList(R.color.colorPrimary));
+                }
+            }
+        });
+        
+        // 设置隐私政策页面滚动监听器
+        privacyFragment.setOnScrollToBottomListener(new PrivacyFragment.OnScrollToBottomListener() {
+            @Override
+            public void onScrollToBottom() {
+                // 滚动到底部，修改按钮文本和状态
+                if (viewPager.getCurrentItem() == 2) {
+                    btnNext.setText(R.string.intro_agree);
+                    btnNext.setEnabled(true);
+                    btnNext.setTextColor(getResources().getColor(R.color.white));
+                    btnNext.setBackgroundTintList(getResources().getColorStateList(R.color.colorPrimary));
+                }
+            }
+        });
     }
     
     /**
