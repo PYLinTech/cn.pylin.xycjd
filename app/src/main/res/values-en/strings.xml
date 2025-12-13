@@ -9,6 +9,13 @@
     <string name="chinese">中文</string>
     <string name="english">English</string>
     <string name="language_changed">Language changed</string>
+    
+    <!-- Theme settings -->
+    <string name="theme_setting">Theme</string>
+    <string name="theme_light">Light</string>
+    <string name="theme_dark">Dark</string>
+    <string name="theme_system">System</string>
+    <string name="theme_changed">Theme changed</string>
 
     <!-- About page strings -->
     <string name="app_version">Version %1$s (%2$d)</string>

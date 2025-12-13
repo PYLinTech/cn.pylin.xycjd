@@ -19,7 +19,7 @@
         android:id="@+id/navigation_bar"
         android:layout_width="0dp"
         android:layout_height="60dp"
-        android:background="#FFFFFF"
+        android:background="?attr/colorSurface"
         android:elevation="8dp"
         android:orientation="horizontal"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -31,9 +31,9 @@
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
-            android:background="#FFFFFF"
+            android:background="?attr/colorSurface"
             android:text="@string/nav_settings"
-            android:textColor="#666666"
+            android:textColor="?android:attr/textColorSecondary"
             android:textSize="14sp" />
 
         <Button
@@ -41,9 +41,9 @@
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
-            android:background="#FFFFFF"
+            android:background="?attr/colorSurface"
             android:text="@string/nav_apps"
-            android:textColor="#666666"
+            android:textColor="?android:attr/textColorSecondary"
             android:textSize="14sp" />
 
         <Button
@@ -51,9 +51,9 @@
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
-            android:background="#FFFFFF"
+            android:background="?attr/colorSurface"
             android:text="@string/nav_about"
-            android:textColor="#666666"
+            android:textColor="?android:attr/textColorSecondary"
             android:textSize="14sp" />
 
     </LinearLayout>

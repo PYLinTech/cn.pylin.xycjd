@@ -9,6 +9,7 @@ import android.view.View;
 import android.widget.Button;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatDelegate;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
 
@@ -30,6 +31,9 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         // 加载保存的语言设置
         loadLanguageSetting();
+        
+        // 加载保存的主题设置
+        loadThemeSetting();
         
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
@@ -131,5 +135,17 @@ public class MainActivity extends AppCompatActivity {
         configuration.setLocale(locale);
         
         resources.updateConfiguration(configuration, resources.getDisplayMetrics());
+    }
+    
+    /**
+     * 加载保存的主题设置
+     */
+    private void loadThemeSetting() {
+        // 获取SharedPreferences中保存的主题设置
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+        int themeMode = preferences.getInt("theme", AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM);
+        
+        // 应用主题设置
+        AppCompatDelegate.setDefaultNightMode(themeMode);
     }
 }

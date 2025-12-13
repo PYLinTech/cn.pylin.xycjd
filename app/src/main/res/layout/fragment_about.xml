@@ -4,9 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:padding="16dp"
-    android:background="#F5F5F5">
-
-
+    android:background="@color/colorBackground">
 
     <!-- 主内容卡片 -->
     <androidx.cardview.widget.CardView
@@ -14,7 +12,7 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="24dp"
-        app:cardBackgroundColor="#FFFFFF"
+        app:cardBackgroundColor="@color/colorSurface"
         app:cardCornerRadius="16dp"
         app:cardElevation="4dp"
         app:cardUseCompatPadding="true"
@@ -47,7 +45,7 @@
                 android:layout_marginTop="16dp"
                 android:text="@string/app_name"
                 android:textSize="28sp"
-                android:textColor="#333333"
+                android:textColor="@color/colorOnSurface"
                 android:fontFamily="sans-serif-bold"
                 android:gravity="center"
                 app:layout_constraintEnd_toEndOf="parent"
@@ -62,7 +60,7 @@
                 android:layout_marginTop="8dp"
                 android:text="@string/app_version"
                 android:textSize="16sp"
-                android:textColor="#666666"
+                android:textColor="@color/colorOnSurfaceSecondary"
                 android:gravity="center"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
@@ -74,7 +72,7 @@
                 android:layout_width="0dp"
                 android:layout_height="1dp"
                 android:layout_marginTop="24dp"
-                android:background="#E0E0E0"
+                android:background="@color/colorDivider"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/tv_version" />
@@ -85,7 +83,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="24dp"
-                android:background="#F0F9FF"
+                android:background="@color/colorWebsiteBackground"
                 android:padding="12dp"
                 android:radius="8dp"
                 android:clickable="true"
@@ -101,7 +99,7 @@
                     android:layout_height="wrap_content"
                     android:text="@string/website_label"
                     android:textSize="16sp"
-                    android:textColor="#333333"
+                    android:textColor="@color/colorOnSurface"
                     android:fontFamily="sans-serif-medium"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
@@ -113,7 +111,7 @@
                     android:layout_marginTop="4dp"
                     android:text="@string/website_url"
                     android:textSize="14sp"
-                    android:textColor="#2563EB"
+                    android:textColor="@color/colorWebsiteText"
                     android:linksClickable="true"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
@@ -126,7 +124,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
-                android:background="#F0FDF4"
+                android:background="@color/colorGithubBackground"
                 android:padding="12dp"
                 android:radius="8dp"
                 android:clickable="true"
@@ -142,7 +140,7 @@
                     android:layout_height="wrap_content"
                     android:text="@string/github_label"
                     android:textSize="16sp"
-                    android:textColor="#333333"
+                    android:textColor="@color/colorOnSurface"
                     android:fontFamily="sans-serif-medium"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
@@ -154,7 +152,7 @@
                     android:layout_marginTop="4dp"
                     android:text="@string/github_url"
                     android:textSize="14sp"
-                    android:textColor="#16A34A"
+                    android:textColor="@color/colorGithubText"
                     android:linksClickable="true"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
@@ -167,7 +165,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
-                android:background="#FEF3C7"
+                android:background="@color/colorQQGroupBackground"
                 android:padding="12dp"
                 android:radius="8dp"
                 android:clickable="true"
@@ -183,7 +181,7 @@
                     android:layout_height="wrap_content"
                     android:text="@string/qq_group_label"
                     android:textSize="16sp"
-                    android:textColor="#333333"
+                    android:textColor="@color/colorOnSurface"
                     android:fontFamily="sans-serif-medium"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
@@ -195,7 +193,7 @@
                     android:layout_marginTop="4dp"
                     android:text="@string/qq_group_number"
                     android:textSize="14sp"
-                    android:textColor="#D97706"
+                    android:textColor="@color/colorQQGroupText"
                     android:linksClickable="true"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
