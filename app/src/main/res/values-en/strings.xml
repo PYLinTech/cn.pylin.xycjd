@@ -31,4 +31,17 @@
     <string name="qq_group_key">7cvKsjmJIYIuL2vcJmh2uKxmHZLgxYxr</string>
     <string name="qq_group_url_prefix">mqqopensdkapi://bizAgent/qm/qr?url=http%3A%2F%2Fqm.qq.com%2Fcgi-bin%2Fqm%2Fqr%3Ffrom%3Dapp%26p%3Dandroid%26jump_from%3Dwebapi%26k%3D</string>
     <string name="clipboard_label">Xiaoyu Super Island QQ Group Number</string>
+
+    <!-- Intro page strings -->
+    <string name="intro_welcome">Welcome</string>
+    <string name="intro_agreement">User Agreement</string>
+    <string name="intro_privacy">Privacy Policy</string>
+    <string name="intro_permission">Permission Settings</string>
+    <string name="intro_next">Next</string>
+    <string name="intro_agree">Agree</string>
+    <string name="intro_finish">Finish</string>
+    <string name="intro_loading">Loading content...</string>
+    <string name="intro_load_error">Load failed!</string>
+    <string name="intro_welcome_content">Welcome to Xiaoyu Super Island!\n\nThis is a powerful application that provides you with convenient services.</string>
+    <string name="intro_permission_content">Permission Settings\n\nTo provide better services, we need the following permissions:\n\n• Storage: Save app data\n• Network: Connect to server for latest data\n• Notification: Send important notifications to you\n\nYou can manage these permissions in settings at any time.</string>
 </resources>

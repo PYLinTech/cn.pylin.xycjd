@@ -1,5 +1,6 @@
 package cn.pylin.xycjd;
 
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.content.res.Resources;
@@ -29,13 +30,23 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        
+        // 检查是否需要显示引导页面
+        if (shouldShowIntro()) {
+            // 需要显示引导页面，跳转到引导页面
+            Intent intent = new Intent(this, IntroActivity.class);
+            startActivity(intent);
+            finish();
+            return;
+        }
+        
         // 加载保存的语言设置
         loadLanguageSetting();
         
         // 加载保存的主题设置
         loadThemeSetting();
         
-        super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
         btnSettings = findViewById(R.id.btn_settings);
@@ -147,5 +158,14 @@ public class MainActivity extends AppCompatActivity {
         
         // 应用主题设置
         AppCompatDelegate.setDefaultNightMode(themeMode);
+    }
+    
+    /**
+     * 检查是否需要显示引导页面
+     */
+    private boolean shouldShowIntro() {
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+        int savedVersion = preferences.getInt("intro_version", 0);
+        return savedVersion < IntroActivity.INTRO_VERSION;
     }
 }
