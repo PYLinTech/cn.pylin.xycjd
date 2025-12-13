@@ -27,6 +27,11 @@ public class MainActivity extends AppCompatActivity {
     private Button btnSettings;
     private Button btnApps;
     private Button btnAbout;
+    
+    // 上次按返回键的时间
+    private long lastBackPressTime = 0;
+    // 双击返回键的时间间隔（毫秒）
+    private static final long DOUBLE_BACK_PRESS_INTERVAL = 2000;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -167,5 +172,19 @@ public class MainActivity extends AppCompatActivity {
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
         int savedVersion = preferences.getInt("intro_version", 0);
         return savedVersion < IntroActivity.INTRO_VERSION;
+    }
+    
+    @Override
+    public void onBackPressed() {
+        long currentTime = System.currentTimeMillis();
+        // 如果两次按返回键的时间间隔小于2秒，则退出应用
+        if (currentTime - lastBackPressTime < DOUBLE_BACK_PRESS_INTERVAL) {
+            super.onBackPressed();
+        } else {
+            // 第一次按返回键，提示用户再次按返回键退出应用
+            lastBackPressTime = currentTime;
+            // 显示提示信息
+            android.widget.Toast.makeText(this, "再按一次退出应用", android.widget.Toast.LENGTH_SHORT).show();
+        }
     }
 }
