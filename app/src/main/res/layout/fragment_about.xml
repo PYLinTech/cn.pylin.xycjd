@@ -6,19 +6,7 @@
     android:padding="16dp"
     android:background="#F5F5F5">
 
-    <!-- 标题 -->
-    <TextView
-        android:id="@+id/tv_title"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:text="@string/title_about"
-        android:textSize="24sp"
-        android:textColor="#333333"
-        android:fontFamily="sans-serif-medium"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintHorizontal_bias="0.0" />
+
 
     <!-- 主内容卡片 -->
     <androidx.cardview.widget.CardView
@@ -33,7 +21,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/tv_title">
+        app:layout_constraintTop_toTopOf="parent">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
@@ -92,91 +80,127 @@
                 app:layout_constraintTop_toBottomOf="@+id/tv_version" />
 
             <!-- 官网地址 -->
-            <TextView
-                android:id="@+id/tv_website_label"
-                android:layout_width="wrap_content"
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/layout_website"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="24dp"
-                android:text="@string/website_label"
-                android:textSize="16sp"
-                android:textColor="#666666"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/divider" />
-
-            <TextView
-                android:id="@+id/tv_website"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
-                android:text="@string/website_url"
-                android:textSize="16sp"
-                android:textColor="#2196F3"
-                android:textStyle="italic"
-                android:linksClickable="true"
+                android:background="#F0F9FF"
+                android:padding="12dp"
+                android:radius="8dp"
                 android:clickable="true"
                 android:focusable="true"
-                app:layout_constraintBottom_toBottomOf="@+id/tv_website_label"
+                android:foreground="?attr/selectableItemBackground"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toEndOf="@+id/tv_website_label"
-                app:layout_constraintTop_toTopOf="@+id/tv_website_label" />
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/divider">
+
+                <TextView
+                    android:id="@+id/tv_website_label"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/website_label"
+                    android:textSize="16sp"
+                    android:textColor="#333333"
+                    android:fontFamily="sans-serif-medium"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <TextView
+                    android:id="@+id/tv_website"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="@string/website_url"
+                    android:textSize="14sp"
+                    android:textColor="#2563EB"
+                    android:linksClickable="true"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/tv_website_label" />
+            </androidx.constraintlayout.widget.ConstraintLayout>
 
             <!-- 开源地址 -->
-            <TextView
-                android:id="@+id/tv_github_label"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:text="@string/github_label"
-                android:textSize="16sp"
-                android:textColor="#666666"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/tv_website_label" />
-
-            <TextView
-                android:id="@+id/tv_github"
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/layout_github"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
-                android:text="@string/github_url"
-                android:textSize="16sp"
-                android:textColor="#2196F3"
-                android:textStyle="italic"
-                android:linksClickable="true"
+                android:layout_marginTop="16dp"
+                android:background="#F0FDF4"
+                android:padding="12dp"
+                android:radius="8dp"
                 android:clickable="true"
                 android:focusable="true"
-                app:layout_constraintBottom_toBottomOf="@+id/tv_github_label"
+                android:foreground="?attr/selectableItemBackground"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toEndOf="@+id/tv_github_label"
-                app:layout_constraintTop_toTopOf="@+id/tv_github_label" />
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/layout_website">
+
+                <TextView
+                    android:id="@+id/tv_github_label"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/github_label"
+                    android:textSize="16sp"
+                    android:textColor="#333333"
+                    android:fontFamily="sans-serif-medium"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <TextView
+                    android:id="@+id/tv_github"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="@string/github_url"
+                    android:textSize="14sp"
+                    android:textColor="#16A34A"
+                    android:linksClickable="true"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/tv_github_label" />
+            </androidx.constraintlayout.widget.ConstraintLayout>
 
             <!-- QQ交流群 -->
-            <TextView
-                android:id="@+id/tv_qq_group_label"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:text="@string/qq_group_label"
-                android:textSize="16sp"
-                android:textColor="#666666"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/tv_github_label" />
-
-            <TextView
-                android:id="@+id/tv_qq_group"
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/layout_qq_group"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
-                android:text="@string/qq_group_number"
-                android:textSize="16sp"
-                android:textColor="#2196F3"
-                android:textStyle="italic"
-                android:linksClickable="true"
+                android:layout_marginTop="16dp"
+                android:background="#FEF3C7"
+                android:padding="12dp"
+                android:radius="8dp"
                 android:clickable="true"
                 android:focusable="true"
-                app:layout_constraintBottom_toBottomOf="@+id/tv_qq_group_label"
+                android:foreground="?attr/selectableItemBackground"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toEndOf="@+id/tv_qq_group_label"
-                app:layout_constraintTop_toTopOf="@+id/tv_qq_group_label" />
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/layout_github">
+
+                <TextView
+                    android:id="@+id/tv_qq_group_label"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/qq_group_label"
+                    android:textSize="16sp"
+                    android:textColor="#333333"
+                    android:fontFamily="sans-serif-medium"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <TextView
+                    android:id="@+id/tv_qq_group"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="@string/qq_group_number"
+                    android:textSize="14sp"
+                    android:textColor="#D97706"
+                    android:linksClickable="true"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/tv_qq_group_label" />
+            </androidx.constraintlayout.widget.ConstraintLayout>
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 

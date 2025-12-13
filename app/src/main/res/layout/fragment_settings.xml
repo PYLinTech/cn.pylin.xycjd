@@ -5,12 +5,43 @@
     android:orientation="vertical"
     android:padding="16dp">
 
-    <TextView
+    <!-- 语言设置 -->
+    <LinearLayout
+        android:id="@+id/layout_language"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/title_settings"
-        android:textSize="24sp"
-        android:textColor="#333333"
-        android:fontFamily="sans-serif-medium" />
+        android:orientation="vertical"
+        android:layout_marginBottom="24dp">
+        
+        <!-- 语言设置标题 -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/language_setting"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="12dp" />
+        
+        <!-- 语言选择 -->
+        <RadioGroup
+            android:id="@+id/radio_group_language"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+            
+            <RadioButton
+                android:id="@+id/radio_btn_chinese"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/chinese"
+                android:layout_marginRight="24dp" />
+            
+            <RadioButton
+                android:id="@+id/radio_btn_english"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/english" />
+        </RadioGroup>
+    </LinearLayout>
 
 </LinearLayout>

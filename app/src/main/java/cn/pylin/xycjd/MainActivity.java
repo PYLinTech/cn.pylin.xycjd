@@ -1,12 +1,18 @@
 package cn.pylin.xycjd;
 
+import android.content.SharedPreferences;
+import android.content.res.Configuration;
+import android.content.res.Resources;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.view.View;
 import android.widget.Button;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
+
+import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -22,6 +28,9 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        // 加载保存的语言设置
+        loadLanguageSetting();
+        
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
@@ -73,8 +82,7 @@ public class MainActivity extends AppCompatActivity {
         
         // 根据页面类型创建对应的Fragment
         if (page == PAGE_SETTINGS) {
-            // 目前Settings页面还没有Fragment，暂时使用空白Fragment
-            fragment = new Fragment();
+            fragment = new SettingsFragment();
         } else if (page == PAGE_APPS) {
             // 目前Apps页面还没有Fragment，暂时使用空白Fragment
             fragment = new Fragment();
@@ -104,5 +112,24 @@ public class MainActivity extends AppCompatActivity {
             btnApps.setTextColor(getResources().getColor(android.R.color.darker_gray));
             btnAbout.setTextColor(getResources().getColor(android.R.color.holo_blue_dark));
         }
+    }
+    
+    /**
+     * 加载保存的语言设置
+     */
+    private void loadLanguageSetting() {
+        // 获取SharedPreferences中保存的语言设置
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+        String language = preferences.getString("language", "zh");
+        
+        // 更新应用语言设置
+        Locale locale = new Locale(language);
+        Locale.setDefault(locale);
+        
+        Resources resources = getResources();
+        Configuration configuration = resources.getConfiguration();
+        configuration.setLocale(locale);
+        
+        resources.updateConfiguration(configuration, resources.getDisplayMetrics());
     }
 }

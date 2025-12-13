@@ -13,6 +13,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.fragment.app.Fragment;
 
 public class AboutFragment extends Fragment {
@@ -21,6 +22,11 @@ public class AboutFragment extends Fragment {
     private TextView tvWebsite;
     private TextView tvGithub;
     private TextView tvQqGroup;
+    
+    // 布局容器
+    private ConstraintLayout layoutWebsite;
+    private ConstraintLayout layoutGithub;
+    private ConstraintLayout layoutQqGroup;
 
     @Nullable
     @Override
@@ -44,6 +50,11 @@ public class AboutFragment extends Fragment {
         tvWebsite = view.findViewById(R.id.tv_website);
         tvGithub = view.findViewById(R.id.tv_github);
         tvQqGroup = view.findViewById(R.id.tv_qq_group);
+        
+        // 初始化布局容器
+        layoutWebsite = view.findViewById(R.id.layout_website);
+        layoutGithub = view.findViewById(R.id.layout_github);
+        layoutQqGroup = view.findViewById(R.id.layout_qq_group);
     }
 
     private void setVersionInfo() {
@@ -63,17 +74,17 @@ public class AboutFragment extends Fragment {
 
     private void setClickListeners() {
         // 官网地址点击事件
-        tvWebsite.setOnClickListener(v -> {
+        layoutWebsite.setOnClickListener(v -> {
             openUrl(getString(R.string.website_url));
         });
         
         // 开源地址点击事件
-        tvGithub.setOnClickListener(v -> {
+        layoutGithub.setOnClickListener(v -> {
             openUrl(getString(R.string.github_url));
         });
         
         // QQ交流群点击事件
-        tvQqGroup.setOnClickListener(v -> {
+        layoutQqGroup.setOnClickListener(v -> {
             // 使用官网生成的key发起加群请求
             boolean result = joinQQGroup(getString(R.string.qq_group_key));
             if (!result) {

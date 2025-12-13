@@ -3,10 +3,13 @@
     <string name="nav_settings">设定</string>
     <string name="nav_apps">应用列表</string>
     <string name="nav_about">关于</string>
-    <string name="title_settings">设定</string>
-    <string name="title_apps">应用列表</string>
-    <string name="title_about">关于</string>
-    
+
+    <!-- 语言设置相关字符串 -->
+    <string name="language_setting">语言设置</string>
+    <string name="chinese">中文</string>
+    <string name="english">English</string>
+    <string name="language_changed">语言已切换</string>
+
     <!-- 关于页面相关字符串 -->
     <string name="app_version">版本 %1$s (%2$d)</string>
     <string name="app_version_error">版本号获取失败</string>
@@ -20,5 +23,5 @@
     <string name="open_url_failed">无法打开链接</string>
     <string name="qq_group_key">7cvKsjmJIYIuL2vcJmh2uKxmHZLgxYxr</string>
     <string name="qq_group_url_prefix">mqqopensdkapi://bizAgent/qm/qr?url=http%3A%2F%2Fqm.qq.com%2Fcgi-bin%2Fqm%2Fqr%3Ffrom%3Dapp%26p%3Dandroid%26jump_from%3Dwebapi%26k%3D</string>
-    <string name="clipboard_label">小雨超级岛</string>
+    <string name="clipboard_label">小雨超级岛QQ群号</string>
 </resources>
