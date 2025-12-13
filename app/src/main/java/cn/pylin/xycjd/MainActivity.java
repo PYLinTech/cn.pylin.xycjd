@@ -3,9 +3,10 @@ package cn.pylin.xycjd;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
-import android.widget.FrameLayout;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentTransaction;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -18,7 +19,6 @@ public class MainActivity extends AppCompatActivity {
     private Button btnSettings;
     private Button btnApps;
     private Button btnAbout;
-    private FrameLayout contentFrame;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -28,7 +28,6 @@ public class MainActivity extends AppCompatActivity {
         btnSettings = findViewById(R.id.btn_settings);
         btnApps = findViewById(R.id.btn_apps);
         btnAbout = findViewById(R.id.btn_about);
-        contentFrame = findViewById(R.id.content_frame);
 
         // 设置初始页面
         loadPage(currentPage);
@@ -70,16 +69,23 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void loadPage(int page) {
-        // 清除之前的页面内容
-        contentFrame.removeAllViews();
+        Fragment fragment = null;
         
-        // 使用if-else逻辑切换页面
+        // 根据页面类型创建对应的Fragment
         if (page == PAGE_SETTINGS) {
-            getLayoutInflater().inflate(R.layout.fragment_settings, contentFrame);
+            // 目前Settings页面还没有Fragment，暂时使用空白Fragment
+            fragment = new Fragment();
         } else if (page == PAGE_APPS) {
-            getLayoutInflater().inflate(R.layout.fragment_apps, contentFrame);
+            // 目前Apps页面还没有Fragment，暂时使用空白Fragment
+            fragment = new Fragment();
         } else if (page == PAGE_ABOUT) {
-            getLayoutInflater().inflate(R.layout.fragment_about, contentFrame);
+            fragment = new AboutFragment();
+        }
+        
+        if (fragment != null) {
+            FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+            transaction.replace(R.id.content_frame, fragment);
+            transaction.commit();
         }
     }
 

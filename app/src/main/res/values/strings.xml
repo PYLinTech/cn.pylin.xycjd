@@ -6,4 +6,19 @@
     <string name="title_settings">设定</string>
     <string name="title_apps">应用列表</string>
     <string name="title_about">关于</string>
+    
+    <!-- 关于页面相关字符串 -->
+    <string name="app_version">版本 %1$s (%2$d)</string>
+    <string name="app_version_error">版本号获取失败</string>
+    <string name="website_url">https://www.pylin.cn</string>
+    <string name="website_label">官网地址</string>
+    <string name="github_url">https://github.com/PYLinTech/cn.pylin.xycjd</string>
+    <string name="github_label">开源地址</string>
+    <string name="qq_group_label">QQ交流群</string>
+    <string name="qq_group_number">264467629</string>
+    <string name="qq_join_failed">跳转QQ失败，已复制QQ群号</string>
+    <string name="open_url_failed">无法打开链接</string>
+    <string name="qq_group_key">7cvKsjmJIYIuL2vcJmh2uKxmHZLgxYxr</string>
+    <string name="qq_group_url_prefix">mqqopensdkapi://bizAgent/qm/qr?url=http%3A%2F%2Fqm.qq.com%2Fcgi-bin%2Fqm%2Fqr%3Ffrom%3Dapp%26p%3Dandroid%26jump_from%3Dwebapi%26k%3D</string>
+    <string name="clipboard_label">小雨超级岛</string>
 </resources>
