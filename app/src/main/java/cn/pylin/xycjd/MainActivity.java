@@ -104,8 +104,8 @@ public class MainActivity extends AppCompatActivity {
         if (page == PAGE_SETTINGS) {
             fragment = new SettingsFragment();
         } else if (page == PAGE_APPS) {
-            // 目前Apps页面还没有Fragment，暂时使用空白Fragment
-            fragment = new Fragment();
+            // 使用AppsFragment
+            fragment = new AppsFragment();
         } else if (page == PAGE_ABOUT) {
             fragment = new AboutFragment();
         }
