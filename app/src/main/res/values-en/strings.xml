@@ -44,5 +44,12 @@
     <string name="intro_loading">Loading content...</string>
     <string name="intro_load_error">Load failed!</string>
     <string name="intro_welcome_content">Welcome to Xiaoyu Super Island!\n\nThis is a powerful application that provides you with convenient services.</string>
-    <string name="intro_permission_content">Permission Settings\n\nTo provide better services, we need the following permissions:\n\n• Storage: Save app data\n• Network: Connect to server for latest data\n• Notification: Send important notifications to you\n\nYou can manage these permissions in settings at any time.</string>
+    <string name="intro_permission_content">Permission Settings\n\nTo provide better services, we need the following permissions:</string>
+    <string name="permission_notification_listener">Notification Listener Permission</string>
+    <string name="permission_notification_listener_desc">Used to listen to system notifications and implement app notification management functions</string>
+    <string name="permission_overlay">Floating Window Permission</string>
+    <string name="permission_overlay_desc">Used to display floating windows for quick app operations</string>
+    <string name="permission_status_granted">Granted</string>
+    <string name="permission_status_denied">Not Granted</string>
+    <string name="permission_action_grant">Grant Permission</string>
 </resources>
