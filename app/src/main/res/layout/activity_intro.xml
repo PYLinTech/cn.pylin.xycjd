@@ -24,7 +24,6 @@
         android:backgroundTint="?attr/colorPrimary"
         android:textColor="@android:color/white"
         android:textSize="18sp"
-        android:text="下一步"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
