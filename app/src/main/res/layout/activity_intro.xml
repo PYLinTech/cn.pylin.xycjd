@@ -22,7 +22,7 @@
         android:layout_height="60dp"
         android:layout_margin="16dp"
         android:backgroundTint="?attr/colorPrimary"
-        android:textColor="@android:color/white"
+        android:textColor="@color/white"
         android:textSize="18sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"

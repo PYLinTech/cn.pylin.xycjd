@@ -1,5 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+
+    <!-- 自定义颜色 -->
+    <color name="red">#CC0000</color>
+    <color name="white">#FFFFFF</color>
+    <color name="black">#000000</color>
+    <color name="transparent">#00000000</color>
+    <color name="gray">#808080</color>
+    <color name="light_gray">#E0E0E0</color>
+    <color name="dark_gray">#424242</color>
+
     <!-- 夜间模式颜色 -->
     <color name="colorPrimary">#3B82F6</color>
     <color name="colorPrimaryDark">#2563EB</color>
@@ -14,12 +24,12 @@
     <color name="colorDivider">#333333</color>
     
     <!-- 功能区域背景色 -->
-    <color name="colorWebsiteBackground">#0F172A</color>
-    <color name="colorGithubBackground">#164E36</color>
+    <color name="colorWebsiteBackground">#4A041D</color>
+    <color name="colorGithubBackground">#042F2E</color>
     <color name="colorQQGroupBackground">#422006</color>
     
     <!-- 功能区域文字色 -->
-    <color name="colorWebsiteText">#60A5FA</color>
-    <color name="colorGithubText">#4ADE80</color>
+    <color name="colorWebsiteText">#EC4899</color>
+    <color name="colorGithubText">#10B981</color>
     <color name="colorQQGroupText">#FBBF24</color>
 </resources>
