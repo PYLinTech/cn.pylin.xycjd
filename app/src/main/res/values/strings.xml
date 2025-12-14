@@ -64,4 +64,7 @@
     <string name="app_filter_label">应用过滤：</string>
     <string name="user_app">用户应用</string>
     <string name="system_app">系统应用</string>
+    
+    <!-- 通知监听器相关字符串 -->
+    <string name="notification_listener_service_label">小雨超级岛通知监听器</string>
 </resources>

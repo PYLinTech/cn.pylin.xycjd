@@ -185,20 +185,14 @@ public class PermissionFragment extends Fragment {
      * 检查通知监听权限是否已授权
      */
     private boolean isNotificationListenerEnabled() {
-        String packageName = mContext.getPackageName();
-        String flat = Settings.Secure.getString(mContext.getContentResolver(), "enabled_notification_listeners");
-        if (flat != null) {
-            return flat.contains(packageName);
-        }
-        return false;
+        return NotificationListenerManager.isNotificationListenerEnabled(mContext);
     }
 
     /**
      * 打开通知监听权限设置页面
      */
     private void openNotificationListenerSettings() {
-        Intent intent = new Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS);
-        mActivity.startActivity(intent);
+        NotificationListenerManager.openNotificationListenerSettings(mActivity);
     }
 
     /**
