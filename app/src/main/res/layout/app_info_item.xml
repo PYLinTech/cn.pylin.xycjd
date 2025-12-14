@@ -56,4 +56,13 @@
             android:layout_marginTop="2dp" />
     </LinearLayout>
 
+    <!-- 勾选框开关 -->
+    <CheckBox
+        android:id="@+id/app_checkbox"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:clickable="true"
+        android:focusable="true" />
+
 </LinearLayout>

@@ -1,11 +1,14 @@
 package cn.pylin.xycjd;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.drawable.Drawable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -16,11 +19,13 @@ public class AppInfoAdapter extends BaseAdapter {
     private Context mContext;
     private List<AppInfo> mAppInfoList;
     private LayoutInflater mInflater;
+    private SharedPreferences mPrefs;
     
     public AppInfoAdapter(Context context, List<AppInfo> appInfoList) {
         mContext = context;
         mAppInfoList = appInfoList;
         mInflater = LayoutInflater.from(context);
+        mPrefs = context.getSharedPreferences("app_checkboxes", Context.MODE_PRIVATE);
     }
     
     @Override
@@ -49,6 +54,7 @@ public class AppInfoAdapter extends BaseAdapter {
             holder.appName = convertView.findViewById(R.id.app_name);
             holder.packageName = convertView.findViewById(R.id.package_name);
             holder.systemApp = convertView.findViewById(R.id.system_app);
+            holder.appCheckbox = convertView.findViewById(R.id.app_checkbox);
             convertView.setTag(holder);
         } else {
             holder = (ViewHolder) convertView.getTag();
@@ -73,6 +79,27 @@ public class AppInfoAdapter extends BaseAdapter {
             holder.systemApp.setTextColor(mContext.getResources().getColor(android.R.color.holo_green_dark));
         }
         
+        // 设置勾选框状态
+        String packageName = appInfo.getPackageName();
+        boolean isChecked = mPrefs.getBoolean(packageName, false);
+        appInfo.setChecked(isChecked);
+        
+        // 先移除之前的监听器，避免在设置状态时触发
+        holder.appCheckbox.setOnCheckedChangeListener(null);
+        // 设置勾选框状态
+        holder.appCheckbox.setChecked(isChecked);
+        
+        // 设置勾选框点击事件
+        holder.appCheckbox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                // 保存状态到SharedPreferences
+                mPrefs.edit().putBoolean(packageName, isChecked).apply();
+                // 更新AppInfo对象状态
+                appInfo.setChecked(isChecked);
+            }
+        });
+        
         // 异步加载应用图标
         new LoadIconTask(holder.appIcon).execute(appInfo.getPackageName());
         
@@ -96,6 +123,7 @@ public class AppInfoAdapter extends BaseAdapter {
         TextView appName;
         TextView packageName;
         TextView systemApp;
+        CheckBox appCheckbox;
     }
     
     /**

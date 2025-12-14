@@ -9,6 +9,7 @@ public class AppInfo {
     private boolean isSystemApp;
     private int versionCode;
     private String versionName;
+    private boolean isChecked;
 
     public AppInfo(String packageName, String appName, Drawable appIcon, boolean isSystemApp, int versionCode, String versionName) {
         this.packageName = packageName;
@@ -17,6 +18,7 @@ public class AppInfo {
         this.isSystemApp = isSystemApp;
         this.versionCode = versionCode;
         this.versionName = versionName;
+        this.isChecked = false;
     }
 
     public String getPackageName() {
@@ -65,5 +67,13 @@ public class AppInfo {
 
     public void setVersionName(String versionName) {
         this.versionName = versionName;
+    }
+
+    public boolean isChecked() {
+        return isChecked;
+    }
+
+    public void setChecked(boolean checked) {
+        isChecked = checked;
     }
 }
