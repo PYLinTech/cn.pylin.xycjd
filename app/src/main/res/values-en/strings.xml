@@ -67,4 +67,16 @@
     
     <!-- Notification listener related strings -->
     <string name="notification_listener_service_label">Xiaoyu Super Island Notification Listener</string>
+    
+    <!-- Floating window related strings -->
+    <string name="floating_window_setting">Floating Window Settings</string>
+    <string name="floating_window_size">Floating Window Size</string>
+    <string name="floating_window_position">Floating Window Position</string>
+    <string name="floating_window_position_x">Horizontal Position</string>
+    <string name="floating_window_position_y">Vertical Position</string>
+    <string name="floating_window_enable">Enable Floating Window</string>
+    <string name="floating_window_disable">Disable Floating Window</string>
+    <string name="floating_window_permission_denied">Floating window permission denied, please enable it in settings</string>
+    <string name="floating_window_enabled">Floating window enabled</string>
+    <string name="floating_window_disabled">Floating window disabled</string>
 </resources>

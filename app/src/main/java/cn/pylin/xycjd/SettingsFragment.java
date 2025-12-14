@@ -1,5 +1,6 @@
 package cn.pylin.xycjd;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
@@ -12,6 +13,9 @@ import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
+import android.widget.SeekBar;
+import android.widget.Switch;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -33,6 +37,20 @@ public class SettingsFragment extends Fragment {
     private RadioButton radioBtnLight;
     private RadioButton radioBtnDark;
     private RadioButton radioBtnSystem;
+    
+    // 悬浮窗相关控件
+    private CardView cardFloatingWindow;
+    private Switch switchFloatingWindow;
+    private SeekBar seekBarSize;
+    private SeekBar seekBarX;
+    private SeekBar seekBarY;
+    private TextView tvSizeValue;
+    private TextView tvXValue;
+    private TextView tvYValue;
+    
+    private FloatingWindowService floatingWindowService;
+    private boolean isFloatingWindowEnabled = false;
+    private static final int REQUEST_OVERLAY_PERMISSION = 1001;
 
     @Nullable
     @Override
@@ -51,6 +69,9 @@ public class SettingsFragment extends Fragment {
         // 设置点击事件
         setClickListeners();
         
+        // 设置悬浮窗相关
+        setupFloatingWindowControls();
+        
         // 设置平滑滚动
         setupSmoothScrolling();
         
@@ -68,6 +89,16 @@ public class SettingsFragment extends Fragment {
         radioBtnLight = view.findViewById(R.id.radio_btn_light);
         radioBtnDark = view.findViewById(R.id.radio_btn_dark);
         radioBtnSystem = view.findViewById(R.id.radio_btn_system);
+        
+        // 初始化悬浮窗相关控件
+        cardFloatingWindow = view.findViewById(R.id.card_floating_window);
+        switchFloatingWindow = view.findViewById(R.id.switch_floating_window);
+        seekBarSize = view.findViewById(R.id.seekbar_size);
+        seekBarX = view.findViewById(R.id.seekbar_x);
+        seekBarY = view.findViewById(R.id.seekbar_y);
+        tvSizeValue = view.findViewById(R.id.tv_size_value);
+        tvXValue = view.findViewById(R.id.tv_x_value);
+        tvYValue = view.findViewById(R.id.tv_y_value);
     }
 
     private void setupSmoothScrolling() {
@@ -175,5 +206,150 @@ public class SettingsFragment extends Fragment {
     private void restartApp() {
         // 重启当前活动
         requireActivity().recreate();
+    }
+    
+    private void setupFloatingWindowControls() {
+        // 获取当前悬浮窗状态
+        isFloatingWindowEnabled = FloatingWindowService.isServiceRunning(requireContext());
+        switchFloatingWindow.setChecked(isFloatingWindowEnabled);
+        
+        // 设置初始值
+        int size = FloatingWindowService.getSize(requireContext());
+        int x = FloatingWindowService.getX(requireContext());
+        int y = FloatingWindowService.getY(requireContext());
+        
+        seekBarSize.setProgress(size);
+        seekBarX.setProgress(x + 500); // 调整范围，使0在中间
+        seekBarY.setProgress(y + 200); // 调整范围，使-200在0位置
+        
+        tvSizeValue.setText(size + "dp");
+        tvXValue.setText(x + "dp");
+        tvYValue.setText(y + "dp");
+        
+        // 设置控件启用状态
+        updateFloatingWindowControlsState(isFloatingWindowEnabled);
+        
+        // 设置监听器
+        switchFloatingWindow.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (isChecked) {
+                // 检查悬浮窗权限
+                if (FloatingWindowPermissionManager.hasPermission(requireContext())) {
+                    startFloatingWindowService();
+                } else {
+                    // 请求权限
+                    FloatingWindowPermissionManager.requestPermission(requireActivity(), REQUEST_OVERLAY_PERMISSION);
+                    // 暂时关闭开关，等待权限结果
+                    switchFloatingWindow.setChecked(false);
+                }
+            } else {
+                stopFloatingWindowService();
+            }
+        });
+        
+        seekBarSize.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                tvSizeValue.setText(progress + "dp");
+                if (fromUser && isFloatingWindowEnabled) {
+                    updateFloatingWindow();
+                }
+            }
+            
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {}
+            
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {}
+        });
+        
+        seekBarX.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                int xValue = progress - 500; // 调整范围，使0在中间
+                tvXValue.setText(xValue + "dp");
+                if (fromUser && isFloatingWindowEnabled) {
+                    updateFloatingWindow();
+                }
+            }
+            
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {}
+            
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {}
+        });
+        
+        seekBarY.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                int y = progress - 200; // 调整范围，使-200在0位置
+                tvYValue.setText(y + "dp");
+                if (fromUser && isFloatingWindowEnabled) {
+                    updateFloatingWindow();
+                }
+            }
+            
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {}
+            
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {}
+        });
+    }
+    
+    private void updateFloatingWindowControlsState(boolean enabled) {
+        seekBarSize.setEnabled(enabled);
+        seekBarX.setEnabled(enabled);
+        seekBarY.setEnabled(enabled);
+    }
+    
+    private void startFloatingWindowService() {
+        Intent intent = new Intent(requireContext(), FloatingWindowService.class);
+        requireContext().startService(intent);
+        isFloatingWindowEnabled = true;
+        updateFloatingWindowControlsState(true);
+        Toast.makeText(requireContext(), getString(R.string.floating_window_enabled), Toast.LENGTH_SHORT).show();
+    }
+    
+    private void stopFloatingWindowService() {
+        Intent intent = new Intent(requireContext(), FloatingWindowService.class);
+        requireContext().stopService(intent);
+        isFloatingWindowEnabled = false;
+        updateFloatingWindowControlsState(false);
+        Toast.makeText(requireContext(), getString(R.string.floating_window_disabled), Toast.LENGTH_SHORT).show();
+    }
+    
+    private void updateFloatingWindow() {
+        int size = seekBarSize.getProgress();
+        int x = seekBarX.getProgress() - 500; // 调整范围，使0在中间
+        int y = seekBarY.getProgress() - 200; // 调整范围，使-200在0位置
+        
+        FloatingWindowService service = FloatingWindowService.getInstance();
+        if (service != null) {
+            service.updateFloatingWindow(size, x, y);
+        } else {
+            // 如果服务实例不存在，通过Intent更新
+            Intent intent = new Intent(requireContext(), FloatingWindowService.class);
+            intent.putExtra("update", true);
+            intent.putExtra("size", size);
+            intent.putExtra("x", x);
+            intent.putExtra("y", y);
+            requireContext().startService(intent);
+        }
+    }
+    
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQUEST_OVERLAY_PERMISSION) {
+            if (FloatingWindowPermissionManager.hasPermission(requireContext())) {
+                // 权限已授予，开启悬浮窗
+                switchFloatingWindow.setChecked(true);
+                startFloatingWindowService();
+            } else {
+                // 权限被拒绝
+                FloatingWindowPermissionManager.showPermissionDeniedMessage(requireContext());
+            }
+        }
     }
 }

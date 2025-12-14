@@ -154,6 +154,197 @@
             </LinearLayout>
         </androidx.cardview.widget.CardView>
 
+        <!-- 悬浮窗设置 -->
+        <androidx.cardview.widget.CardView
+            android:id="@+id/card_floating_window"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            app:cardBackgroundColor="@color/colorSurface"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="2dp"
+            app:cardUseCompatPadding="true">
+            
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+                
+                <!-- 悬浮窗设置标题 -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/floating_window_setting"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:textColor="?android:attr/textColorPrimary"
+                    android:layout_marginBottom="16dp" />
+                
+                <!-- 启用/禁用悬浮窗开关 -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="16dp">
+                    
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/floating_window_enable"
+                        android:textSize="15sp"
+                        android:textColor="?android:attr/textColorSecondary" />
+                    
+                    <Switch
+                        android:id="@+id/switch_floating_window"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" />
+                </LinearLayout>
+                
+                <!-- 悬浮窗大小调整 -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginBottom="16dp">
+                    
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginBottom="8dp">
+                        
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/floating_window_size"
+                            android:textSize="15sp"
+                            android:textColor="?android:attr/textColorSecondary" />
+                        
+                        <TextView
+                            android:id="@+id/tv_size_value"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="100dp"
+                            android:textSize="14sp"
+                            android:textColor="?android:attr/textColorPrimary" />
+                    </LinearLayout>
+                    
+                    <SeekBar
+                        android:id="@+id/seekbar_size"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:max="200"
+                        android:progress="100"
+                        android:progressTint="@color/colorPrimary"
+                        android:thumbTint="@color/colorPrimary"
+                        android:progressBackgroundTint="?android:attr/textColorSecondary" />
+                </LinearLayout>
+                
+                <!-- 悬浮窗位置调整 -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+                    
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/floating_window_position"
+                        android:textSize="15sp"
+                        android:textColor="?android:attr/textColorSecondary"
+                        android:layout_marginBottom="16dp" />
+                    
+                    <!-- 水平位置调整 -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:layout_marginBottom="16dp">
+                        
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical"
+                            android:layout_marginBottom="8dp">
+                            
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="@string/floating_window_position_x"
+                                android:textSize="14sp"
+                                android:textColor="?android:attr/textColorSecondary" />
+                            
+                            <TextView
+                                android:id="@+id/tv_x_value"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="0dp"
+                                android:textSize="14sp"
+                                android:textColor="?android:attr/textColorPrimary" />
+                        </LinearLayout>
+                        
+                        <SeekBar
+                            android:id="@+id/seekbar_x"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:max="1000"
+                            android:progress="500"
+                            android:progressTint="@color/colorPrimary"
+                            android:thumbTint="@color/colorPrimary"
+                            android:progressBackgroundTint="?android:attr/textColorSecondary" />
+                    </LinearLayout>
+                    
+                    <!-- 垂直位置调整 -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical">
+                        
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical"
+                            android:layout_marginBottom="8dp">
+                            
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="@string/floating_window_position_y"
+                                android:textSize="14sp"
+                                android:textColor="?android:attr/textColorSecondary" />
+                            
+                            <TextView
+                                android:id="@+id/tv_y_value"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="-100dp"
+                                android:textSize="14sp"
+                                android:textColor="?android:attr/textColorPrimary" />
+                        </LinearLayout>
+                        
+                        <SeekBar
+                            android:id="@+id/seekbar_y"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:max="2000"
+                            android:progress="300"
+                            android:progressTint="@color/colorPrimary"
+                            android:thumbTint="@color/colorPrimary"
+                            android:progressBackgroundTint="?android:attr/textColorSecondary" />
+                    </LinearLayout>
+                </LinearLayout>
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
         <!-- 权限设置 -->
         <androidx.cardview.widget.CardView
             android:id="@+id/card_permission"
