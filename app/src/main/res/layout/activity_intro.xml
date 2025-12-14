@@ -21,7 +21,7 @@
         android:layout_width="0dp"
         android:layout_height="60dp"
         android:layout_margin="16dp"
-        android:backgroundTint="?attr/colorPrimary"
+        android:background="@drawable/btn_transparent_border"
         android:textColor="@color/white"
         android:textSize="18sp"
         app:layout_constraintBottom_toBottomOf="parent"

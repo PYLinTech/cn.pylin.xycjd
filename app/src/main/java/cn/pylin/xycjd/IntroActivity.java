@@ -31,8 +31,14 @@ public class IntroActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        // 设置应用语言（只在引导页面执行）
-        setAppLanguage();
+        // 检查是否需要直接跳转到权限设置页面
+        boolean directToPermission = getIntent().getBooleanExtra("direct_to_permission", false);
+        
+        // 只在非直接跳转权限设置页面时设置应用语言
+        if (!directToPermission) {
+            // 设置应用语言（只在引导页面执行）
+            setAppLanguage();
+        }
         
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_intro);
@@ -75,10 +81,8 @@ public class IntroActivity extends AppCompatActivity {
             }
         });
         
-        // 检查是否需要直接跳转到权限设置页面
-        boolean directToPermission = getIntent().getBooleanExtra("direct_to_permission", false);
+        // 直接跳转到权限设置页面
         if (directToPermission) {
-            // 直接跳转到权限设置页面
             viewPager.setCurrentItem(3, false);
         }
 
