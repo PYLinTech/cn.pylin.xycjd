@@ -67,4 +67,16 @@
     
     <!-- 通知监听器相关字符串 -->
     <string name="notification_listener_service_label">小雨超级岛通知监听器</string>
+    
+    <!-- 悬浮窗相关字符串 -->
+    <string name="floating_window_setting">悬浮窗设置</string>
+    <string name="floating_window_size">悬浮窗大小</string>
+    <string name="floating_window_position">悬浮窗位置</string>
+    <string name="floating_window_position_x">水平位置</string>
+    <string name="floating_window_position_y">垂直位置</string>
+    <string name="floating_window_enable">启用悬浮窗</string>
+    <string name="floating_window_disable">禁用悬浮窗</string>
+    <string name="floating_window_permission_denied">悬浮窗权限被拒绝，请在设置中开启</string>
+    <string name="floating_window_enabled">悬浮窗已启用</string>
+    <string name="floating_window_disabled">悬浮窗已禁用</string>
 </resources>

@@ -39,6 +39,12 @@
                 <action android:name="android.service.notification.NotificationListenerService" />
             </intent-filter>
         </service>
+        
+        <!-- 悬浮窗服务 -->
+        <service
+            android:name=".FloatingWindowService"
+            android:enabled="true"
+            android:exported="false" />
     </application>
 
 </manifest>
