@@ -1,14 +1,17 @@
 package cn.pylin.xycjd;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.ImageButton;
 import android.widget.ListView;
-import android.widget.Spinner;
+import android.widget.PopupMenu;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -22,10 +25,11 @@ public class AppsFragment extends Fragment {
     
     private Context mContext;
     private ListView listView;
-    private Spinner filterSpinner;
+    private ImageButton menuButton;
     private List<AppInfo> allAppsList;
     private List<AppInfo> filteredAppsList;
     private AppInfoAdapter adapter;
+    private int currentFilterType = 1; // 默认为用户应用
     
     @Override
     public void onAttach(@NonNull Context context) {
@@ -39,9 +43,6 @@ public class AppsFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_apps, container, false);
         
         initViews(view);
-        setupFilterSpinner();
-        // 设置默认选择用户应用（索引为1）
-        filterSpinner.setSelection(1);
         loadApps();
         
         return view;
@@ -49,46 +50,54 @@ public class AppsFragment extends Fragment {
     
     private void initViews(View view) {
         listView = view.findViewById(R.id.apps_list);
-        filterSpinner = view.findViewById(R.id.filter_spinner);
-    }
-    
-    private void setupFilterSpinner() {
-        // 直接定义过滤选项，不使用数组资源
-        String[] filterOptions;
-        if (isChineseLanguage()) {
-            filterOptions = new String[]{"所有应用", "用户应用", "系统应用"};
-        } else {
-            filterOptions = new String[]{"All Apps", "User Apps", "System Apps"};
-        }
+        menuButton = view.findViewById(R.id.menu_button);
         
-        ArrayAdapter<String> spinnerAdapter = new ArrayAdapter<>(
-                mContext,
-                android.R.layout.simple_spinner_item,
-                filterOptions
-        );
-        spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        filterSpinner.setAdapter(spinnerAdapter);
-        
-        filterSpinner.setOnItemSelectedListener(new android.widget.AdapterView.OnItemSelectedListener() {
+        // 设置菜单按钮点击事件
+        menuButton.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onItemSelected(android.widget.AdapterView<?> parent, View view, int position, long id) {
-                filterApps(position);
-            }
-            
-            @Override
-            public void onNothingSelected(android.widget.AdapterView<?> parent) {
-                // Do nothing
+            public void onClick(View v) {
+                showPopupMenu(v);
             }
         });
     }
     
-    /**
-     * 检查当前是否为中文语言
-     */
-    private boolean isChineseLanguage() {
-        java.util.Locale locale = mContext.getResources().getConfiguration().locale;
-        return locale.getLanguage().equals("zh");
+    private void showPopupMenu(View anchorView) {
+        PopupMenu popup = new PopupMenu(mContext, anchorView);
+        popup.getMenuInflater().inflate(R.menu.apps_menu, popup.getMenu());
+        
+        popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem item) {
+                int id = item.getItemId();
+                if (id == R.id.action_select_all) {
+                    selectAllApps();
+                    return true;
+                } else if (id == R.id.action_deselect_all) {
+                    deselectAllApps();
+                    return true;
+                } else if (id == R.id.action_filter_all) {
+                    currentFilterType = 0;
+                    filterApps(currentFilterType);
+                    return true;
+                } else if (id == R.id.action_filter_user) {
+                    currentFilterType = 1;
+                    filterApps(currentFilterType);
+                    return true;
+                } else if (id == R.id.action_filter_system) {
+                    currentFilterType = 2;
+                    filterApps(currentFilterType);
+                    return true;
+                }
+                return false;
+            }
+        });
+        
+        popup.show();
     }
+    
+
+    
+
     
     private void loadApps() {
         // 检查权限
@@ -132,6 +141,34 @@ public class AppsFragment extends Fragment {
         }
     }
     
+    private void selectAllApps() {
+        if (adapter != null && filteredAppsList != null) {
+            SharedPreferences prefs = mContext.getSharedPreferences("app_checkboxes", Context.MODE_PRIVATE);
+            SharedPreferences.Editor editor = prefs.edit();
+            
+            for (AppInfo app : filteredAppsList) {
+                app.setChecked(true);
+                editor.putBoolean(app.getPackageName(), true);
+            }
+            editor.apply();
+            adapter.notifyDataSetChanged();
+        }
+    }
+    
+    private void deselectAllApps() {
+        if (adapter != null && filteredAppsList != null) {
+            SharedPreferences prefs = mContext.getSharedPreferences("app_checkboxes", Context.MODE_PRIVATE);
+            SharedPreferences.Editor editor = prefs.edit();
+            
+            for (AppInfo app : filteredAppsList) {
+                app.setChecked(false);
+                editor.putBoolean(app.getPackageName(), false);
+            }
+            editor.apply();
+            adapter.notifyDataSetChanged();
+        }
+    }
+    
     private class LoadAppsTask extends AsyncTask<Void, Void, List<AppInfo>> {
         @Override
         protected List<AppInfo> doInBackground(Void... voids) {
@@ -149,7 +186,7 @@ public class AppsFragment extends Fragment {
             listView.setAdapter(adapter);
             
             // 应用当前选择的过滤器
-            filterApps(filterSpinner.getSelectedItemPosition());
+            filterApps(currentFilterType);
         }
     }
 }

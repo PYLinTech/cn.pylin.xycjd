@@ -5,28 +5,29 @@
     android:orientation="vertical"
     android:padding="16dp">
 
-    <!-- 过滤器 -->
-    <LinearLayout
+    <!-- 顶部工具栏 -->
+    <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
         android:layout_marginBottom="16dp">
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/app_filter_label"
-            android:textSize="16sp"
+            android:text="@string/nav_apps"
+            android:textSize="18sp"
             android:textStyle="bold"
-            android:layout_marginEnd="8dp" />
+            android:layout_centerVertical="true" />
 
-        <Spinner
-            android:id="@+id/filter_spinner"
-            android:layout_width="0dp"
+        <ImageButton
+            android:id="@+id/menu_button"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1" />
-    </LinearLayout>
+            android:layout_alignParentEnd="true"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_menu"
+            android:contentDescription="@string/menu" />
+    </RelativeLayout>
 
     <!-- 应用列表 -->
     <ListView
