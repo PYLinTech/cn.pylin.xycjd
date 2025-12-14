@@ -55,6 +55,8 @@
     <string name="permission_overlay_desc">Used to display floating windows for quick app operations</string>
     <string name="permission_query_all_packages">Query All Packages Permission</string>
     <string name="permission_query_all_packages_desc">Used to get a complete list of all installed applications on the device</string>
+    <string name="permission_battery_optimization">Battery Optimization</string>
+    <string name="permission_battery_optimization_desc">Disabling battery optimization ensures the app runs properly in the background</string>
     <string name="permission_status_granted">Granted</string>
     <string name="permission_status_denied">Not Granted</string>
     <string name="permission_action_grant">Grant Permission</string>

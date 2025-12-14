@@ -55,6 +55,8 @@
     <string name="permission_overlay_desc">用于显示悬浮窗，方便您快速操作应用</string>
     <string name="permission_query_all_packages">查询所有应用包权限</string>
     <string name="permission_query_all_packages_desc">用于获取设备上所有已安装应用的完整列表</string>
+    <string name="permission_battery_optimization">电池优化</string>
+    <string name="permission_battery_optimization_desc">关闭电池优化可确保应用在后台正常运行</string>
     <string name="permission_status_granted">已授权</string>
     <string name="permission_status_denied">未授权</string>
     <string name="permission_action_grant">去授权</string>

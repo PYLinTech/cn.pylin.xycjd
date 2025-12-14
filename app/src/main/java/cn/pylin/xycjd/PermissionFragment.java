@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.provider.Settings;
 import android.os.Bundle;
+import android.os.PowerManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -35,6 +36,9 @@ public class PermissionFragment extends Fragment {
     private androidx.cardview.widget.CardView permissionItemQueryAllPackages;
     private TextView queryAllPackagesStatus;
     private Button queryAllPackagesBtn;
+    private androidx.cardview.widget.CardView permissionItemBatteryOptimization;
+    private TextView batteryOptimizationStatus;
+    private Button batteryOptimizationBtn;
 
     @Override
     public void onAttach(@NonNull Context context) {
@@ -75,6 +79,9 @@ public class PermissionFragment extends Fragment {
         permissionItemQueryAllPackages = view.findViewById(R.id.permission_item_query_all_packages);
         queryAllPackagesStatus = view.findViewById(R.id.query_all_packages_status);
         queryAllPackagesBtn = view.findViewById(R.id.query_all_packages_btn);
+        permissionItemBatteryOptimization = view.findViewById(R.id.permission_item_battery_optimization);
+        batteryOptimizationStatus = view.findViewById(R.id.battery_optimization_status);
+        batteryOptimizationBtn = view.findViewById(R.id.battery_optimization_btn);
     }
 
     /**
@@ -141,6 +148,22 @@ public class PermissionFragment extends Fragment {
                 openAppSettings();
             }
         });
+
+        // 电池优化权限项点击事件
+        permissionItemBatteryOptimization.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                openBatteryOptimizationSettings();
+            }
+        });
+
+        // 电池优化权限按钮点击事件
+        batteryOptimizationBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                openBatteryOptimizationSettings();
+            }
+        });
     }
 
     /**
@@ -179,6 +202,17 @@ public class PermissionFragment extends Fragment {
             queryAllPackagesStatus.setTextColor(getResources().getColor(R.color.red));
             queryAllPackagesBtn.setVisibility(View.VISIBLE);
         }
+
+        // 更新电池优化状态
+        if (isIgnoringBatteryOptimizations()) {
+            batteryOptimizationStatus.setText(R.string.permission_status_granted);
+            batteryOptimizationStatus.setTextColor(getResources().getColor(R.color.colorPrimary));
+            batteryOptimizationBtn.setVisibility(View.GONE);
+        } else {
+            batteryOptimizationStatus.setText(R.string.permission_status_denied);
+            batteryOptimizationStatus.setTextColor(getResources().getColor(R.color.red));
+            batteryOptimizationBtn.setVisibility(View.VISIBLE);
+        }
     }
 
     /**
@@ -211,5 +245,33 @@ public class PermissionFragment extends Fragment {
         Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
         intent.setData(android.net.Uri.parse("package:" + mContext.getPackageName()));
         mActivity.startActivity(intent);
+    }
+
+
+
+    /**
+     * 检查是否忽略电池优化（Android 11+）
+     */
+    private boolean isIgnoringBatteryOptimizations() {
+        PowerManager powerManager = (PowerManager) mContext.getSystemService(Context.POWER_SERVICE);
+        if (powerManager != null) {
+            return powerManager.isIgnoringBatteryOptimizations(mContext.getPackageName());
+        }
+        return false;
+    }
+
+    /**
+     * 打开电池优化设置页面（Android 11+）
+     */
+    private void openBatteryOptimizationSettings() {
+        try {
+            Intent intent = new Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS);
+            mActivity.startActivity(intent);
+        } catch (Exception e) {
+            // 如果失败，回退到应用详情页面
+            Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+            intent.setData(android.net.Uri.parse("package:" + mContext.getPackageName()));
+            mActivity.startActivity(intent);
+        }
     }
 }
