@@ -64,4 +64,7 @@
     <string name="app_filter_label">Filter apps:</string>
     <string name="user_app">User App</string>
     <string name="system_app">System App</string>
+    
+    <!-- Notification listener related strings -->
+    <string name="notification_listener_service_label">Xiaoyu Super Island Notification Listener</string>
 </resources>
