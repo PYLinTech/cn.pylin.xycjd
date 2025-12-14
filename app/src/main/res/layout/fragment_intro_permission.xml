@@ -73,8 +73,8 @@
                             android:layout_width="24dp"
                             android:layout_height="24dp"
                             android:src="@android:drawable/ic_dialog_info"
-                            android:tint="@color/colorPrimary"
-                            android:layout_marginEnd="16dp" />
+                            android:layout_marginEnd="16dp"
+                            app:tint="@color/colorPrimary" />
 
                         <TextView
                             android:layout_width="0dp"
@@ -157,8 +157,8 @@
                             android:layout_width="24dp"
                             android:layout_height="24dp"
                             android:src="@android:drawable/ic_dialog_alert"
-                            android:tint="@color/colorPrimary"
-                            android:layout_marginEnd="16dp" />
+                            android:layout_marginEnd="16dp"
+                            app:tint="@color/colorPrimary" />
 
                         <TextView
                             android:layout_width="0dp"
@@ -240,8 +240,8 @@
                             android:layout_width="24dp"
                             android:layout_height="24dp"
                             android:src="@android:drawable/ic_menu_manage"
-                            android:tint="@color/colorPrimary"
-                            android:layout_marginEnd="16dp" />
+                            android:layout_marginEnd="16dp"
+                            app:tint="@color/colorPrimary" />
 
                         <TextView
                             android:layout_width="0dp"
@@ -324,8 +324,8 @@
                             android:layout_width="24dp"
                             android:layout_height="24dp"
                             android:src="@android:drawable/ic_dialog_email"
-                            android:tint="@color/colorPrimary"
-                            android:layout_marginEnd="16dp" />
+                            android:layout_marginEnd="16dp"
+                            app:tint="@color/colorPrimary" />
 
                         <TextView
                             android:layout_width="0dp"

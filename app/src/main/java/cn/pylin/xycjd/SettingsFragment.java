@@ -81,9 +81,6 @@ public class SettingsFragment extends Fragment {
         // 设置悬浮窗相关
         setupFloatingWindowControls();
         
-        // 设置平滑滚动
-        setupSmoothScrolling();
-        
         return view;
     }
 
@@ -115,12 +112,6 @@ public class SettingsFragment extends Fragment {
         btnYDecrease = view.findViewById(R.id.btn_y_decrease);
         btnYIncrease = view.findViewById(R.id.btn_y_increase);
         btnResetPosition = view.findViewById(R.id.btn_reset_position);
-    }
-
-    private void setupSmoothScrolling() {
-        if (scrollView != null) {
-            scrollView.setNestedScrollingEnabled(true);
-        }
     }
 
     private void setLanguageSelection() {

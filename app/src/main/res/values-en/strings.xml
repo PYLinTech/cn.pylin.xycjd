@@ -48,7 +48,7 @@
     <string name="intro_loading">Loading content...</string>
     <string name="intro_load_error">Load failed!</string>
     <string name="intro_welcome_content">Welcome to Xiaoyu Super Island!\n\nThis is a powerful application that provides you with convenient services.</string>
-    <string name="intro_permission_content">Permission Settings\n\nTo provide better services, we need the following permissions:</string>
+    <string name="intro_permission_content">To provide better services, we need the following permissions:</string>
     <string name="permission_notification_listener">Notification Listener Permission</string>
     <string name="permission_notification_listener_desc">Used to listen to system notifications and implement app notification management functions</string>
     <string name="permission_overlay">Floating Window Permission</string>

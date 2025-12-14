@@ -1,5 +1,6 @@
 package cn.pylin.xycjd;
 
+import android.animation.ValueAnimator;
 import android.app.Activity;
 import android.app.ActivityManager;
 import android.content.Intent;
@@ -10,6 +11,7 @@ import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.view.View;
 import android.widget.Button;
+import android.widget.FrameLayout;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
@@ -29,6 +31,7 @@ public class MainActivity extends AppCompatActivity {
     private Button btnSettings;
     private Button btnApps;
     private Button btnAbout;
+    private View navigationIndicator;
     
     // 上次按返回键的时间
     private long lastBackPressTime = 0;
@@ -59,10 +62,35 @@ public class MainActivity extends AppCompatActivity {
         btnSettings = findViewById(R.id.btn_settings);
         btnApps = findViewById(R.id.btn_apps);
         btnAbout = findViewById(R.id.btn_about);
+        navigationIndicator = findViewById(R.id.navigation_indicator);
 
         // 设置初始页面
         loadPage(currentPage);
         updateButtonStates();
+        
+        // 初始化指示器位置
+        findViewById(R.id.navigation_bar).post(new Runnable() {
+            @Override
+            public void run() {
+                // 调整指示器宽度为按钮宽度的80%
+                int navigationBarWidth = findViewById(R.id.navigation_bar).getWidth();
+                int buttonWidth = navigationBarWidth / 3;
+                int indicatorWidth = (int)(buttonWidth * 0.8f);
+                
+                FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) navigationIndicator.getLayoutParams();
+                params.width = indicatorWidth;
+                navigationIndicator.setLayoutParams(params);
+                
+                // 确保布局完成后再设置初始位置
+                navigationIndicator.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        // 设置初始位置
+                        updateIndicatorPosition(currentPage, false);
+                    }
+                });
+            }
+        });
 
         // 设置按钮点击事件
         btnSettings.setOnClickListener(new View.OnClickListener() {
@@ -72,6 +100,7 @@ public class MainActivity extends AppCompatActivity {
                     currentPage = PAGE_SETTINGS;
                     loadPage(currentPage);
                     updateButtonStates();
+                    updateIndicatorPosition(currentPage, true);
                 }
             }
         });
@@ -83,6 +112,7 @@ public class MainActivity extends AppCompatActivity {
                     currentPage = PAGE_APPS;
                     loadPage(currentPage);
                     updateButtonStates();
+                    updateIndicatorPosition(currentPage, true);
                 }
             }
         });
@@ -94,6 +124,7 @@ public class MainActivity extends AppCompatActivity {
                     currentPage = PAGE_ABOUT;
                     loadPage(currentPage);
                     updateButtonStates();
+                    updateIndicatorPosition(currentPage, true);
                 }
             }
         });
@@ -120,19 +151,61 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void updateButtonStates() {
+        // 获取反色
+        int inverseColor = getResources().getColor(R.color.colorPrimaryInverse, getTheme());
+        int defaultColor = getResources().getColor(R.color.colorOnSurface, getTheme());
+        
         // 更新按钮状态，当前页面按钮显示不同颜色
         if (currentPage == PAGE_SETTINGS) {
-            btnSettings.setTextColor(getResources().getColor(android.R.color.holo_blue_dark));
-            btnApps.setTextColor(getResources().getColor(android.R.color.darker_gray));
-            btnAbout.setTextColor(getResources().getColor(android.R.color.darker_gray));
+            btnSettings.setTextColor(inverseColor);
+            btnApps.setTextColor(defaultColor);
+            btnAbout.setTextColor(defaultColor);
         } else if (currentPage == PAGE_APPS) {
-            btnSettings.setTextColor(getResources().getColor(android.R.color.darker_gray));
-            btnApps.setTextColor(getResources().getColor(android.R.color.holo_blue_dark));
-            btnAbout.setTextColor(getResources().getColor(android.R.color.darker_gray));
+            btnSettings.setTextColor(defaultColor);
+            btnApps.setTextColor(inverseColor);
+            btnAbout.setTextColor(defaultColor);
         } else if (currentPage == PAGE_ABOUT) {
-            btnSettings.setTextColor(getResources().getColor(android.R.color.darker_gray));
-            btnApps.setTextColor(getResources().getColor(android.R.color.darker_gray));
-            btnAbout.setTextColor(getResources().getColor(android.R.color.holo_blue_dark));
+            btnSettings.setTextColor(defaultColor);
+            btnApps.setTextColor(defaultColor);
+            btnAbout.setTextColor(inverseColor);
+        }
+    }
+    
+    private void updateIndicatorPosition(int page, boolean animate) {
+        if (navigationIndicator == null) return;
+        
+        int navigationBarWidth = findViewById(R.id.navigation_bar).getWidth();
+        int indicatorWidth = navigationIndicator.getWidth();
+        int buttonWidth = navigationBarWidth / 3;
+        
+        // 计算每个按钮的中心位置，然后减去指示器宽度的一半
+        int targetX = 0;
+        switch (page) {
+            case PAGE_SETTINGS:
+                targetX = buttonWidth / 2 - indicatorWidth / 2;
+                break;
+            case PAGE_APPS:
+                targetX = buttonWidth + buttonWidth / 2 - indicatorWidth / 2;
+                break;
+            case PAGE_ABOUT:
+                targetX = buttonWidth * 2 + buttonWidth / 2 - indicatorWidth / 2;
+                break;
+        }
+        
+        if (animate) {
+            ValueAnimator animator = ValueAnimator.ofFloat(navigationIndicator.getX(), targetX);
+            animator.setDuration(220);
+            animator.setInterpolator(new android.view.animation.PathInterpolator(0.4f, 0.0f, 0.2f, 1f));
+            animator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+                @Override
+                public void onAnimationUpdate(ValueAnimator animation) {
+                    float value = (float) animation.getAnimatedValue();
+                    navigationIndicator.setX(value);
+                }
+            });
+            animator.start();
+        } else {
+            navigationIndicator.setX(targetX);
         }
     }
     

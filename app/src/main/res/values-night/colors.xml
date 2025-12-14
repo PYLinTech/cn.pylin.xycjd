@@ -14,13 +14,12 @@
     <color name="colorPrimary">#3B82F6</color>
     <color name="colorPrimaryDark">#2563EB</color>
     <color name="colorAccent">#60A5FA</color>
+    <color name="colorPrimaryInverse">#000000</color>
     
     <color name="colorBackground">#121212</color>
     <color name="colorSurface">#1E1E1E</color>
     <color name="colorOnSurface">#E0E0E0</color>
     <color name="colorOnSurfaceSecondary">#A0A0A0</color>
-    
-    <color name="colorNavigationBar">#1E1E1E</color>
     <color name="colorDivider">#333333</color>
     
     <!-- 功能区域背景色 -->

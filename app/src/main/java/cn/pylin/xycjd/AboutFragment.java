@@ -44,9 +44,6 @@ public class AboutFragment extends Fragment {
         // 设置点击事件
         setClickListeners();
         
-        // 设置平滑滚动
-        setupSmoothScrolling();
-        
         return view;
     }
 
@@ -61,12 +58,6 @@ public class AboutFragment extends Fragment {
         layoutWebsite = view.findViewById(R.id.layout_website);
         layoutGithub = view.findViewById(R.id.layout_github);
         layoutQqGroup = view.findViewById(R.id.layout_qq_group);
-    }
-
-    private void setupSmoothScrolling() {
-        if (scrollView != null) {
-            scrollView.setNestedScrollingEnabled(true);
-        }
     }
 
     private void setVersionInfo() {
