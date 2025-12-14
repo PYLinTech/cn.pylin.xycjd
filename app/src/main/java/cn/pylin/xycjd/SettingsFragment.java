@@ -10,6 +10,8 @@ import android.preference.PreferenceManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
@@ -47,6 +49,13 @@ public class SettingsFragment extends Fragment {
     private TextView tvSizeValue;
     private TextView tvXValue;
     private TextView tvYValue;
+    private ImageButton btnSizeDecrease;
+    private ImageButton btnSizeIncrease;
+    private ImageButton btnXDecrease;
+    private ImageButton btnXIncrease;
+    private ImageButton btnYDecrease;
+    private ImageButton btnYIncrease;
+    private Button btnResetPosition;
     
     private FloatingWindowService floatingWindowService;
     private boolean isFloatingWindowEnabled = false;
@@ -99,6 +108,13 @@ public class SettingsFragment extends Fragment {
         tvSizeValue = view.findViewById(R.id.tv_size_value);
         tvXValue = view.findViewById(R.id.tv_x_value);
         tvYValue = view.findViewById(R.id.tv_y_value);
+        btnSizeDecrease = view.findViewById(R.id.btn_size_decrease);
+        btnSizeIncrease = view.findViewById(R.id.btn_size_increase);
+        btnXDecrease = view.findViewById(R.id.btn_x_decrease);
+        btnXIncrease = view.findViewById(R.id.btn_x_increase);
+        btnYDecrease = view.findViewById(R.id.btn_y_decrease);
+        btnYIncrease = view.findViewById(R.id.btn_y_increase);
+        btnResetPosition = view.findViewById(R.id.btn_reset_position);
     }
 
     private void setupSmoothScrolling() {
@@ -246,6 +262,24 @@ public class SettingsFragment extends Fragment {
             }
         });
         
+        // 设置加减按钮点击事件
+        setupButtonListeners();
+        
+        // 设置还原默认位置按钮点击事件
+        btnResetPosition.setOnClickListener(v -> {
+            // 设置默认值
+            seekBarSize.setProgress(100); // 默认大小
+            seekBarX.setProgress(500); // 默认水平位置(0)
+            seekBarY.setProgress(300); // 默认垂直位置(-100)
+            
+            // 如果悬浮窗已启用，立即更新
+            if (isFloatingWindowEnabled) {
+                updateFloatingWindow();
+            }
+            
+            Toast.makeText(requireContext(), getString(R.string.reset_to_default_position), Toast.LENGTH_SHORT).show();
+        });
+        
         seekBarSize.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
@@ -301,6 +335,60 @@ public class SettingsFragment extends Fragment {
         seekBarSize.setEnabled(enabled);
         seekBarX.setEnabled(enabled);
         seekBarY.setEnabled(enabled);
+        btnSizeDecrease.setEnabled(enabled);
+        btnSizeIncrease.setEnabled(enabled);
+        btnXDecrease.setEnabled(enabled);
+        btnXIncrease.setEnabled(enabled);
+        btnYDecrease.setEnabled(enabled);
+        btnYIncrease.setEnabled(enabled);
+        btnResetPosition.setEnabled(enabled);
+    }
+    
+    private void setupButtonListeners() {
+        // 大小加减按钮
+        btnSizeDecrease.setOnClickListener(v -> {
+            int currentProgress = seekBarSize.getProgress();
+            if (currentProgress > 1) { // 设置最小值为1
+                seekBarSize.setProgress(currentProgress - 1);
+            }
+        });
+        
+        btnSizeIncrease.setOnClickListener(v -> {
+            int currentProgress = seekBarSize.getProgress();
+            if (currentProgress < seekBarSize.getMax()) { // 确保不超过最大值
+                seekBarSize.setProgress(currentProgress + 1);
+            }
+        });
+        
+        // 水平位置加减按钮
+        btnXDecrease.setOnClickListener(v -> {
+            int currentProgress = seekBarX.getProgress();
+            if (currentProgress > 1) { // 设置最小值为1
+                seekBarX.setProgress(currentProgress - 1);
+            }
+        });
+        
+        btnXIncrease.setOnClickListener(v -> {
+            int currentProgress = seekBarX.getProgress();
+            if (currentProgress < seekBarX.getMax()) { // 确保不超过最大值
+                seekBarX.setProgress(currentProgress + 1);
+            }
+        });
+        
+        // 垂直位置加减按钮
+        btnYDecrease.setOnClickListener(v -> {
+            int currentProgress = seekBarY.getProgress();
+            if (currentProgress > 1) { // 设置最小值为1
+                seekBarY.setProgress(currentProgress - 1);
+            }
+        });
+        
+        btnYIncrease.setOnClickListener(v -> {
+            int currentProgress = seekBarY.getProgress();
+            if (currentProgress < seekBarY.getMax()) { // 确保不超过最大值
+                seekBarY.setProgress(currentProgress + 1);
+            }
+        });
     }
     
     private void startFloatingWindowService() {

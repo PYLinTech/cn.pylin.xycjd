@@ -79,4 +79,7 @@
     <string name="floating_window_permission_denied">悬浮窗权限被拒绝，请在设置中开启</string>
     <string name="floating_window_enabled">悬浮窗已启用</string>
     <string name="floating_window_disabled">悬浮窗已禁用</string>
+    <string name="increase">增加</string>
+    <string name="decrease">减少</string>
+    <string name="reset_to_default_position">还原默认位置</string>
 </resources>
