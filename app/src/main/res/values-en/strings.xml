@@ -64,11 +64,19 @@
     
     <!-- App list related strings -->
     <string name="app_filter_label">Filter apps:</string>
+    <string name="all_apps">All Apps</string>
     <string name="user_app">User App</string>
     <string name="system_app">System App</string>
+    <string name="select_all">Select All</string>
+    <string name="deselect_all">Deselect All</string>
+    <string name="menu">Menu</string>
     
     <!-- Notification listener related strings -->
     <string name="notification_listener_service_label">Xiaoyu Super Island Notification Listener</string>
+    
+    <!-- App icon related strings -->
+    <string name="app_icon">App Icon</string>
+    <string name="welcome_icon">Welcome Icon</string>
     
     <!-- Floating window related strings -->
     <string name="floating_window_setting">Floating Window Settings</string>

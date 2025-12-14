@@ -56,13 +56,15 @@ public class AppNotificationListenerService extends NotificationListenerService 
         String title = sbn.getNotification().extras.getString("android.title");
         String text = sbn.getNotification().extras.getString("android.text");
         
-        Log.d(TAG, "收到通知 - 包名: " + packageName + ", 标题: " + title + ", 内容: " + text);
+        Log.d(TAG, "Notification received - Package: " + packageName + ", Title: " + title + ", Content: " + text);
         
-        // 这里可以添加更多处理逻辑，例如：
-        // 1. 显示悬浮窗
-        // 2. 保存通知历史
-        // 3. 发送广播通知其他组件
-        // 4. 根据通知内容执行特定操作
+        // 显示灵动岛样式的悬浮窗
+        FloatingWindowService service = FloatingWindowService.getInstance();
+        if (service != null) {
+            service.showNotificationIsland(packageName, title, text);
+            // 显示三圆灵动岛悬浮窗
+            service.showThreeCircleIsland(packageName);
+        }
     }
     
     /**
@@ -73,8 +75,14 @@ public class AppNotificationListenerService extends NotificationListenerService 
         String packageName = sbn.getPackageName();
         String title = sbn.getNotification().extras.getString("android.title");
         
-        Log.d(TAG, "通知已移除 - 包名: " + packageName + ", 标题: " + title);
+        Log.d(TAG, "Notification removed - Package: " + packageName + ", Title: " + title);
         
-        // 这里可以添加通知移除后的处理逻辑
+        // 隐藏灵动岛样式的悬浮窗
+        FloatingWindowService service = FloatingWindowService.getInstance();
+        if (service != null) {
+            service.hideNotificationIsland();
+            // 隐藏三圆灵动岛悬浮窗
+            service.hideThreeCircleIsland();
+        }
     }
 }

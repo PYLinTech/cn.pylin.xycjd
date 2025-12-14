@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/action_select_all"
+        android:title="@string/select_all" />
+
+    <item
+        android:id="@+id/action_deselect_all"
+        android:title="@string/deselect_all" />
+
+    <item android:title="@string/app_filter_label">
+        <menu>
+            <item
+                android:id="@+id/action_filter_all"
+                android:title="@string/all_apps" />
+            <item
+                android:id="@+id/action_filter_user"
+                android:title="@string/user_app" />
+            <item
+                android:id="@+id/action_filter_system"
+                android:title="@string/system_app" />
+        </menu>
+    </item>
+
+</menu>
