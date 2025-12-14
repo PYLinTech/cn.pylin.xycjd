@@ -1,5 +1,7 @@
 package cn.pylin.xycjd;
 
+import android.app.Activity;
+import android.app.ActivityManager;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
@@ -177,14 +179,36 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onBackPressed() {
         long currentTime = System.currentTimeMillis();
-        // 如果两次按返回键的时间间隔小于2秒，则退出应用
+        // 如果两次按返回键的时间间隔小于2秒，则隐藏到后台并从最近任务列表中排除
         if (currentTime - lastBackPressTime < DOUBLE_BACK_PRESS_INTERVAL) {
-            super.onBackPressed();
+            // 从最近任务列表中排除应用
+            hideFromRecents();
+            // 移动到后台
+            moveTaskToBack(true);
         } else {
-            // 第一次按返回键，提示用户再次按返回键退出应用
+            // 第一次按返回键，提示用户再次按返回键隐藏到后台
             lastBackPressTime = currentTime;
             // 显示提示信息
-            android.widget.Toast.makeText(this, "再按一次退出应用", android.widget.Toast.LENGTH_SHORT).show();
+            android.widget.Toast.makeText(this, R.string.double_back_to_exit, android.widget.Toast.LENGTH_SHORT).show();
+        }
+    }
+    
+    /**
+     * 从最近任务列表中隐藏应用
+     */
+    private void hideFromRecents() {
+        try {
+            ActivityManager activityManager = (ActivityManager) getSystemService(Activity.ACTIVITY_SERVICE);
+            if (activityManager != null) {
+                // 获取当前应用的任务列表
+                for (ActivityManager.AppTask task : activityManager.getAppTasks()) {
+                    // 设置从最近任务中排除
+                    task.setExcludeFromRecents(true);
+                }
+            }
+        } catch (Exception e) {
+            // 处理异常
+            e.printStackTrace();
         }
     }
 }

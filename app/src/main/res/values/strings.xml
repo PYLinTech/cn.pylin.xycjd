@@ -82,4 +82,7 @@
     <string name="increase">增加</string>
     <string name="decrease">减少</string>
     <string name="reset_to_default_position">还原默认位置</string>
+    
+    <!-- 返回键相关字符串 -->
+    <string name="double_back_to_exit">再按一次隐藏到后台</string>
 </resources>

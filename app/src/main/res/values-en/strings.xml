@@ -82,4 +82,7 @@
     <string name="increase">Increase</string>
     <string name="decrease">Decrease</string>
     <string name="reset_to_default_position">Reset to Default Position</string>
+    
+    <!-- Back key related strings -->
+    <string name="double_back_to_exit">Press again to hide to background</string>
 </resources>
