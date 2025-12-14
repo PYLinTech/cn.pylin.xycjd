@@ -261,7 +261,12 @@ public class SettingsFragment extends Fragment {
             // 设置默认值
             seekBarSize.setProgress(100); // 默认大小
             seekBarX.setProgress(500); // 默认水平位置(0)
-            seekBarY.setProgress(300); // 默认垂直位置(-100)
+            seekBarY.setProgress(100); // 默认垂直位置(-100)
+            
+            // 更新显示值
+            tvSizeValue.setText("100dp");
+            tvXValue.setText("0dp");
+            tvYValue.setText("-100dp");
             
             // 如果悬浮窗已启用，立即更新
             if (isFloatingWindowEnabled) {
@@ -341,6 +346,10 @@ public class SettingsFragment extends Fragment {
             int currentProgress = seekBarSize.getProgress();
             if (currentProgress > 1) { // 设置最小值为1
                 seekBarSize.setProgress(currentProgress - 1);
+                tvSizeValue.setText((currentProgress - 1) + "dp");
+                if (isFloatingWindowEnabled) {
+                    updateFloatingWindow();
+                }
             }
         });
         
@@ -348,14 +357,23 @@ public class SettingsFragment extends Fragment {
             int currentProgress = seekBarSize.getProgress();
             if (currentProgress < seekBarSize.getMax()) { // 确保不超过最大值
                 seekBarSize.setProgress(currentProgress + 1);
+                tvSizeValue.setText((currentProgress + 1) + "dp");
+                if (isFloatingWindowEnabled) {
+                    updateFloatingWindow();
+                }
             }
         });
         
         // 水平位置加减按钮
         btnXDecrease.setOnClickListener(v -> {
             int currentProgress = seekBarX.getProgress();
-            if (currentProgress > 1) { // 设置最小值为1
+            if (currentProgress > 0) { // 设置最小值为0
                 seekBarX.setProgress(currentProgress - 1);
+                int xValue = (currentProgress - 1) - 500; // 调整范围，使0在中间
+                tvXValue.setText(xValue + "dp");
+                if (isFloatingWindowEnabled) {
+                    updateFloatingWindow();
+                }
             }
         });
         
@@ -363,14 +381,24 @@ public class SettingsFragment extends Fragment {
             int currentProgress = seekBarX.getProgress();
             if (currentProgress < seekBarX.getMax()) { // 确保不超过最大值
                 seekBarX.setProgress(currentProgress + 1);
+                int xValue = (currentProgress + 1) - 500; // 调整范围，使0在中间
+                tvXValue.setText(xValue + "dp");
+                if (isFloatingWindowEnabled) {
+                    updateFloatingWindow();
+                }
             }
         });
         
         // 垂直位置加减按钮
         btnYDecrease.setOnClickListener(v -> {
             int currentProgress = seekBarY.getProgress();
-            if (currentProgress > 1) { // 设置最小值为1
+            if (currentProgress > 0) { // 设置最小值为0
                 seekBarY.setProgress(currentProgress - 1);
+                int y = (currentProgress - 1) - 200; // 调整范围，使-200在0位置
+                tvYValue.setText(y + "dp");
+                if (isFloatingWindowEnabled) {
+                    updateFloatingWindow();
+                }
             }
         });
         
@@ -378,6 +406,11 @@ public class SettingsFragment extends Fragment {
             int currentProgress = seekBarY.getProgress();
             if (currentProgress < seekBarY.getMax()) { // 确保不超过最大值
                 seekBarY.setProgress(currentProgress + 1);
+                int y = (currentProgress + 1) - 200; // 调整范围，使-200在0位置
+                tvYValue.setText(y + "dp");
+                if (isFloatingWindowEnabled) {
+                    updateFloatingWindow();
+                }
             }
         });
     }
