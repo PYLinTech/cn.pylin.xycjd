@@ -234,15 +234,43 @@
                             android:textColor="?android:attr/textColorPrimary" />
                     </LinearLayout>
                     
-                    <SeekBar
-                        android:id="@+id/seekbar_size"
+                    <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:max="200"
-                        android:progress="100"
-                        android:progressTint="@color/colorPrimary"
-                        android:thumbTint="@color/colorPrimary"
-                        android:progressBackgroundTint="?android:attr/textColorSecondary" />
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical">
+                        
+                        <ImageButton
+                            android:id="@+id/btn_size_decrease"
+                            android:layout_width="36dp"
+                            android:layout_height="36dp"
+                            android:src="@drawable/ic_remove"
+                            android:background="?attr/selectableItemBackgroundBorderless"
+                            android:contentDescription="@string/decrease"
+                            android:tint="?android:attr/textColorSecondary" />
+                        
+                        <SeekBar
+                            android:id="@+id/seekbar_size"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:layout_marginStart="8dp"
+                            android:layout_marginEnd="8dp"
+                            android:max="200"
+                            android:progress="100"
+                            android:progressTint="@color/colorPrimary"
+                            android:thumbTint="@color/colorPrimary"
+                            android:progressBackgroundTint="?android:attr/textColorSecondary" />
+                        
+                        <ImageButton
+                            android:id="@+id/btn_size_increase"
+                            android:layout_width="36dp"
+                            android:layout_height="36dp"
+                            android:src="@drawable/ic_add"
+                            android:background="?attr/selectableItemBackgroundBorderless"
+                            android:contentDescription="@string/increase"
+                            android:tint="?android:attr/textColorSecondary" />
+                    </LinearLayout>
                 </LinearLayout>
                 
                 <!-- 悬浮窗位置调整 -->
@@ -290,15 +318,43 @@
                                 android:textColor="?android:attr/textColorPrimary" />
                         </LinearLayout>
                         
-                        <SeekBar
-                            android:id="@+id/seekbar_x"
+                        <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:max="1000"
-                            android:progress="500"
-                            android:progressTint="@color/colorPrimary"
-                            android:thumbTint="@color/colorPrimary"
-                            android:progressBackgroundTint="?android:attr/textColorSecondary" />
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical">
+                            
+                            <ImageButton
+                                android:id="@+id/btn_x_decrease"
+                                android:layout_width="36dp"
+                                android:layout_height="36dp"
+                                android:src="@drawable/ic_remove"
+                                android:background="?attr/selectableItemBackgroundBorderless"
+                                android:contentDescription="@string/decrease"
+                                android:tint="?android:attr/textColorSecondary" />
+                            
+                            <SeekBar
+                                android:id="@+id/seekbar_x"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:layout_marginStart="8dp"
+                                android:layout_marginEnd="8dp"
+                                android:max="1000"
+                                android:progress="500"
+                                android:progressTint="@color/colorPrimary"
+                                android:thumbTint="@color/colorPrimary"
+                                android:progressBackgroundTint="?android:attr/textColorSecondary" />
+                            
+                            <ImageButton
+                                android:id="@+id/btn_x_increase"
+                                android:layout_width="36dp"
+                                android:layout_height="36dp"
+                                android:src="@drawable/ic_add"
+                                android:background="?attr/selectableItemBackgroundBorderless"
+                                android:contentDescription="@string/increase"
+                                android:tint="?android:attr/textColorSecondary" />
+                        </LinearLayout>
                     </LinearLayout>
                     
                     <!-- 垂直位置调整 -->
@@ -331,17 +387,60 @@
                                 android:textColor="?android:attr/textColorPrimary" />
                         </LinearLayout>
                         
-                        <SeekBar
-                            android:id="@+id/seekbar_y"
+                        <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:max="2000"
-                            android:progress="300"
-                            android:progressTint="@color/colorPrimary"
-                            android:thumbTint="@color/colorPrimary"
-                            android:progressBackgroundTint="?android:attr/textColorSecondary" />
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical">
+                            
+                            <ImageButton
+                                android:id="@+id/btn_y_decrease"
+                                android:layout_width="36dp"
+                                android:layout_height="36dp"
+                                android:src="@drawable/ic_remove"
+                                android:background="?attr/selectableItemBackgroundBorderless"
+                                android:contentDescription="@string/decrease"
+                                android:tint="?android:attr/textColorSecondary" />
+                            
+                            <SeekBar
+                                android:id="@+id/seekbar_y"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:layout_marginStart="8dp"
+                                android:layout_marginEnd="8dp"
+                                android:max="2000"
+                                android:progress="300"
+                                android:progressTint="@color/colorPrimary"
+                                android:thumbTint="@color/colorPrimary"
+                                android:progressBackgroundTint="?android:attr/textColorSecondary" />
+                            
+                            <ImageButton
+                                android:id="@+id/btn_y_increase"
+                                android:layout_width="36dp"
+                                android:layout_height="36dp"
+                                android:src="@drawable/ic_add"
+                                android:background="?attr/selectableItemBackgroundBorderless"
+                                android:contentDescription="@string/increase"
+                                android:tint="?android:attr/textColorSecondary" />
+                        </LinearLayout>
                     </LinearLayout>
                 </LinearLayout>
+                
+                <!-- 还原默认位置按钮 -->
+                <Button
+                    android:id="@+id/btn_reset_position"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:text="@string/reset_to_default_position"
+                    android:textSize="14sp"
+                    android:textColor="@color/colorPrimary"
+                    android:background="?attr/selectableItemBackground"
+                    android:paddingStart="16dp"
+                    android:paddingEnd="16dp"
+                    android:paddingTop="8dp"
+                    android:paddingBottom="8dp" />
             </LinearLayout>
         </androidx.cardview.widget.CardView>
 

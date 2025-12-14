@@ -79,4 +79,7 @@
     <string name="floating_window_permission_denied">Floating window permission denied, please enable it in settings</string>
     <string name="floating_window_enabled">Floating window enabled</string>
     <string name="floating_window_disabled">Floating window disabled</string>
+    <string name="increase">Increase</string>
+    <string name="decrease">Decrease</string>
+    <string name="reset_to_default_position">Reset to Default Position</string>
 </resources>
