@@ -54,7 +54,6 @@ public class PermissionFragment extends Fragment {
         initViews(view);
         updatePermissionStatus();
         setListeners();
-        setupSmoothScrolling();
         return view;
     }
 
@@ -82,19 +81,6 @@ public class PermissionFragment extends Fragment {
         permissionItemBatteryOptimization = view.findViewById(R.id.permission_item_battery_optimization);
         batteryOptimizationStatus = view.findViewById(R.id.battery_optimization_status);
         batteryOptimizationBtn = view.findViewById(R.id.battery_optimization_btn);
-    }
-
-    /**
-     * 设置平滑滚动
-     */
-    private void setupSmoothScrolling() {
-        if (scrollView != null) {
-            // 启用平滑滚动
-            scrollView.setNestedScrollingEnabled(true);
-            
-            // 设置滚动速度
-            scrollView.setVerticalScrollbarPosition(View.SCROLLBAR_POSITION_RIGHT);
-        }
     }
 
     /**
