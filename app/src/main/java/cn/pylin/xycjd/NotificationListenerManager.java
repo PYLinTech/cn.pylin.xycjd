@@ -48,21 +48,11 @@ public class NotificationListenerManager {
             intent.setData(Uri.parse("package:" + activity.getPackageName()));
             activity.startActivity(intent);
         } catch (Exception e) {
-            tryOpenSystemSettings(activity);
-        }
-    }
-    
-    /**
-     * 尝试打开系统设置作为最后的备选方案
-     */
-    private static void tryOpenSystemSettings(Activity activity) {
-        try {
-            Intent intent = new Intent(Settings.ACTION_SETTINGS);
-            activity.startActivity(intent);
-        } catch (Exception e) {
             // 所有方法都失败，无法打开设置页面
         }
     }
+    
+
     
     /**
      * 获取所有启用的通知监听器
