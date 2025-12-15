@@ -99,4 +99,8 @@
     
     <!-- 返回键相关字符串 -->
     <string name="double_back_to_exit">再按一次隐藏到后台</string>
+    
+    <!-- 应用列表表头字符串 -->
+    <string name="app_name_header">应用名称</string>
+    <string name="enable_header">启用</string>
 </resources>
