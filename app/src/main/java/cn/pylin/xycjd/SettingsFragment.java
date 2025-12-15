@@ -1,11 +1,13 @@
 package cn.pylin.xycjd;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.os.Bundle;
+import android.os.PowerManager;
 import android.preference.PreferenceManager;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -31,6 +33,8 @@ public class SettingsFragment extends Fragment {
 
     private NestedScrollView scrollView;
     private CardView cardPermission;
+    private TextView tvPermissionStatus;
+    private Button btnPermissionAction;
     private RadioGroup radioGroupLanguage;
     private RadioButton radioBtnChinese;
     private RadioButton radioBtnEnglish;
@@ -42,7 +46,8 @@ public class SettingsFragment extends Fragment {
     
     // 悬浮窗相关控件
     private CardView cardFloatingWindow;
-    private Switch switchFloatingWindow;
+    private LinearLayout layoutPlaceholder;
+    private LinearLayout layoutFloatingContent;
     private SeekBar seekBarSize;
     private SeekBar seekBarX;
     private SeekBar seekBarY;
@@ -57,7 +62,11 @@ public class SettingsFragment extends Fragment {
     private ImageButton btnYIncrease;
     private Button btnResetPosition;
     
-    private FloatingWindowService floatingWindowService;
+    // 服务状态相关控件
+    private CardView cardServiceStatus;
+    private TextView tvServiceStatus;
+    private Button btnServiceToggle;
+    
     private boolean isFloatingWindowEnabled = false;
     private static final int REQUEST_OVERLAY_PERMISSION = 1001;
 
@@ -78,15 +87,24 @@ public class SettingsFragment extends Fragment {
         // 设置点击事件
         setClickListeners();
         
+        // 设置权限状态相关
+        setupPermissionControls();
+        
         // 设置悬浮窗相关
         setupFloatingWindowControls();
+        
+        // 设置服务状态相关
+        setupServiceStatusControls();
         
         return view;
     }
 
     private void initViews(View view) {
+        // 初始化控件
         scrollView = view.findViewById(R.id.nested_scroll_view);
         cardPermission = view.findViewById(R.id.card_permission);
+        tvPermissionStatus = view.findViewById(R.id.tv_permission_status);
+        btnPermissionAction = view.findViewById(R.id.btn_permission_action);
         radioGroupLanguage = view.findViewById(R.id.radio_group_language);
         radioBtnChinese = view.findViewById(R.id.radio_btn_chinese);
         radioBtnEnglish = view.findViewById(R.id.radio_btn_english);
@@ -98,7 +116,8 @@ public class SettingsFragment extends Fragment {
         
         // 初始化悬浮窗相关控件
         cardFloatingWindow = view.findViewById(R.id.card_floating_window);
-        switchFloatingWindow = view.findViewById(R.id.switch_floating_window);
+        layoutPlaceholder = view.findViewById(R.id.layout_placeholder);
+        layoutFloatingContent = view.findViewById(R.id.layout_floating_content);
         seekBarSize = view.findViewById(R.id.seekbar_size);
         seekBarX = view.findViewById(R.id.seekbar_x);
         seekBarY = view.findViewById(R.id.seekbar_y);
@@ -112,6 +131,11 @@ public class SettingsFragment extends Fragment {
         btnYDecrease = view.findViewById(R.id.btn_y_decrease);
         btnYIncrease = view.findViewById(R.id.btn_y_increase);
         btnResetPosition = view.findViewById(R.id.btn_reset_position);
+        
+        // 初始化服务状态相关控件
+        cardServiceStatus = view.findViewById(R.id.card_service_status);
+        tvServiceStatus = view.findViewById(R.id.tv_service_status);
+        btnServiceToggle = view.findViewById(R.id.btn_service_toggle);
     }
 
     private void setLanguageSelection() {
@@ -147,15 +171,6 @@ public class SettingsFragment extends Fragment {
     }
 
     private void setClickListeners() {
-        // 权限设置卡片点击事件
-        cardPermission.setOnClickListener(v -> {
-            // 跳转到权限设置页面
-            Intent intent = new Intent(requireContext(), IntroActivity.class);
-            // 设置标志位，直接跳转到权限设置页面
-            intent.putExtra("direct_to_permission", true);
-            startActivity(intent);
-        });
-        
         // 语言选择变化监听
         radioGroupLanguage.setOnCheckedChangeListener((group, checkedId) -> {
             if (checkedId == R.id.radio_btn_chinese) {
@@ -189,9 +204,6 @@ public class SettingsFragment extends Fragment {
         editor.putString("language", languageCode);
         editor.apply();
         
-        // 显示切换成功提示
-        Toast.makeText(requireContext(), getString(R.string.language_changed), Toast.LENGTH_SHORT).show();
-        
         // 重启应用以应用新语言设置
         restartApp();
     }
@@ -205,9 +217,6 @@ public class SettingsFragment extends Fragment {
         
         // 应用主题设置
         AppCompatDelegate.setDefaultNightMode(themeMode);
-        
-        // 显示切换成功提示
-        Toast.makeText(requireContext(), getString(R.string.theme_changed), Toast.LENGTH_SHORT).show();
     }
 
     private void restartApp() {
@@ -218,7 +227,6 @@ public class SettingsFragment extends Fragment {
     private void setupFloatingWindowControls() {
         // 获取当前悬浮窗状态
         isFloatingWindowEnabled = FloatingWindowService.isServiceRunning(requireContext());
-        switchFloatingWindow.setChecked(isFloatingWindowEnabled);
         
         // 设置初始值
         int size = FloatingWindowService.getSize(requireContext());
@@ -236,22 +244,8 @@ public class SettingsFragment extends Fragment {
         // 设置控件启用状态
         updateFloatingWindowControlsState(isFloatingWindowEnabled);
         
-        // 设置监听器
-        switchFloatingWindow.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            if (isChecked) {
-                // 检查悬浮窗权限
-                if (FloatingWindowPermissionManager.hasPermission(requireContext())) {
-                    startFloatingWindowService();
-                } else {
-                    // 请求权限
-                    FloatingWindowPermissionManager.requestPermission(requireActivity(), REQUEST_OVERLAY_PERMISSION);
-                    // 暂时关闭开关，等待权限结果
-                    switchFloatingWindow.setChecked(false);
-                }
-            } else {
-                stopFloatingWindowService();
-            }
-        });
+        // 设置占位符和内容布局的可见性
+        updateFloatingWindowLayoutVisibility(isFloatingWindowEnabled);
         
         // 设置加减按钮点击事件
         setupButtonListeners();
@@ -272,8 +266,6 @@ public class SettingsFragment extends Fragment {
             if (isFloatingWindowEnabled) {
                 updateFloatingWindow();
             }
-            
-            Toast.makeText(requireContext(), getString(R.string.reset_to_default_position), Toast.LENGTH_SHORT).show();
         });
         
         seekBarSize.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
@@ -328,16 +320,17 @@ public class SettingsFragment extends Fragment {
     }
     
     private void updateFloatingWindowControlsState(boolean enabled) {
-        seekBarSize.setEnabled(enabled);
-        seekBarX.setEnabled(enabled);
-        seekBarY.setEnabled(enabled);
-        btnSizeDecrease.setEnabled(enabled);
-        btnSizeIncrease.setEnabled(enabled);
-        btnXDecrease.setEnabled(enabled);
-        btnXIncrease.setEnabled(enabled);
-        btnYDecrease.setEnabled(enabled);
-        btnYIncrease.setEnabled(enabled);
-        btnResetPosition.setEnabled(enabled);
+        // 悬浮窗控件始终启用，不受服务状态影响
+        seekBarSize.setEnabled(true);
+        seekBarX.setEnabled(true);
+        seekBarY.setEnabled(true);
+        btnSizeDecrease.setEnabled(true);
+        btnSizeIncrease.setEnabled(true);
+        btnXDecrease.setEnabled(true);
+        btnXIncrease.setEnabled(true);
+        btnYDecrease.setEnabled(true);
+        btnYIncrease.setEnabled(true);
+        btnResetPosition.setEnabled(true);
     }
     
     private void setupButtonListeners() {
@@ -419,16 +412,12 @@ public class SettingsFragment extends Fragment {
         Intent intent = new Intent(requireContext(), FloatingWindowService.class);
         requireContext().startService(intent);
         isFloatingWindowEnabled = true;
-        updateFloatingWindowControlsState(true);
-        Toast.makeText(requireContext(), getString(R.string.floating_window_enabled), Toast.LENGTH_SHORT).show();
     }
     
     private void stopFloatingWindowService() {
         Intent intent = new Intent(requireContext(), FloatingWindowService.class);
         requireContext().stopService(intent);
         isFloatingWindowEnabled = false;
-        updateFloatingWindowControlsState(false);
-        Toast.makeText(requireContext(), getString(R.string.floating_window_disabled), Toast.LENGTH_SHORT).show();
     }
     
     private void updateFloatingWindow() {
@@ -456,12 +445,117 @@ public class SettingsFragment extends Fragment {
         if (requestCode == REQUEST_OVERLAY_PERMISSION) {
             if (FloatingWindowPermissionManager.hasPermission(requireContext())) {
                 // 权限已授予，开启悬浮窗
-                switchFloatingWindow.setChecked(true);
                 startFloatingWindowService();
+                updateServiceStatus();
             } else {
                 // 权限被拒绝
                 FloatingWindowPermissionManager.showPermissionDeniedMessage(requireContext());
+                updateServiceStatus();
             }
         }
+    }
+    
+    private void setupServiceStatusControls() {
+        // 初始更新服务状态
+        updateServiceStatus();
+        // 悬浮窗控件始终启用
+        updateFloatingWindowControlsState(true);
+        
+        // 设置服务切换按钮点击事件
+        btnServiceToggle.setOnClickListener(v -> {
+            if (isFloatingWindowEnabled) {
+                // 当前服务已开启，执行关闭操作
+                stopFloatingWindowService();
+            } else {
+                // 当前服务未开启，执行开启操作
+                // 检查悬浮窗权限
+                if (FloatingWindowPermissionManager.hasPermission(requireContext())) {
+                    startFloatingWindowService();
+                } else {
+                    // 请求权限
+                    FloatingWindowPermissionManager.requestPermission(requireActivity(), REQUEST_OVERLAY_PERMISSION);
+                }
+            }
+            // 更新服务状态显示
+            updateServiceStatus();
+        });
+    }
+    
+    private void updateServiceStatus() {
+        // 检测当前悬浮窗服务状态
+        isFloatingWindowEnabled = FloatingWindowService.isServiceRunning(requireContext());
+        
+        if (isFloatingWindowEnabled) {
+            // 服务已开启
+            tvServiceStatus.setText(getString(R.string.service_running));
+            btnServiceToggle.setText(getString(R.string.stop_service));
+            btnServiceToggle.setBackgroundResource(R.drawable.btn_error_background);
+        } else {
+            // 服务未开启
+            tvServiceStatus.setText(getString(R.string.service_stopped));
+            btnServiceToggle.setText(getString(R.string.start_service));
+            btnServiceToggle.setBackgroundResource(R.drawable.btn_primary_background);
+        }
+        
+        // 更新悬浮窗布局可见性
+        updateFloatingWindowLayoutVisibility(isFloatingWindowEnabled);
+    }
+    
+    private void updateFloatingWindowLayoutVisibility(boolean isServiceRunning) {
+        if (isServiceRunning) {
+            // 服务已启动，显示设置选项，隐藏占位符
+            layoutPlaceholder.setVisibility(View.GONE);
+            layoutFloatingContent.setVisibility(View.VISIBLE);
+        } else {
+            // 服务未启动，显示占位符，隐藏设置选项
+            layoutPlaceholder.setVisibility(View.VISIBLE);
+            layoutFloatingContent.setVisibility(View.GONE);
+        }
+    }
+    
+    private void setupPermissionControls() {
+        // 初始更新权限状态
+        updatePermissionStatus();
+        
+        // 设置权限操作按钮点击事件
+        btnPermissionAction.setOnClickListener(v -> {
+            // 跳转到权限设置页面
+            Intent intent = new Intent(requireContext(), IntroActivity.class);
+            // 设置标志位，直接跳转到权限设置页面
+            intent.putExtra("direct_to_permission", true);
+            startActivity(intent);
+        });
+    }
+    
+
+    
+    private void updatePermissionStatus() {
+        // 使用PermissionChecker检查各项权限状态
+        PermissionChecker.PermissionStatus status = PermissionChecker.checkAllPermissions(requireContext());
+        
+        if (status.deniedCount == 0) {
+            // 全部权限已开启
+            tvPermissionStatus.setText(getString(R.string.permission_all_granted));
+            btnPermissionAction.setText(getString(R.string.configure_permission));
+            btnPermissionAction.setBackgroundResource(R.drawable.btn_secondary_background);
+            btnPermissionAction.setTextColor(getResources().getColor(android.R.color.white, null));
+            btnPermissionAction.setVisibility(View.VISIBLE);
+        } else {
+            // 有权限未开启
+            tvPermissionStatus.setText(String.format(getString(R.string.permission_some_denied), status.deniedCount));
+            btnPermissionAction.setText(getString(R.string.go_to_permission));
+            btnPermissionAction.setBackgroundResource(R.drawable.btn_primary_background);
+            btnPermissionAction.setTextColor(getResources().getColor(android.R.color.white, null));
+            btnPermissionAction.setVisibility(View.VISIBLE);
+        }
+    }
+    
+    @Override
+    public void onResume() {
+        super.onResume();
+        // 更新权限状态
+        updatePermissionStatus();
+        // 更新服务状态
+        updateServiceStatus();
     }
 }

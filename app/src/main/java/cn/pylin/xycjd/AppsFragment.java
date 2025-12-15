@@ -100,12 +100,6 @@ public class AppsFragment extends Fragment {
 
     
     private void loadApps() {
-        // 检查权限
-        if (!AppUtils.hasQueryAllPackagesPermission(mContext)) {
-            Toast.makeText(mContext, R.string.query_all_packages_permission_required, Toast.LENGTH_LONG).show();
-            return;
-        }
-        
         // 使用AsyncTask在后台加载应用列表
         new LoadAppsTask().execute();
     }

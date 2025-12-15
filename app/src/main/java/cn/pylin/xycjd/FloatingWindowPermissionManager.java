@@ -11,18 +11,13 @@ import android.widget.Toast;
 public class FloatingWindowPermissionManager {
 
     public static boolean hasPermission(Context context) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            return Settings.canDrawOverlays(context);
-        }
-        return true;
+        return Settings.canDrawOverlays(context);
     }
 
     public static void requestPermission(Activity activity, int requestCode) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
-                    Uri.parse("package:" + activity.getPackageName()));
-            activity.startActivityForResult(intent, requestCode);
-        }
+        Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                Uri.parse("package:" + activity.getPackageName()));
+        activity.startActivityForResult(intent, requestCode);
     }
 
     public static void showPermissionDeniedMessage(Context context) {

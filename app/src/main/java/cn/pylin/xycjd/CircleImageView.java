@@ -85,9 +85,8 @@ public class CircleImageView extends AppCompatImageView {
         paint.setShader(shader);
         
         // 计算并应用变换矩阵
-        final float scaleX = width / (float) bitmap.getWidth();
-        final float scaleY = height / (float) bitmap.getHeight();
-        final float scale = Math.max(scaleX, scaleY);
+        final float scale = Math.min(width / (float) bitmap.getWidth(), 
+                                   height / (float) bitmap.getHeight());
         
         matrix.reset();
         matrix.setScale(scale, scale);

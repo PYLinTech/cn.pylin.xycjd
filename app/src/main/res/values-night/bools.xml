@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 夜间模式下状态栏文字为浅色 -->
+    <bool name="isLightStatusBar">false</bool>
+</resources>
