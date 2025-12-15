@@ -97,6 +97,16 @@
     <string name="reset_to_default_position">还原默认位置</string>
     <string name="floating_window_placeholder_text">悬浮窗服务未启动\n请先启动服务后再进行设置</string>
     
+    <!-- 测试通知相关字符串 -->
+    <string name="test_notification">测试通知</string>
+    <string name="test_notification_desc">发送一条测试通知，验证通知功能是否正常工作</string>
+    <string name="send_test_notification">发送测试通知</string>
+    <string name="test_notification_channel_name">测试通知</string>
+    <string name="test_notification_channel_desc">用于测试应用通知功能</string>
+    <string name="test_notification_title">测试通知</string>
+    <string name="test_notification_content">这是一条测试通知，用于验证通知功能是否正常工作</string>
+    <string name="test_notification_sent">测试通知已发送</string>
+    
     <!-- 返回键相关字符串 -->
     <string name="double_back_to_exit">再按一次隐藏到后台</string>
     

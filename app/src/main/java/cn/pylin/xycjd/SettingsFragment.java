@@ -1,11 +1,14 @@
 package cn.pylin.xycjd;
 
 import android.app.Activity;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.content.res.Resources;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.PowerManager;
 import android.preference.PreferenceManager;
@@ -26,6 +29,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.cardview.widget.CardView;
+import androidx.core.app.NotificationCompat;
 import androidx.core.widget.NestedScrollView;
 import androidx.fragment.app.Fragment;
 
@@ -67,8 +71,14 @@ public class SettingsFragment extends Fragment {
     private TextView tvServiceStatus;
     private Button btnServiceToggle;
     
+    // 测试通知相关控件
+    private CardView cardTestNotification;
+    private Button btnSendTestNotification;
+    
     private boolean isFloatingWindowEnabled = false;
     private static final int REQUEST_OVERLAY_PERMISSION = 1001;
+    private static final String TEST_NOTIFICATION_CHANNEL_ID = "test_notification_channel";
+    private static final int TEST_NOTIFICATION_ID = 1001;
 
     @Nullable
     @Override
@@ -95,6 +105,9 @@ public class SettingsFragment extends Fragment {
         
         // 设置服务状态相关
         setupServiceStatusControls();
+        
+        // 设置测试通知相关
+        setupTestNotificationControls();
         
         return view;
     }
@@ -136,6 +149,10 @@ public class SettingsFragment extends Fragment {
         cardServiceStatus = view.findViewById(R.id.card_service_status);
         tvServiceStatus = view.findViewById(R.id.tv_service_status);
         btnServiceToggle = view.findViewById(R.id.btn_service_toggle);
+        
+        // 初始化测试通知相关控件
+        cardTestNotification = view.findViewById(R.id.card_test_notification);
+        btnSendTestNotification = view.findViewById(R.id.btn_send_test_notification);
     }
 
     private void setLanguageSelection() {
@@ -557,5 +574,46 @@ public class SettingsFragment extends Fragment {
         updatePermissionStatus();
         // 更新服务状态
         updateServiceStatus();
+    }
+    
+    private void setupTestNotificationControls() {
+        // 创建通知通道（Android 8.0+）
+        createNotificationChannel();
+        
+        // 设置发送测试通知按钮点击事件
+        btnSendTestNotification.setOnClickListener(v -> {
+            sendTestNotification();
+        });
+    }
+    
+    private void createNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationManager notificationManager = (NotificationManager) requireContext().getSystemService(Context.NOTIFICATION_SERVICE);
+            
+            NotificationChannel channel = new NotificationChannel(
+                TEST_NOTIFICATION_CHANNEL_ID,
+                getString(R.string.test_notification_channel_name),
+                NotificationManager.IMPORTANCE_DEFAULT
+            );
+            channel.setDescription(getString(R.string.test_notification_channel_desc));
+            channel.enableLights(true);
+            channel.enableVibration(true);
+            
+            notificationManager.createNotificationChannel(channel);
+        }
+    }
+    
+    private void sendTestNotification() {
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(requireContext(), TEST_NOTIFICATION_CHANNEL_ID)
+            .setSmallIcon(R.drawable.ic_notification)
+            .setContentTitle(getString(R.string.test_notification_title))
+            .setContentText(getString(R.string.test_notification_content))
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .setAutoCancel(true);
+            
+        NotificationManager notificationManager = (NotificationManager) requireContext().getSystemService(Context.NOTIFICATION_SERVICE);
+        notificationManager.notify(TEST_NOTIFICATION_ID, builder.build());
+        
+        Toast.makeText(requireContext(), getString(R.string.test_notification_sent), Toast.LENGTH_SHORT).show();
     }
 }
