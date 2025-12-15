@@ -61,10 +61,26 @@ public class PermissionChecker {
 
     
     public static void openBatteryOptimizationSettings(Activity activity) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            Intent intent = new Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS);
-            intent.setData(Uri.parse("package:" + activity.getPackageName()));
+        try {
+            // Android 11+ 使用更通用的电池优化设置页面
+            Intent intent = new Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS);
             activity.startActivity(intent);
+            return;
+        } catch (Exception e) {
+            // 如果第一个方法失败，尝试打开电池优化设置页面
+            try {
+                //直接请求方式
+                Intent intent = new Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS);
+                intent.setData(Uri.parse("package:" + activity.getPackageName()));
+                activity.startActivity(intent);
+                return;
+            } catch (Exception e2) {
+                // 如果第二个方法失败，尝试打开应用详情页
+                Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+                intent.setData(Uri.parse("package:" + activity.getPackageName()));
+                activity.startActivity(intent);
+                return;
+            }
         }
     }
 }
