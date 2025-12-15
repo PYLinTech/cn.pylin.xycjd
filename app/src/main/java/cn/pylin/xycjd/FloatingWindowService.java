@@ -314,9 +314,8 @@ public class FloatingWindowService extends Service {
         int y = preferences.getInt(PREF_FLOATING_Y, DEFAULT_Y);
         int size = preferences.getInt(PREF_FLOATING_SIZE, DEFAULT_SIZE);
         
-        // 计算第三个小岛的圆形大小，比第一个悬浮窗小一点
+        // 计算第三个小岛的圆形大小，比第一个悬浮窗小4dp
         int circleSize = size - dpToPx(4); // 减去4dp，使圆形小一点
-        int padding = dpToPx(2); // 容器内边距，确保总高度等于第一个圆形的高度
         
         // 动态设置圆形大小
         CircleImageView appIcon = floatingThreeCircleView.findViewById(R.id.circle_app_icon);
@@ -339,12 +338,9 @@ public class FloatingWindowService extends Service {
         blackLayoutParams2.height = circleSize;
         blackCircle2.setLayoutParams(blackLayoutParams2);
         
-        // 设置容器的内边距
-        floatingThreeCircleView.setPadding(padding, padding, padding, padding);
-        
         // 计算三圆悬浮岛的位置，使其中心与第一个悬浮窗的中心对齐
-        // 三圆悬浮岛的总宽度为 3 * circleSize + 2 * 1dp (圆之间的间距) + 2 * padding (左右内边距)
-        int totalWidth = 3 * circleSize + 2 * dpToPx(1) + 2 * padding;
+        // 三圆悬浮岛的总宽度为 3 * circleSize + 4 * 2dp (每个圆的外边距) + 2 * 2dp (容器内边距)
+        int totalWidth = 3 * circleSize + 4 * dpToPx(2) + 2 * dpToPx(2);
         int totalHeight = size; // 总高度等于第一个悬浮窗的大小，确保对齐
         
         // 创建悬浮窗布局参数

@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.net.Uri;
 import android.provider.Settings;
 import android.text.TextUtils;
 
@@ -31,31 +32,35 @@ public class NotificationListenerManager {
      */
     public static void openNotificationListenerSettings(Activity activity) {
         try {
-            Intent intent = new Intent("android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS");
+            Intent intent = new Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS);
             activity.startActivity(intent);
         } catch (Exception e) {
-            // 如果标准方法失败，尝试反射方法
-            try {
-                Intent intent = new Intent();
-                intent.setAction("android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS");
-                activity.startActivity(intent);
-            } catch (Exception ex) {
-                // 如果都失败，打开应用设置页面
-                try {
-                    Intent intent = new Intent();
-                    intent.setAction(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
-                    intent.setData(android.net.Uri.parse("package:" + activity.getPackageName()));
-                    activity.startActivity(intent);
-                } catch (Exception exc) {
-                    // 最后的尝试
-                    try {
-                        Intent intent = new Intent(Settings.ACTION_SETTINGS);
-                        activity.startActivity(intent);
-                    } catch (Exception exce) {
-                        // 所有方法都失败
-                    }
-                }
-            }
+            tryOpenAppDetailsSettings(activity);
+        }
+    }
+    
+    /**
+     * 尝试打开应用详情页面作为备选方案
+     */
+    private static void tryOpenAppDetailsSettings(Activity activity) {
+        try {
+            Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+            intent.setData(Uri.parse("package:" + activity.getPackageName()));
+            activity.startActivity(intent);
+        } catch (Exception e) {
+            tryOpenSystemSettings(activity);
+        }
+    }
+    
+    /**
+     * 尝试打开系统设置作为最后的备选方案
+     */
+    private static void tryOpenSystemSettings(Activity activity) {
+        try {
+            Intent intent = new Intent(Settings.ACTION_SETTINGS);
+            activity.startActivity(intent);
+        } catch (Exception e) {
+            // 所有方法都失败，无法打开设置页面
         }
     }
     

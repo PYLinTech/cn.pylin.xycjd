@@ -15,6 +15,7 @@
     <color name="colorPrimaryDark">#1D4ED8</color>
     <color name="colorAccent">#3B82F6</color>
     <color name="colorPrimaryInverse">#FFFFFF</color>
+    <color name="colorError">#EF4444</color>
     
     <color name="colorBackground">#F5F5F5</color>
     <color name="colorSurface">#FFFFFF</color>

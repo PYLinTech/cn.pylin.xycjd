@@ -8,14 +8,12 @@
     <string name="language_setting">Language</string>
     <string name="chinese">中文</string>
     <string name="english">English</string>
-    <string name="language_changed">Language changed</string>
     
     <!-- Theme settings -->
     <string name="theme_setting">Theme</string>
     <string name="theme_light">Light</string>
     <string name="theme_dark">Dark</string>
     <string name="theme_system">System</string>
-    <string name="theme_changed">Theme changed</string>
     
     <!-- Permission settings -->
     <string name="permission_setting">Permission Settings</string>
@@ -53,14 +51,13 @@
     <string name="permission_notification_listener_desc">Used to listen to system notifications and implement app notification management functions</string>
     <string name="permission_overlay">Floating Window Permission</string>
     <string name="permission_overlay_desc">Used to display floating windows for quick app operations</string>
-    <string name="permission_query_all_packages">Query All Packages Permission</string>
-    <string name="permission_query_all_packages_desc">Used to get a complete list of all installed applications on the device</string>
+
     <string name="permission_battery_optimization">Battery Optimization</string>
     <string name="permission_battery_optimization_desc">Disabling battery optimization ensures the app runs properly in the background</string>
     <string name="permission_status_granted">Granted</string>
     <string name="permission_status_denied">Not Granted</string>
     <string name="permission_action_grant">Grant Permission</string>
-    <string name="query_all_packages_permission_required">Query all packages permission is required to get the complete app list</string>
+
     
     <!-- App list related strings -->
     <string name="app_filter_label">Filter apps:</string>
@@ -84,14 +81,21 @@
     <string name="floating_window_position">Floating Window Position</string>
     <string name="floating_window_position_x">Horizontal Position</string>
     <string name="floating_window_position_y">Vertical Position</string>
-    <string name="floating_window_enable">Enable Floating Window</string>
-    <string name="floating_window_disable">Disable Floating Window</string>
-    <string name="floating_window_permission_denied">Floating window permission denied, please enable it in settings</string>
-    <string name="floating_window_enabled">Floating window enabled</string>
-    <string name="floating_window_disabled">Floating window disabled</string>
+    <string name="floating_window_permission_denied">Floating window permission denied, please enable in settings</string>
+    <string name="service_status">Service Status</string>
+    <string name="service_status_desc">Manage floating window service status</string>
+    <string name="service_running">Service is running</string>
+    <string name="service_stopped">Service stopped</string>
+    <string name="start_service">Start Service</string>
+    <string name="stop_service">Stop Service</string>
+    <string name="permission_all_granted">All permissions granted</string>
+    <string name="permission_some_denied">%d permissions denied</string>
+    <string name="go_to_permission">Go to Settings</string>
+    <string name="configure_permission">To configure</string>
     <string name="increase">Increase</string>
     <string name="decrease">Decrease</string>
     <string name="reset_to_default_position">Reset to Default Position</string>
+    <string name="floating_window_placeholder_text">Floating window service not started\nPlease start the service before configuring settings</string>
     
     <!-- Back key related strings -->
     <string name="double_back_to_exit">Press again to hide to background</string>

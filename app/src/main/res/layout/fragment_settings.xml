@@ -24,7 +24,10 @@
             app:cardBackgroundColor="@color/colorSurface"
             app:cardCornerRadius="12dp"
             app:cardElevation="2dp"
-            app:cardUseCompatPadding="true">
+            app:cardUseCompatPadding="true"
+            android:clickable="true"
+            android:focusable="true"
+            android:foreground="?attr/selectableItemBackground">
             
             <LinearLayout
                 android:layout_width="match_parent"
@@ -87,7 +90,10 @@
             app:cardBackgroundColor="@color/colorSurface"
             app:cardCornerRadius="12dp"
             app:cardElevation="2dp"
-            app:cardUseCompatPadding="true">
+            app:cardUseCompatPadding="true"
+            android:clickable="true"
+            android:focusable="true"
+            android:foreground="?attr/selectableItemBackground">
             
             <LinearLayout
                 android:layout_width="match_parent"
@@ -154,6 +160,74 @@
             </LinearLayout>
         </androidx.cardview.widget.CardView>
 
+        <!-- 服务状态 -->
+        <androidx.cardview.widget.CardView
+            android:id="@+id/card_service_status"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            app:cardBackgroundColor="@color/colorSurface"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="2dp"
+            app:cardUseCompatPadding="true"
+            android:clickable="true"
+            android:focusable="true"
+            android:foreground="?attr/selectableItemBackground">
+            
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+                
+                <!-- 服务状态标题和描述 -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/service_status"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:textColor="?android:attr/textColorPrimary"
+                    android:layout_marginBottom="8dp" />
+                
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/service_status_desc"
+                    android:textSize="14sp"
+                    android:textColor="?android:attr/textColorSecondary"
+                    android:layout_marginBottom="16dp" />
+                
+                <!-- 服务状态和按钮 -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
+                    
+                    <TextView
+                        android:id="@+id/tv_service_status"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/service_stopped"
+                        android:textSize="15sp"
+                        android:textColor="?android:attr/textColorSecondary" />
+                    
+                    <Button
+                        android:id="@+id/btn_service_toggle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="36dp"
+                        android:paddingStart="16dp"
+                        android:paddingEnd="16dp"
+                        android:textSize="14sp"
+                        android:textColor="@android:color/white"
+                        android:text="@string/start_service"
+                        android:background="@drawable/btn_primary_background" />
+                </LinearLayout>
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
         <!-- 悬浮窗设置 -->
         <androidx.cardview.widget.CardView
             android:id="@+id/card_floating_window"
@@ -163,7 +237,10 @@
             app:cardBackgroundColor="@color/colorSurface"
             app:cardCornerRadius="12dp"
             app:cardElevation="2dp"
-            app:cardUseCompatPadding="true">
+            app:cardUseCompatPadding="true"
+            android:clickable="true"
+            android:focusable="true"
+            android:foreground="?attr/selectableItemBackground">
             
             <LinearLayout
                 android:layout_width="match_parent"
@@ -181,27 +258,41 @@
                     android:textColor="?android:attr/textColorPrimary"
                     android:layout_marginBottom="16dp" />
                 
-                <!-- 启用/禁用悬浮窗开关 -->
+                <!-- 占位符布局，默认显示，服务启动后隐藏 -->
                 <LinearLayout
+                    android:id="@+id/layout_placeholder"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical"
-                    android:layout_marginBottom="16dp">
+                    android:orientation="vertical"
+                    android:gravity="center"
+                    android:padding="24dp">
                     
+                    <!-- 占位图标 -->
+                    <ImageView
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
+                        android:src="@drawable/ic_floating_window_placeholder"
+                        android:alpha="0.5"
+                        android:tint="?android:attr/textColorSecondary"
+                        android:layout_marginBottom="16dp" />
+                    
+                    <!-- 占位文字 -->
                     <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="@string/floating_window_enable"
-                        android:textSize="15sp"
-                        android:textColor="?android:attr/textColorSecondary" />
-                    
-                    <Switch
-                        android:id="@+id/switch_floating_window"
                         android:layout_width="wrap_content"
-                        android:layout_height="wrap_content" />
+                        android:layout_height="wrap_content"
+                        android:text="@string/floating_window_placeholder_text"
+                        android:textSize="14sp"
+                        android:textColor="?android:attr/textColorSecondary"
+                        android:gravity="center" />
                 </LinearLayout>
+                
+                <!-- 悬浮窗设置内容，默认隐藏，服务启动后显示 -->
+                <LinearLayout
+                    android:id="@+id/layout_floating_content"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:visibility="gone">
                 
                 <!-- 悬浮窗大小调整 -->
                 <LinearLayout
@@ -441,6 +532,7 @@
                     android:paddingEnd="16dp"
                     android:paddingTop="8dp"
                     android:paddingBottom="8dp" />
+                </LinearLayout>
             </LinearLayout>
         </androidx.cardview.widget.CardView>
 
@@ -479,7 +571,36 @@
                     android:layout_height="wrap_content"
                     android:text="@string/permission_setting_desc"
                     android:textSize="14sp"
-                    android:textColor="?android:attr/textColorSecondary" />
+                    android:textColor="?android:attr/textColorSecondary"
+                    android:layout_marginBottom="16dp" />
+                
+                <!-- 权限状态和按钮 -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
+                    
+                    <TextView
+                        android:id="@+id/tv_permission_status"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/permission_all_granted"
+                        android:textSize="15sp"
+                        android:textColor="?android:attr/textColorSecondary" />
+                    
+                    <Button
+                        android:id="@+id/btn_permission_action"
+                        android:layout_width="wrap_content"
+                        android:layout_height="36dp"
+                        android:paddingStart="16dp"
+                        android:paddingEnd="16dp"
+                        android:textSize="14sp"
+                        android:textColor="@android:color/white"
+                        android:text="@string/go_to_permission"
+                        android:background="@drawable/btn_primary_background" />
+                </LinearLayout>
             </LinearLayout>
         </androidx.cardview.widget.CardView>
 

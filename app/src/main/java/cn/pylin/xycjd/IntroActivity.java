@@ -102,6 +102,11 @@ public class IntroActivity extends AppCompatActivity {
         });
     }
     
+    @Override
+    protected void onResume() {
+        super.onResume();
+    }
+    
     /**
      * 更新按钮文本
      */

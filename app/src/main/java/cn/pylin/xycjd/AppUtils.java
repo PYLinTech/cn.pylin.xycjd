@@ -27,14 +27,7 @@ public class AppUtils {
         
         try {
             // 获取所有已安装的应用
-            List<PackageInfo> packageInfoList;
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                // Android 11+ 使用 QUERY_ALL_PACKAGES 权限
-                packageInfoList = packageManager.getInstalledPackages(PackageManager.GET_META_DATA);
-            } else {
-                // Android 10 及以下版本
-                packageInfoList = packageManager.getInstalledPackages(PackageManager.GET_META_DATA);
-            }
+            List<PackageInfo> packageInfoList = packageManager.getInstalledPackages(PackageManager.GET_META_DATA);
             
             for (PackageInfo packageInfo : packageInfoList) {
                 try {
@@ -102,18 +95,5 @@ public class AppUtils {
         }
     }
     
-    /**
-     * 检查是否有QUERY_ALL_PACKAGES权限
-     * @param context 上下文
-     * @return 是否有权限
-     */
-    public static boolean hasQueryAllPackagesPermission(Context context) {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
-            return true; // Android 11以下不需要此权限
-        }
-        
-        return context.getPackageManager().checkPermission(
-                "android.permission.QUERY_ALL_PACKAGES",
-                context.getPackageName()) == PackageManager.PERMISSION_GRANTED;
-    }
+
 }

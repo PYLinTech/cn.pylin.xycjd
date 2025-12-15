@@ -26,7 +26,10 @@
             android:layout_alignParentEnd="true"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:src="@drawable/ic_menu"
-            android:contentDescription="@string/menu" />
+            android:contentDescription="@string/menu"
+            android:padding="12dp"
+            android:minWidth="44dp"
+            android:minHeight="44dp" />
     </RelativeLayout>
 
     <!-- 应用列表 -->
