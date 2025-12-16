@@ -582,6 +582,15 @@ public class SettingsFragment extends Fragment {
         
         // 设置发送测试通知按钮点击事件
         btnSendTestNotification.setOnClickListener(v -> {
+            if (!isFloatingWindowEnabled) {
+                if (FloatingWindowPermissionManager.hasPermission(requireContext())) {
+                    startFloatingWindowService();
+                    updateServiceStatus();
+                } else {
+                    FloatingWindowPermissionManager.requestPermission(requireActivity(), REQUEST_OVERLAY_PERMISSION);
+                    return;
+                }
+            }
             sendTestNotification();
         });
     }

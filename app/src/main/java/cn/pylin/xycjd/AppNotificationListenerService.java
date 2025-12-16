@@ -17,9 +17,7 @@ public class AppNotificationListenerService extends NotificationListenerService 
         
         String packageName = sbn.getPackageName();
         
-        // 检查该应用是否被选中监听
         if (isAppSelected(packageName)) {
-            // 处理选中的应用通知
             handleNotification(sbn);
         }
     }
@@ -30,9 +28,7 @@ public class AppNotificationListenerService extends NotificationListenerService 
         
         String packageName = sbn.getPackageName();
         
-        // 检查该应用是否被选中监听
         if (isAppSelected(packageName)) {
-            // 处理选中的应用通知移除
             handleNotificationRemoved(sbn);
         }
     }
@@ -58,11 +54,9 @@ public class AppNotificationListenerService extends NotificationListenerService 
         
         Log.d(TAG, "Notification received - Package: " + packageName + ", Title: " + title + ", Content: " + text);
         
-        // 显示灵动岛样式的悬浮窗
         FloatingWindowService service = FloatingWindowService.getInstance();
         if (service != null) {
-            service.showNotificationIsland(packageName, title, text);
-            // 显示三圆灵动岛悬浮窗
+            service.updateNotificationData(packageName, title, text);
             service.showThreeCircleIsland(packageName);
         }
     }
