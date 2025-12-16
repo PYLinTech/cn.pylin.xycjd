@@ -78,7 +78,6 @@ public class SettingsFragment extends Fragment {
     private boolean isFloatingWindowEnabled = false;
     private static final int REQUEST_OVERLAY_PERMISSION = 1001;
     private static final String TEST_NOTIFICATION_CHANNEL_ID = "test_notification_channel";
-    private static final int TEST_NOTIFICATION_ID = 1001;
 
     @Nullable
     @Override
@@ -621,7 +620,9 @@ public class SettingsFragment extends Fragment {
             .setAutoCancel(true);
             
         NotificationManager notificationManager = (NotificationManager) requireContext().getSystemService(Context.NOTIFICATION_SERVICE);
-        notificationManager.notify(TEST_NOTIFICATION_ID, builder.build());
+        // 使用当前时间戳作为唯一的通知ID，确保每次发送都是新的通知
+        int uniqueNotificationId = (int) System.currentTimeMillis();
+        notificationManager.notify(uniqueNotificationId, builder.build());
         
         Toast.makeText(requireContext(), getString(R.string.test_notification_sent), Toast.LENGTH_SHORT).show();
     }
