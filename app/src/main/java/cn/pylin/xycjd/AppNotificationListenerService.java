@@ -56,8 +56,7 @@ public class AppNotificationListenerService extends NotificationListenerService 
         
         FloatingWindowService service = FloatingWindowService.getInstance();
         if (service != null) {
-            service.updateNotificationData(packageName, title, text);
-            service.showThreeCircleIsland(packageName);
+            service.addNotification(sbn.getKey(), packageName, title, text);
         }
     }
     
@@ -71,12 +70,10 @@ public class AppNotificationListenerService extends NotificationListenerService 
         
         Log.d(TAG, "Notification removed - Package: " + packageName + ", Title: " + title);
         
-        // 隐藏灵动岛样式的悬浮窗
+        // 移除通知
         FloatingWindowService service = FloatingWindowService.getInstance();
         if (service != null) {
-            service.hideNotificationIsland();
-            // 隐藏三圆灵动岛悬浮窗
-            service.hideThreeCircleIsland();
+            service.removeNotification(sbn.getKey());
         }
     }
 }

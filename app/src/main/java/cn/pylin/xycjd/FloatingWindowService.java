@@ -16,7 +16,10 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.view.animation.AnticipateInterpolator;
 import android.view.animation.DecelerateInterpolator;
+import android.view.animation.OvershootInterpolator;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -37,6 +40,23 @@ public class FloatingWindowService extends Service {
     
     private View floatingThreeCircleView;
     private WindowManager.LayoutParams threeCircleParams;
+    
+    public static class NotificationInfo {
+        String key;
+        String packageName;
+        String title;
+        String content;
+
+        public NotificationInfo(String key, String packageName, String title, String content) {
+            this.key = key;
+            this.packageName = packageName;
+            this.title = title;
+            this.content = content;
+        }
+    }
+
+    private java.util.LinkedList<NotificationInfo> notificationQueue = new java.util.LinkedList<>();
+
     private String lastNotificationPackageName;
     private String lastNotificationTitle;
     private String lastNotificationContent;
@@ -181,24 +201,100 @@ public class FloatingWindowService extends Service {
         updateNotificationContent(packageName, title, content);
         
         if (floatingIslandView.getParent() == null) {
+            // 在添加视图前设置初始状态，防止闪烁
+            View islandContainer = floatingIslandView.findViewById(R.id.island_container);
+            if (islandContainer != null) {
+                islandContainer.setAlpha(0f);
+                islandContainer.setScaleX(0.8f);
+                islandContainer.setScaleY(0.8f);
+                islandContainer.setTranslationY(-dpToPx(50));
+            }
+            
             windowManager.addView(floatingIslandView, islandParams);
+            floatingIslandView.post(this::startIslandEnterAnimation);
         }
     }
     
+    /**
+     * 执行标准灵动岛的入场动画
+     */
+    private void startIslandEnterAnimation() {
+        if (floatingIslandView == null) return;
+        
+        View islandContainer = floatingIslandView.findViewById(R.id.island_container);
+        if (islandContainer == null) return;
+        
+        // 确保初始状态（虽然addView前设置过，这里再次确保逻辑完整）
+        islandContainer.setAlpha(0f);
+        islandContainer.setScaleX(0.8f);
+        islandContainer.setScaleY(0.8f);
+        islandContainer.setTranslationY(-dpToPx(50));
+        
+        // 组合动画
+        islandContainer.animate()
+                .alpha(1f)
+                .scaleX(1f)
+                .scaleY(1f)
+                .translationY(0f)
+                .setDuration(500)
+                .setInterpolator(new OvershootInterpolator(1.2f)) // 轻微弹跳
+                .start();
+    }
+    
+    public void addNotification(String key, String packageName, String title, String content) {
+        // 移除已存在的同key通知（更新情况）
+        removeNotificationInternal(key);
+        
+        // 添加到头部（最新的）
+        notificationQueue.addFirst(new NotificationInfo(key, packageName, title, content));
+        
+        // 更新最近的通知变量
+        if (!notificationQueue.isEmpty()) {
+            NotificationInfo latest = notificationQueue.getFirst();
+            lastNotificationPackageName = latest.packageName;
+            lastNotificationTitle = latest.title;
+            lastNotificationContent = latest.content;
+        }
+
+        // 显示或更新三圆悬浮窗
+        showThreeCircleIsland();
+    }
+
+    public void removeNotification(String key) {
+        removeNotificationInternal(key);
+        
+        if (notificationQueue.isEmpty()) {
+            hideThreeCircleIsland();
+            hideNotificationIsland();
+            lastNotificationPackageName = null;
+        } else {
+            // 更新UI显示最新的通知
+            NotificationInfo latest = notificationQueue.getFirst();
+            lastNotificationPackageName = latest.packageName;
+            lastNotificationTitle = latest.title;
+            lastNotificationContent = latest.content;
+            
+            updateThreeCircleContent();
+            // 如果展开的悬浮窗正在显示，也更新它
+            if (floatingIslandView != null && floatingIslandView.getParent() != null) {
+                updateNotificationContent(latest.packageName, latest.title, latest.content);
+            }
+        }
+    }
+
+    private void removeNotificationInternal(String key) {
+        if (key == null) return;
+        for (int i = 0; i < notificationQueue.size(); i++) {
+            if (key.equals(notificationQueue.get(i).key)) {
+                notificationQueue.remove(i);
+                break;
+            }
+        }
+    }
+
     public void updateNotificationData(String packageName, String title, String content) {
-        lastNotificationPackageName = packageName;
-        lastNotificationTitle = title;
-        lastNotificationContent = content;
-        
-        if (windowManager == null) {
-            windowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
-        }
-        
-        if (floatingIslandView == null) {
-            createFloatingIsland();
-        }
-        
-        updateNotificationContent(packageName, title, content);
+        // 兼容旧方法，但建议使用addNotification
+        addNotification(packageName + title, packageName, title, content);
     }
     
     /**
@@ -206,8 +302,29 @@ public class FloatingWindowService extends Service {
      */
     public void hideNotificationIsland() {
         if (windowManager != null && floatingIslandView != null && floatingIslandView.getParent() != null) {
-            windowManager.removeView(floatingIslandView);
-            floatingIslandView = null;
+            View islandContainer = floatingIslandView.findViewById(R.id.island_container);
+            if (islandContainer != null) {
+                // 执行退出动画
+                islandContainer.animate()
+                        .alpha(0f)
+                        .scaleX(0.8f)
+                        .scaleY(0.8f)
+                        .translationY(-dpToPx(50))
+                        .setDuration(330)
+                        .setInterpolator(new AnticipateInterpolator(1f))
+                        .withEndAction(() -> {
+                            // 动画结束后移除视图
+                            if (floatingIslandView != null && floatingIslandView.getParent() != null) {
+                                windowManager.removeView(floatingIslandView);
+                                floatingIslandView = null;
+                            }
+                        })
+                        .start();
+            } else {
+                // 如果找不到容器，直接移除
+                windowManager.removeView(floatingIslandView);
+                floatingIslandView = null;
+            }
         }
     }
     
@@ -300,9 +417,10 @@ public class FloatingWindowService extends Service {
     
     /**
      * 显示三圆灵动岛悬浮窗
-     * @param packageName 应用包名
      */
-    public void showThreeCircleIsland(String packageName) {
+    public void showThreeCircleIsland() {
+        if (notificationQueue.isEmpty()) return;
+        
         if (windowManager == null) {
             windowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
         }
@@ -311,11 +429,44 @@ public class FloatingWindowService extends Service {
             createThreeCircleIsland();
         }
         
-        updateThreeCircleContent(packageName);
+        updateThreeCircleContent();
         
         if (floatingThreeCircleView.getParent() == null) {
             windowManager.addView(floatingThreeCircleView, threeCircleParams);
             floatingThreeCircleView.post(this::startThreeCircleAnimation);
+        }
+    }
+
+    public void showThreeCircleIsland(String packageName) {
+        showThreeCircleIsland();
+    }
+
+    /**
+     * 更新三圆灵动岛内容
+     */
+    private void updateThreeCircleContent() {
+        if (floatingThreeCircleView == null || notificationQueue.isEmpty()) {
+            return;
+        }
+        
+        NotificationInfo info = notificationQueue.getFirst();
+        String packageName = info.packageName;
+        
+        // 获取应用图标
+        CircleImageView appIcon = floatingThreeCircleView.findViewById(R.id.circle_app_icon);
+        try {
+            // 使用PackageManager获取应用图标
+            appIcon.setImageDrawable(getPackageManager().getApplicationIcon(packageName));
+        } catch (Exception e) {
+            // 如果获取失败，使用默认图标
+            appIcon.setImageResource(android.R.mipmap.sym_def_app_icon);
+        }
+        
+        // 更新数量
+        TextView countText = floatingThreeCircleView.findViewById(R.id.circle_black2);
+        if (countText != null) {
+            int count = notificationQueue.size();
+            countText.setText(count > 9 ? "9+" : String.valueOf(count));
         }
     }
 
@@ -324,9 +475,72 @@ public class FloatingWindowService extends Service {
      */
     public void hideThreeCircleIsland() {
         if (windowManager != null && floatingThreeCircleView != null && floatingThreeCircleView.getParent() != null) {
-            windowManager.removeView(floatingThreeCircleView);
-            floatingThreeCircleView = null;
+            startThreeCircleExitAnimation(() -> {
+                if (windowManager != null && floatingThreeCircleView != null && floatingThreeCircleView.getParent() != null) {
+                    windowManager.removeView(floatingThreeCircleView);
+                    floatingThreeCircleView = null;
+                }
+            });
         }
+    }
+    
+    /**
+     * 执行三圆灵动岛的退出动画
+     * @param onAnimationEnd 动画结束回调
+     */
+    private void startThreeCircleExitAnimation(Runnable onAnimationEnd) {
+        if (floatingThreeCircleView == null) {
+            if (onAnimationEnd != null) onAnimationEnd.run();
+            return;
+        }
+
+        int size = preferences.getInt(PREF_FLOATING_SIZE, DEFAULT_SIZE);
+        int circleSize = size - dpToPx(4);
+        int targetSpacerWidth = dpToPx(10);
+        int targetMargin = dpToPx(2);
+        // 最终宽度 = 3 * circleSize + 6 * margin + 2 * targetSpacerWidth
+        int totalContentWidth = 3 * circleSize + 6 * targetMargin + 2 * targetSpacerWidth;
+        
+        // 偏移量 = circleSize + margin + spacer + margin = circleSize + 2*margin + spacer
+        int offset = circleSize + 2 * targetMargin + targetSpacerWidth;
+
+        final View background = floatingThreeCircleView.findViewById(R.id.island_background);
+        final View circle1 = floatingThreeCircleView.findViewById(R.id.circle_app_icon);
+        final View circle3 = floatingThreeCircleView.findViewById(R.id.circle_black2);
+
+        // 倒放：从1f到0f
+        ValueAnimator animator = ValueAnimator.ofFloat(1f, 0f);
+        animator.setDuration(400); // 退出动画稍微快一点
+        animator.setInterpolator(new AnticipateInterpolator(1.2f)); // 使用Anticipate实现倒放的"回弹"效果
+        animator.addUpdateListener(animation -> {
+            float fraction = (float) animation.getAnimatedValue();
+
+            // 1. 背景收缩
+            int currentWidth = (int) (circleSize + (totalContentWidth - circleSize) * fraction);
+            ViewGroup.LayoutParams bgParams = background.getLayoutParams();
+            bgParams.width = currentWidth;
+            background.setLayoutParams(bgParams);
+
+            // 2. 圆形回归
+            float currentOffset = offset * fraction;
+            
+            // Circle 1 (Left) moves back to center
+            circle1.setTranslationX(-currentOffset);
+            
+            // Circle 3 (Right) moves back to center
+            circle3.setTranslationX(currentOffset);
+        });
+        
+        animator.addListener(new android.animation.AnimatorListenerAdapter() {
+            @Override
+            public void onAnimationEnd(android.animation.Animator animation) {
+                if (onAnimationEnd != null) {
+                    onAnimationEnd.run();
+                }
+            }
+        });
+        
+        animator.start();
     }
 
     /**
@@ -350,47 +564,27 @@ public class FloatingWindowService extends Service {
         View blackCircle2 = floatingThreeCircleView.findViewById(R.id.circle_black2);
         
         // 设置圆形大小
-        LinearLayout.LayoutParams layoutParams = (LinearLayout.LayoutParams) appIcon.getLayoutParams();
+        FrameLayout.LayoutParams layoutParams = (FrameLayout.LayoutParams) appIcon.getLayoutParams();
         layoutParams.width = circleSize;
         layoutParams.height = circleSize;
-        // 初始设置负margin实现重叠
-        layoutParams.setMarginEnd(-circleSize);
         appIcon.setLayoutParams(layoutParams);
         
-        LinearLayout.LayoutParams blackLayoutParams = (LinearLayout.LayoutParams) blackCircle.getLayoutParams();
+        FrameLayout.LayoutParams blackLayoutParams = (FrameLayout.LayoutParams) blackCircle.getLayoutParams();
         blackLayoutParams.width = circleSize;
         blackLayoutParams.height = circleSize;
-        // 初始设置负margin实现重叠
-        blackLayoutParams.setMarginEnd(-circleSize);
         blackCircle.setLayoutParams(blackLayoutParams);
         
-        LinearLayout.LayoutParams blackLayoutParams2 = (LinearLayout.LayoutParams) blackCircle2.getLayoutParams();
+        FrameLayout.LayoutParams blackLayoutParams2 = (FrameLayout.LayoutParams) blackCircle2.getLayoutParams();
         blackLayoutParams2.width = circleSize;
         blackLayoutParams2.height = circleSize;
         blackCircle2.setLayoutParams(blackLayoutParams2);
 
-        // 初始化背景和占位符
+        // 初始化背景
         View background = floatingThreeCircleView.findViewById(R.id.island_background);
         ViewGroup.LayoutParams bgParams = background.getLayoutParams();
         bgParams.width = circleSize; // 初始只显示一个圆的大小
         background.setLayoutParams(bgParams);
 
-        View spacerLeft = floatingThreeCircleView.findViewById(R.id.spacer_left);
-        ViewGroup.LayoutParams spacerParams = spacerLeft.getLayoutParams();
-        spacerParams.width = 0;
-        spacerLeft.setLayoutParams(spacerParams);
-
-        View spacerRight = floatingThreeCircleView.findViewById(R.id.spacer_right);
-        ViewGroup.LayoutParams spacerParams2 = spacerRight.getLayoutParams();
-        spacerParams2.width = 0;
-        spacerRight.setLayoutParams(spacerParams2);
-
-        // 初始化容器宽度
-        View circlesContainer = floatingThreeCircleView.findViewById(R.id.circles_container);
-        ViewGroup.LayoutParams containerParams = circlesContainer.getLayoutParams();
-        containerParams.width = circleSize; // 初始宽度为一个圆的大小
-        circlesContainer.setLayoutParams(containerParams);
-        
         // 计算三圆悬浮岛的位置，使其中心与第一个悬浮窗的中心对齐
         int targetSpacerWidth = dpToPx(10);
         int margin = dpToPx(2);
@@ -415,8 +609,9 @@ public class FloatingWindowService extends Service {
         threeCircleParams.y = y;
         
         floatingThreeCircleView.setOnClickListener(view -> {
-            if (lastNotificationPackageName != null) {
-                showNotificationIsland(lastNotificationPackageName, lastNotificationTitle, lastNotificationContent);
+            if (!notificationQueue.isEmpty()) {
+                NotificationInfo info = notificationQueue.getFirst();
+                showNotificationIsland(info.packageName, info.title, info.content);
             }
         });
     }
@@ -433,17 +628,17 @@ public class FloatingWindowService extends Service {
         int targetMargin = dpToPx(2);
         // 最终宽度 = 3 * circleSize + 6 * margin + 2 * targetSpacerWidth
         int totalContentWidth = 3 * circleSize + 6 * targetMargin + 2 * targetSpacerWidth;
+        
+        // 偏移量 = circleSize + margin + spacer + margin = circleSize + 2*margin + spacer
+        int offset = circleSize + 2 * targetMargin + targetSpacerWidth;
 
         final View background = floatingThreeCircleView.findViewById(R.id.island_background);
-        final View spacerLeft = floatingThreeCircleView.findViewById(R.id.spacer_left);
-        final View spacerRight = floatingThreeCircleView.findViewById(R.id.spacer_right);
         final View circle1 = floatingThreeCircleView.findViewById(R.id.circle_app_icon);
-        final View circle2 = floatingThreeCircleView.findViewById(R.id.circle_black);
-        final View circlesContainer = floatingThreeCircleView.findViewById(R.id.circles_container);
+        final View circle3 = floatingThreeCircleView.findViewById(R.id.circle_black2);
 
         ValueAnimator animator = ValueAnimator.ofFloat(0f, 1f);
-        animator.setDuration(800);
-        animator.setInterpolator(new DecelerateInterpolator(1.8f));
+        animator.setDuration(600);
+        animator.setInterpolator(new DecelerateInterpolator(2f));
         animator.addUpdateListener(animation -> {
             float fraction = (float) animation.getAnimatedValue();
 
@@ -453,32 +648,14 @@ public class FloatingWindowService extends Service {
             bgParams.width = currentWidth;
             background.setLayoutParams(bgParams);
 
-            // 2. 容器宽度同步展开
-            ViewGroup.LayoutParams containerParams = circlesContainer.getLayoutParams();
-            containerParams.width = currentWidth;
-            circlesContainer.setLayoutParams(containerParams);
-
-            // 3. 占位符变宽
-            int currentSpacerWidth = (int) (0 + targetSpacerWidth * fraction);
-            ViewGroup.LayoutParams sp1 = spacerLeft.getLayoutParams();
-            sp1.width = currentSpacerWidth;
-            spacerLeft.setLayoutParams(sp1);
+            // 2. 圆形移动
+            float currentOffset = offset * fraction;
             
-            ViewGroup.LayoutParams sp2 = spacerRight.getLayoutParams();
-            sp2.width = currentSpacerWidth;
-            spacerRight.setLayoutParams(sp2);
-
-            // 4. Margin分离
-            int startMargin = -circleSize;
-            int currentMargin = (int) (startMargin + (targetMargin - startMargin) * fraction);
+            // Circle 1 (Left) moves left (negative X)
+            circle1.setTranslationX(-currentOffset);
             
-            LinearLayout.LayoutParams lp1 = (LinearLayout.LayoutParams) circle1.getLayoutParams();
-            lp1.setMarginEnd(currentMargin);
-            circle1.setLayoutParams(lp1);
-
-            LinearLayout.LayoutParams lp2 = (LinearLayout.LayoutParams) circle2.getLayoutParams();
-            lp2.setMarginEnd(currentMargin);
-            circle2.setLayoutParams(lp2);
+            // Circle 3 (Right) moves right (positive X)
+            circle3.setTranslationX(currentOffset);
         });
         animator.start();
     }
