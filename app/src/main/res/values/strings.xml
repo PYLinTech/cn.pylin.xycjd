@@ -49,6 +49,8 @@
     <string name="intro_permission_content">为了提供更好的服务，我们需要获取以下权限：</string>
     <string name="permission_notification_listener">通知监听权限</string>
     <string name="permission_notification_listener_desc">用于监听系统通知，实现应用通知管理功能</string>
+    <string name="permission_notification_post">通知权限</string>
+    <string name="permission_notification_post_desc">用于在 Android 13 及以上系统正常显示通知</string>
     <string name="permission_overlay">悬浮窗权限</string>
     <string name="permission_overlay_desc">用于显示悬浮窗，方便您快速操作应用</string>
 

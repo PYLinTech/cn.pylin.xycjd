@@ -218,19 +218,36 @@ public class FloatingWindowService extends Service {
         LayoutInflater inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
         floatingIslandView = inflater.inflate(R.layout.floating_window_island, null);
         
-        // 获取第一个悬浮窗的位置和大小
         int x = preferences.getInt(PREF_FLOATING_X, DEFAULT_X);
         int y = preferences.getInt(PREF_FLOATING_Y, DEFAULT_Y);
         int size = preferences.getInt(PREF_FLOATING_SIZE, DEFAULT_SIZE);
         
-        // 计算第二个悬浮窗的位置
-        // 水平居中，垂直位置在第一个悬浮窗下方约30dp
         int islandY = y + size + dpToPx(ISLAND_MARGIN_TOP);
+
+        View islandContainer = floatingIslandView.findViewById(R.id.island_container);
+        ViewGroup.MarginLayoutParams containerParams = (ViewGroup.MarginLayoutParams) islandContainer.getLayoutParams();
+        containerParams.topMargin = islandY;
+        islandContainer.setLayoutParams(containerParams);
+        islandContainer.setTranslationX(x);
+        islandContainer.setClickable(true);
+
+        View islandRoot = floatingIslandView.findViewById(R.id.island_root);
+        islandRoot.setOnClickListener(v -> hideNotificationIsland());
+
+        islandContainer.setOnClickListener(v -> {
+            if (lastNotificationPackageName != null) {
+                Intent launchIntent = getPackageManager().getLaunchIntentForPackage(lastNotificationPackageName);
+                if (launchIntent != null) {
+                    launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    startActivity(launchIntent);
+                    hideNotificationIsland();
+                }
+            }
+        });
         
-        // 创建悬浮窗布局参数
         islandParams = new WindowManager.LayoutParams(
-                WindowManager.LayoutParams.WRAP_CONTENT,
-                WindowManager.LayoutParams.WRAP_CONTENT,
+                WindowManager.LayoutParams.MATCH_PARENT,
+                WindowManager.LayoutParams.MATCH_PARENT,
                 Build.VERSION.SDK_INT >= Build.VERSION_CODES.O ? 
                         WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY : 
                         WindowManager.LayoutParams.TYPE_PHONE,
@@ -238,9 +255,9 @@ public class FloatingWindowService extends Service {
                 PixelFormat.TRANSLUCENT
         );
         
-        islandParams.gravity = Gravity.TOP | Gravity.CENTER_HORIZONTAL;
-        islandParams.x = x;
-        islandParams.y = islandY;
+        islandParams.gravity = Gravity.TOP | Gravity.START;
+        islandParams.x = 0;
+        islandParams.y = 0;
     }
     
     /**
@@ -425,8 +442,8 @@ public class FloatingWindowService extends Service {
         final View circlesContainer = floatingThreeCircleView.findViewById(R.id.circles_container);
 
         ValueAnimator animator = ValueAnimator.ofFloat(0f, 1f);
-        animator.setDuration(600);
-        animator.setInterpolator(new DecelerateInterpolator(1.5f));
+        animator.setDuration(800);
+        animator.setInterpolator(new DecelerateInterpolator(1.8f));
         animator.addUpdateListener(animation -> {
             float fraction = (float) animation.getAnimatedValue();
 
