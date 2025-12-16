@@ -49,6 +49,8 @@
     <string name="intro_permission_content">To provide better services, we need the following permissions:</string>
     <string name="permission_notification_listener">Notification Listener Permission</string>
     <string name="permission_notification_listener_desc">Used to listen to system notifications and implement app notification management functions</string>
+    <string name="permission_notification_post">Notification Permission</string>
+    <string name="permission_notification_post_desc">Required to show notifications properly on Android 13 and above</string>
     <string name="permission_overlay">Floating Window Permission</string>
     <string name="permission_overlay_desc">Used to display floating windows for quick app operations</string>
 

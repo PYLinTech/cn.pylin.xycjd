@@ -2,6 +2,8 @@ package cn.pylin.xycjd;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -10,9 +12,11 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
+import android.Manifest;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 import androidx.core.widget.NestedScrollView;
 import androidx.fragment.app.Fragment;
 
@@ -23,12 +27,15 @@ public class PermissionFragment extends Fragment {
     private NestedScrollView scrollView;
     private Handler permissionCheckHandler;
     private Runnable permissionCheckRunnable;
-    private static final int PERMISSION_CHECK_INTERVAL = 1000; // 1秒检查一次
+    private static final int PERMISSION_CHECK_INTERVAL = 1000;
+    private static final int REQUEST_POST_NOTIFICATIONS = 1001;
 
-    // UI组件
     private androidx.cardview.widget.CardView permissionItemNotification;
     private TextView notificationStatus;
     private Button notificationBtn;
+    private androidx.cardview.widget.CardView permissionItemNotificationPost;
+    private TextView notificationPostStatus;
+    private Button notificationPostBtn;
     private androidx.cardview.widget.CardView permissionItemOverlay;
     private TextView overlayStatus;
     private Button overlayBtn;
@@ -50,23 +57,16 @@ public class PermissionFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_intro_permission, container, false);
         initViews(view);
         setListeners();
-        
-        // 初始化定时器
         initPermissionCheckTimer();
-        
         return view;
     }
     
     @Override
     public void onDestroy() {
         super.onDestroy();
-        // 销毁定时器
         stopPermissionCheckTimer();
     }
     
-    /**
-     * 初始化权限检查定时器
-     */
     private void initPermissionCheckTimer() {
         permissionCheckHandler = new Handler(Looper.getMainLooper());
         permissionCheckRunnable = new Runnable() {
@@ -74,19 +74,13 @@ public class PermissionFragment extends Fragment {
             public void run() {
                 if (isAdded() && mContext != null) {
                     updatePermissionStatus();
-                    // 1秒后再次执行
                     permissionCheckHandler.postDelayed(this, PERMISSION_CHECK_INTERVAL);
                 }
             }
         };
-        
-        // 立即执行一次，然后每秒执行一次
         permissionCheckHandler.post(permissionCheckRunnable);
     }
     
-    /**
-     * 停止权限检查定时器
-     */
     private void stopPermissionCheckTimer() {
         if (permissionCheckHandler != null && permissionCheckRunnable != null) {
             permissionCheckHandler.removeCallbacks(permissionCheckRunnable);
@@ -95,14 +89,14 @@ public class PermissionFragment extends Fragment {
         }
     }
 
-    /**
-     * 初始化UI组件
-     */
     private void initViews(View view) {
         scrollView = view.findViewById(R.id.nested_scroll_view);
         permissionItemNotification = view.findViewById(R.id.permission_item_notification);
         notificationStatus = view.findViewById(R.id.notification_status);
         notificationBtn = view.findViewById(R.id.notification_btn);
+        permissionItemNotificationPost = view.findViewById(R.id.permission_item_notification_post);
+        notificationPostStatus = view.findViewById(R.id.notification_post_status);
+        notificationPostBtn = view.findViewById(R.id.notification_post_btn);
         permissionItemOverlay = view.findViewById(R.id.permission_item_overlay);
         overlayStatus = view.findViewById(R.id.overlay_status);
         overlayBtn = view.findViewById(R.id.overlay_btn);
@@ -112,30 +106,23 @@ public class PermissionFragment extends Fragment {
         batteryOptimizationBtn = view.findViewById(R.id.battery_optimization_btn);
     }
 
-    /**
-     * 设置监听器
-     */
     private void setListeners() {
         setPermissionClickListener(permissionItemNotification, notificationBtn, this::openNotificationListenerSettings);
+        setPermissionClickListener(permissionItemNotificationPost, notificationPostBtn, this::requestNotificationPermission);
         setPermissionClickListener(permissionItemOverlay, overlayBtn, this::openOverlaySettings);
         setPermissionClickListener(permissionItemBatteryOptimization, batteryOptimizationBtn, this::openBatteryOptimizationSettings);
     }
     
-    /**
-     * 设置权限项的点击监听器
-     */
     private void setPermissionClickListener(androidx.cardview.widget.CardView cardView, Button button, Runnable action) {
         View.OnClickListener listener = v -> action.run();
         cardView.setOnClickListener(listener);
         button.setOnClickListener(listener);
     }
 
-    /**
-     * 更新权限状态
-     */
     void updatePermissionStatus() {
         if (!isAdded() || mContext == null || 
-            notificationStatus == null || overlayStatus == null || 
+            notificationStatus == null || notificationPostStatus == null ||
+            overlayStatus == null || 
             batteryOptimizationStatus == null) {
             return;
         }
@@ -143,13 +130,11 @@ public class PermissionFragment extends Fragment {
         PermissionChecker.PermissionStatus status = PermissionChecker.checkAllPermissions(mContext);
         
         updatePermissionUI(notificationStatus, notificationBtn, status.hasNotificationPermission);
+        updatePermissionUI(notificationPostStatus, notificationPostBtn, status.hasNotificationPostPermission);
         updatePermissionUI(overlayStatus, overlayBtn, status.hasOverlayPermission);
         updatePermissionUI(batteryOptimizationStatus, batteryOptimizationBtn, status.hasBatteryOptimizationDisabled);
     }
     
-    /**
-     * 更新单个权限的UI状态
-     */
     private void updatePermissionUI(TextView statusView, Button buttonView, boolean isGranted) {
         if (isGranted) {
             statusView.setText(R.string.permission_status_granted);
@@ -162,25 +147,22 @@ public class PermissionFragment extends Fragment {
         }
     }
 
-    /**
-     * 打开通知监听权限设置页面
-     */
+    private void requestNotificationPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && mActivity != null) {
+            if (ContextCompat.checkSelfPermission(mActivity, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                requestPermissions(new String[]{Manifest.permission.POST_NOTIFICATIONS}, REQUEST_POST_NOTIFICATIONS);
+            }
+        }
+    }
+
     private void openNotificationListenerSettings() {
         PermissionChecker.openNotificationListenerSettings(mActivity);
     }
 
-    /**
-     * 打开悬浮窗权限设置页面
-     */
     private void openOverlaySettings() {
         PermissionChecker.openOverlaySettings(mActivity);
     }
 
-
-
-    /**
-     * 打开电池优化设置页面
-     */
     private void openBatteryOptimizationSettings() {
         PermissionChecker.openBatteryOptimizationSettings(mActivity);
     }
