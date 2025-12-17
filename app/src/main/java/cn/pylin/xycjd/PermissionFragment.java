@@ -40,6 +40,10 @@ public class PermissionFragment extends Fragment {
     private TextView overlayStatus;
     private Button overlayBtn;
 
+    private androidx.cardview.widget.CardView permissionItemAccessibility;
+    private TextView accessibilityStatus;
+    private Button accessibilityBtn;
+
     private androidx.cardview.widget.CardView permissionItemBatteryOptimization;
     private TextView batteryOptimizationStatus;
     private Button batteryOptimizationBtn;
@@ -101,6 +105,10 @@ public class PermissionFragment extends Fragment {
         overlayStatus = view.findViewById(R.id.overlay_status);
         overlayBtn = view.findViewById(R.id.overlay_btn);
 
+        permissionItemAccessibility = view.findViewById(R.id.permission_item_accessibility);
+        accessibilityStatus = view.findViewById(R.id.accessibility_status);
+        accessibilityBtn = view.findViewById(R.id.accessibility_btn);
+
         permissionItemBatteryOptimization = view.findViewById(R.id.permission_item_battery_optimization);
         batteryOptimizationStatus = view.findViewById(R.id.battery_optimization_status);
         batteryOptimizationBtn = view.findViewById(R.id.battery_optimization_btn);
@@ -110,6 +118,7 @@ public class PermissionFragment extends Fragment {
         setPermissionClickListener(permissionItemNotification, notificationBtn, this::openNotificationListenerSettings);
         setPermissionClickListener(permissionItemNotificationPost, notificationPostBtn, this::requestNotificationPermission);
         setPermissionClickListener(permissionItemOverlay, overlayBtn, this::openOverlaySettings);
+        setPermissionClickListener(permissionItemAccessibility, accessibilityBtn, this::openAccessibilitySettings);
         setPermissionClickListener(permissionItemBatteryOptimization, batteryOptimizationBtn, this::openBatteryOptimizationSettings);
     }
     
@@ -122,7 +131,7 @@ public class PermissionFragment extends Fragment {
     void updatePermissionStatus() {
         if (!isAdded() || mContext == null || 
             notificationStatus == null || notificationPostStatus == null ||
-            overlayStatus == null || 
+            overlayStatus == null || accessibilityStatus == null ||
             batteryOptimizationStatus == null) {
             return;
         }
@@ -132,6 +141,7 @@ public class PermissionFragment extends Fragment {
         updatePermissionUI(notificationStatus, notificationBtn, status.hasNotificationPermission);
         updatePermissionUI(notificationPostStatus, notificationPostBtn, status.hasNotificationPostPermission);
         updatePermissionUI(overlayStatus, overlayBtn, status.hasOverlayPermission);
+        updatePermissionUI(accessibilityStatus, accessibilityBtn, status.hasAccessibilityPermission);
         updatePermissionUI(batteryOptimizationStatus, batteryOptimizationBtn, status.hasBatteryOptimizationDisabled);
     }
     
@@ -161,6 +171,10 @@ public class PermissionFragment extends Fragment {
 
     private void openOverlaySettings() {
         PermissionChecker.openOverlaySettings(mActivity);
+    }
+
+    private void openAccessibilitySettings() {
+        PermissionChecker.openAccessibilitySettings(mActivity);
     }
 
     private void openBatteryOptimizationSettings() {

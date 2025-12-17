@@ -16,6 +16,8 @@
     <color name="colorAccent">#3B82F6</color>
     <color name="colorPrimaryInverse">#FFFFFF</color>
     <color name="colorError">#EF4444</color>
+    <color name="colorSuccess">#10B981</color>
+    <color name="colorWarning">#F59E0B</color>
     
     <color name="colorBackground">#F5F5F5</color>
     <color name="colorSurface">#FFFFFF</color>

@@ -1,6 +1,4 @@
 package cn.pylin.xycjd;
-
-import android.animation.ValueAnimator;
 import android.app.Activity;
 import android.app.ActivityManager;
 import android.content.Intent;
@@ -17,6 +15,9 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
+import androidx.dynamicanimation.animation.DynamicAnimation;
+import androidx.dynamicanimation.animation.SpringAnimation;
+import androidx.dynamicanimation.animation.SpringForce;
 
 import java.util.Locale;
 
@@ -32,6 +33,7 @@ public class MainActivity extends AppCompatActivity {
     private Button btnApps;
     private Button btnAbout;
     private View navigationIndicator;
+    private SpringAnimation indicatorSpringAnimation;
     
     // 上次按返回键的时间
     private long lastBackPressTime = 0;
@@ -193,18 +195,19 @@ public class MainActivity extends AppCompatActivity {
         }
         
         if (animate) {
-            ValueAnimator animator = ValueAnimator.ofFloat(navigationIndicator.getX(), targetX);
-            animator.setDuration(220);
-            animator.setInterpolator(new android.view.animation.PathInterpolator(0.4f, 0.0f, 0.2f, 1f));
-            animator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
-                @Override
-                public void onAnimationUpdate(ValueAnimator animation) {
-                    float value = (float) animation.getAnimatedValue();
-                    navigationIndicator.setX(value);
-                }
-            });
-            animator.start();
+            if (indicatorSpringAnimation == null) {
+                // 初始化弹簧动画，使用低刚度和低阻尼实现流畅的物理效果
+                indicatorSpringAnimation = new SpringAnimation(navigationIndicator, DynamicAnimation.X);
+                SpringForce spring = new SpringForce();
+                spring.setDampingRatio(SpringForce.DAMPING_RATIO_LOW_BOUNCY);
+                spring.setStiffness(SpringForce.STIFFNESS_LOW);
+                indicatorSpringAnimation.setSpring(spring);
+            }
+            indicatorSpringAnimation.animateToFinalPosition(targetX);
         } else {
+            if (indicatorSpringAnimation != null && indicatorSpringAnimation.isRunning()) {
+                indicatorSpringAnimation.cancel();
+            }
             navigationIndicator.setX(targetX);
         }
     }

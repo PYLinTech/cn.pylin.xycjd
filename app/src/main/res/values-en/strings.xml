@@ -53,6 +53,9 @@
     <string name="permission_notification_post_desc">Required to show notifications properly on Android 13 and above</string>
     <string name="permission_overlay">Floating Window Permission</string>
     <string name="permission_overlay_desc">Used to display floating windows for quick app operations</string>
+    <string name="permission_accessibility">Accessibility Permission</string>
+    <string name="permission_accessibility_desc">Displays the super island and executes notification navigation</string>
+    <string name="accessibility_service_desc">Xiaoyu Super Island Accessibility Service, providing automated assistant functions</string>
 
     <string name="permission_battery_optimization">Battery Optimization</string>
     <string name="permission_battery_optimization_desc">Disabling battery optimization ensures the app runs properly in the background</string>
@@ -94,8 +97,11 @@
     <string name="permission_some_denied">%d permissions denied</string>
     <string name="go_to_permission">Go to Settings</string>
     <string name="configure_permission">To configure</string>
+    <string name="service_abnormal_permission_missing">Service abnormal, key permissions not granted</string>
+    <string name="grant_permission">Grant Permission</string>
     <string name="increase">Increase</string>
     <string name="decrease">Decrease</string>
+    <string name="permission_tag_critical">Critical</string>
     <string name="reset_to_default_position">Reset to Default Position</string>
     <string name="floating_window_placeholder_text">Floating window service not started\nPlease start the service before configuring settings</string>
     
@@ -115,4 +121,10 @@
     <!-- App list header strings -->
     <string name="app_name_header">App Name</string>
     <string name="enable_header">Enable</string>
+    
+    <!-- Accessibility service status notification -->
+    <string name="accessibility_downgraded_title">Accessibility status abnormal</string>
+    <string name="accessibility_downgraded_content">Super Island has been downgraded, please re-enable permission to support top-level display</string>
+    <string name="accessibility_channel_name">Accessibility Service Status</string>
+    <string name="accessibility_channel_desc">Notify accessibility permission status changes</string>
 </resources>

@@ -53,6 +53,9 @@
     <string name="permission_notification_post_desc">用于在 Android 13 及以上系统正常显示通知</string>
     <string name="permission_overlay">悬浮窗权限</string>
     <string name="permission_overlay_desc">用于显示悬浮窗，方便您快速操作应用</string>
+    <string name="permission_accessibility">无障碍权限</string>
+    <string name="permission_accessibility_desc">用于显示超级岛以及执行通知跳转</string>
+    <string name="accessibility_service_desc">小雨超级岛无障碍服务，提供自动化辅助功能</string>
 
     <string name="permission_battery_optimization">电池优化</string>
     <string name="permission_battery_optimization_desc">关闭电池优化可确保应用在后台正常运行</string>
@@ -94,8 +97,11 @@
     <string name="permission_some_denied">%d项权限未开启</string>
     <string name="go_to_permission">前往开启</string>
     <string name="configure_permission">配置权限</string>
+    <string name="service_abnormal_permission_missing">服务异常，关键权限未授予</string>
+    <string name="grant_permission">授予权限</string>
     <string name="increase">增加</string>
     <string name="decrease">减少</string>
+    <string name="permission_tag_critical">关键</string>
     <string name="reset_to_default_position">还原默认位置</string>
     <string name="floating_window_placeholder_text">悬浮窗服务未启动\n请先启动服务后再进行设置</string>
     
@@ -115,4 +121,10 @@
     <!-- 应用列表表头字符串 -->
     <string name="app_name_header">应用名称</string>
     <string name="enable_header">启用</string>
+    
+    <!-- 无障碍服务状态通知 -->
+    <string name="accessibility_downgraded_title">无障碍权限状态异常</string>
+    <string name="accessibility_downgraded_content">超级岛已被降级显示，请重新开启权限以支持在顶层显示</string>
+    <string name="accessibility_channel_name">无障碍服务状态</string>
+    <string name="accessibility_channel_desc">通知无障碍权限状态变更</string>
 </resources>

@@ -41,6 +41,7 @@ dependencies {
     implementation(libs.material)
     implementation(libs.constraintlayout)
     implementation(libs.cardview)
+    implementation("androidx.dynamicanimation:dynamicanimation:1.1.0")
     implementation("androidx.viewpager2:viewpager2:1.1.0")
     implementation("androidx.fragment:fragment:1.8.0")
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
