@@ -60,14 +60,20 @@ public class CircleImageView extends AppCompatImageView {
         // 创建或复用bitmap
         final int drawableWidth = drawable.getIntrinsicWidth();
         final int drawableHeight = drawable.getIntrinsicHeight();
+
+        if (drawableWidth <= 0 || drawableHeight <= 0) {
+            return;
+        }
+
         Bitmap bitmap = lastBitmap;
         
-        if (bitmap == null || bitmap.getWidth() != drawableWidth || bitmap.getHeight() != drawableHeight) {
-            if (bitmap != null) {
+        if (bitmap == null || bitmap.isRecycled() || bitmap.getWidth() != drawableWidth || bitmap.getHeight() != drawableHeight) {
+            if (bitmap != null && !bitmap.isRecycled()) {
                 bitmap.recycle();
             }
             bitmap = Bitmap.createBitmap(drawableWidth, drawableHeight, Bitmap.Config.ARGB_8888);
             lastBitmap = bitmap;
+            lastShader = null;
         }
         
         // 将drawable绘制到bitmap上
