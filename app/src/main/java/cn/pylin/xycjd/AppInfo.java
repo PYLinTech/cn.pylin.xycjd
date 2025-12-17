@@ -10,6 +10,7 @@ public class AppInfo {
     private int versionCode;
     private String versionName;
     private boolean isChecked;
+    private boolean isAutoExpandChecked;
 
     public AppInfo(String packageName, String appName, Drawable appIcon, boolean isSystemApp, int versionCode, String versionName) {
         this.packageName = packageName;
@@ -19,6 +20,7 @@ public class AppInfo {
         this.versionCode = versionCode;
         this.versionName = versionName;
         this.isChecked = false;
+        this.isAutoExpandChecked = false;
     }
 
     public String getPackageName() {
@@ -75,5 +77,13 @@ public class AppInfo {
 
     public void setChecked(boolean checked) {
         isChecked = checked;
+    }
+
+    public boolean isAutoExpandChecked() {
+        return isAutoExpandChecked;
+    }
+
+    public void setAutoExpandChecked(boolean autoExpandChecked) {
+        isAutoExpandChecked = autoExpandChecked;
     }
 }

@@ -121,6 +121,7 @@
     <!-- App list header strings -->
     <string name="app_name_header">App Name</string>
     <string name="enable_header">Enable</string>
+    <string name="auto_expand_header">Auto Expand</string>
     
     <!-- Accessibility service status notification -->
     <string name="accessibility_downgraded_title">Accessibility status abnormal</string>

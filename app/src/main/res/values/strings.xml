@@ -121,6 +121,7 @@
     <!-- 应用列表表头字符串 -->
     <string name="app_name_header">应用名称</string>
     <string name="enable_header">启用</string>
+    <string name="auto_expand_header">自动展开</string>
     
     <!-- 无障碍服务状态通知 -->
     <string name="accessibility_downgraded_title">无障碍权限状态异常</string>
