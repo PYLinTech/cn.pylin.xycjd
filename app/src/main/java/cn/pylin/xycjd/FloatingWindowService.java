@@ -9,7 +9,9 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.PixelFormat;
 import android.os.Build;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.Looper;
 import android.preference.PreferenceManager;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -37,6 +39,7 @@ import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.recyclerview.widget.ItemTouchHelper;
+import androidx.recyclerview.widget.SimpleItemAnimator;
 
 import java.util.List;
 
@@ -60,13 +63,19 @@ public class FloatingWindowService extends Service {
         String title;
         String content;
         PendingIntent pendingIntent;
+        android.media.session.MediaSession.Token mediaToken;
 
         public NotificationInfo(String key, String packageName, String title, String content, PendingIntent pendingIntent) {
+            this(key, packageName, title, content, pendingIntent, null);
+        }
+
+        public NotificationInfo(String key, String packageName, String title, String content, PendingIntent pendingIntent, android.media.session.MediaSession.Token mediaToken) {
             this.key = key;
             this.packageName = packageName;
             this.title = title;
             this.content = content;
             this.pendingIntent = pendingIntent;
+            this.mediaToken = mediaToken;
         }
     }
 
@@ -317,64 +326,111 @@ public class FloatingWindowService extends Service {
     }
     
     public void addNotification(String key, String packageName, String title, String content, PendingIntent pendingIntent) {
-        // 忽略标题为空的通知
-        if (title == null || title.trim().isEmpty()) {
-            return;
-        }
+        addNotification(key, packageName, title, content, pendingIntent, null);
+    }
 
-        boolean isIslandVisible = floatingIslandView != null && floatingIslandView.getParent() != null;
-
-        // 移除已存在的同key通知（更新情况）
-        int removedIndex = removeNotificationInternal(key);
-        if (isIslandVisible && notificationAdapter != null && removedIndex != -1) {
-            notificationAdapter.notifyItemRemoved(removedIndex);
-        }
-        
-        // 添加到头部（最新的）
-        notificationQueue.addFirst(new NotificationInfo(key, packageName, title, content, pendingIntent));
-        
-        // 更新最近的通知变量
-        if (!notificationQueue.isEmpty()) {
-            NotificationInfo latest = notificationQueue.getFirst();
-            lastNotificationPackageName = latest.packageName;
-            lastNotificationTitle = latest.title;
-            lastNotificationContent = latest.content;
-        }
-
-        // 显示或更新三圆悬浮窗
-        showThreeCircleIsland();
-        
-        // 如果展开的悬浮窗正在显示，也更新它
-        if (isIslandVisible && notificationAdapter != null) {
-            notificationAdapter.notifyItemInserted(0);
-            // 确保列表滚动到顶部以显示最新通知
-            RecyclerView rv = floatingIslandView.findViewById(R.id.notification_recycler_view);
-            if (rv != null) {
-                rv.scrollToPosition(0);
+    public void addNotification(String key, String packageName, String title, String content, PendingIntent pendingIntent, android.media.session.MediaSession.Token mediaToken) {
+        new Handler(Looper.getMainLooper()).post(() -> {
+            // 忽略标题为空的通知
+            if (title == null || title.trim().isEmpty()) {
+                return;
             }
-        }
+
+            boolean isIslandVisible = floatingIslandView != null && floatingIslandView.getParent() != null;
+
+            // 查找是否已存在相同key的通知
+            int existingIndex = -1;
+            for (int i = 0; i < notificationQueue.size(); i++) {
+                if (notificationQueue.get(i).key.equals(key)) {
+                    existingIndex = i;
+                    break;
+                }
+            }
+
+            if (existingIndex != -1) {
+                NotificationInfo info = notificationQueue.get(existingIndex);
+                
+                // 检查内容是否有变化 (避免重复刷新)
+                boolean isTitleSame = (info.title == null ? title == null : info.title.equals(title));
+                boolean isContentSame = (info.content == null ? content == null : info.content.equals(content));
+                boolean isTokenSame = (info.mediaToken == null ? mediaToken == null : info.mediaToken.equals(mediaToken));
+
+                // 如果内容完全一致且已经在队首，仅更新Intent（无需刷新UI）
+                if (isTitleSame && isContentSame && isTokenSame && existingIndex == 0) {
+                    info.pendingIntent = pendingIntent;
+                    return;
+                }
+
+                // 如果已存在，直接更新内容
+                info.title = title;
+                info.content = content;
+                info.pendingIntent = pendingIntent;
+                info.mediaToken = mediaToken;
+                
+                // 将更新后的通知移动到队首
+                if (existingIndex != 0) {
+                    notificationQueue.remove(existingIndex);
+                    notificationQueue.addFirst(info);
+                    if (isIslandVisible && notificationAdapter != null) {
+                        notificationAdapter.notifyItemMoved(existingIndex, 0);
+                        notificationAdapter.notifyItemChanged(0);
+                    }
+                } else {
+                    // 已经在队首，直接刷新
+                    if (isIslandVisible && notificationAdapter != null) {
+                        notificationAdapter.notifyItemChanged(0);
+                    }
+                }
+            } else {
+                // 如果不存在，添加到头部（最新的）
+                notificationQueue.addFirst(new NotificationInfo(key, packageName, title, content, pendingIntent, mediaToken));
+                
+                // 如果展开的悬浮窗正在显示，插入新项
+                if (isIslandVisible && notificationAdapter != null) {
+                    notificationAdapter.notifyItemInserted(0);
+                    // 确保列表滚动到顶部以显示最新通知
+                    RecyclerView rv = floatingIslandView.findViewById(R.id.notification_recycler_view);
+                    if (rv != null) {
+                        rv.scrollToPosition(0);
+                    }
+                }
+            }
+            
+            // 更新最近的通知变量
+            if (!notificationQueue.isEmpty()) {
+                NotificationInfo latest = notificationQueue.getFirst();
+                lastNotificationPackageName = latest.packageName;
+                lastNotificationTitle = latest.title;
+                lastNotificationContent = latest.content;
+            }
+
+            // 显示或更新三圆悬浮窗
+            showThreeCircleIsland();
+        });
     }
 
     public void removeNotification(String key) {
-        removeNotificationInternal(key);
-        
-        if (notificationQueue.isEmpty()) {
-            hideThreeCircleIsland();
-            hideNotificationIsland();
-            lastNotificationPackageName = null;
-        } else {
-            // 更新UI显示最新的通知
-            NotificationInfo latest = notificationQueue.getFirst();
-            lastNotificationPackageName = latest.packageName;
-            lastNotificationTitle = latest.title;
-            lastNotificationContent = latest.content;
+        new Handler(Looper.getMainLooper()).post(() -> {
+            removeNotificationInternal(key);
             
-            updateThreeCircleContent();
-            // 如果展开的悬浮窗正在显示，也更新它
-            if (floatingIslandView != null && floatingIslandView.getParent() != null) {
-                updateNotificationContent(latest.packageName, latest.title, latest.content);
+            if (notificationQueue.isEmpty()) {
+                hideThreeCircleIsland();
+                hideNotificationIsland();
+                lastNotificationPackageName = null;
+            } else {
+                // 更新UI显示最新的通知
+                NotificationInfo latest = notificationQueue.getFirst();
+                lastNotificationPackageName = latest.packageName;
+                lastNotificationTitle = latest.title;
+                lastNotificationContent = latest.content;
+                
+                updateThreeCircleContent();
+                // 如果展开的悬浮窗正在显示，也更新它
+                if (floatingIslandView != null && floatingIslandView.getParent() != null) {
+                    updateNotificationContent(latest.packageName, latest.title, latest.content);
+                }
             }
-        }
+        });
     }
 
     private int removeNotificationInternal(String key) {
@@ -529,6 +585,12 @@ public class FloatingWindowService extends Service {
         recyclerView.setLayoutManager(layoutManager);
         notificationAdapter = new NotificationAdapter();
         recyclerView.setAdapter(notificationAdapter);
+        
+        // 关闭默认动画以防止闪烁
+        RecyclerView.ItemAnimator animator = recyclerView.getItemAnimator();
+        if (animator instanceof SimpleItemAnimator) {
+            ((SimpleItemAnimator) animator).setSupportsChangeAnimations(false);
+        }
         
         // 添加间距装饰器
         int itemSpacing = dpToPx(16);
@@ -703,6 +765,9 @@ public class FloatingWindowService extends Service {
                 holder.icon.setImageResource(android.R.mipmap.sym_def_app_icon);
             }
             
+            // 绑定媒体控制器
+            holder.bindMediaController(info.mediaToken);
+
             holder.container.setOnTouchListener((v, event) -> {
                 switch (event.getAction()) {
                     case MotionEvent.ACTION_DOWN:
@@ -760,6 +825,12 @@ public class FloatingWindowService extends Service {
             ImageView icon;
             TextView title;
             TextView content;
+            LinearLayout mediaControls;
+            ImageView btnPrev;
+            ImageView btnPlay;
+            ImageView btnNext;
+            android.media.session.MediaController mediaController;
+            android.media.session.MediaController.Callback mediaCallback;
 
             ViewHolder(View itemView) {
                 super(itemView);
@@ -767,6 +838,94 @@ public class FloatingWindowService extends Service {
                 icon = itemView.findViewById(R.id.app_icon);
                 title = itemView.findViewById(R.id.notification_title);
                 content = itemView.findViewById(R.id.notification_content);
+                mediaControls = itemView.findViewById(R.id.media_controls);
+                btnPrev = itemView.findViewById(R.id.btn_prev);
+                btnPlay = itemView.findViewById(R.id.btn_play);
+                btnNext = itemView.findViewById(R.id.btn_next);
+            }
+
+            void bindMediaController(android.media.session.MediaSession.Token token) {
+                // 清理旧的Controller
+                if (mediaController != null && mediaCallback != null) {
+                    mediaController.unregisterCallback(mediaCallback);
+                }
+                
+                if (token == null) {
+                    mediaControls.setVisibility(View.GONE);
+                    mediaController = null;
+                    return;
+                }
+
+                mediaControls.setVisibility(View.VISIBLE);
+                content.setMaxLines(1); // 媒体通知限制为1行
+                mediaController = new android.media.session.MediaController(FloatingWindowService.this, token);
+                
+                // 设置初始状态
+                updateMediaState(mediaController.getPlaybackState());
+                updateMediaMetadata(mediaController.getMetadata());
+
+                mediaCallback = new android.media.session.MediaController.Callback() {
+                    @Override
+                    public void onPlaybackStateChanged(android.media.session.PlaybackState state) {
+                        // 在主线程更新UI
+                        new Handler(Looper.getMainLooper()).post(() -> updateMediaState(state));
+                    }
+
+                    @Override
+                    public void onMetadataChanged(android.media.MediaMetadata metadata) {
+                        new Handler(Looper.getMainLooper()).post(() -> updateMediaMetadata(metadata));
+                    }
+                    
+                    @Override
+                    public void onSessionDestroyed() {
+                        new Handler(Looper.getMainLooper()).post(() -> {
+                            mediaControls.setVisibility(View.GONE);
+                        });
+                    }
+                };
+                mediaController.registerCallback(mediaCallback);
+
+                // 绑定按钮点击事件
+                btnPrev.setOnClickListener(v -> {
+                    if (mediaController != null) {
+                        mediaController.getTransportControls().skipToPrevious();
+                    }
+                });
+
+                btnNext.setOnClickListener(v -> {
+                    if (mediaController != null) {
+                        mediaController.getTransportControls().skipToNext();
+                    }
+                });
+
+                btnPlay.setOnClickListener(v -> {
+                    if (mediaController != null) {
+                        android.media.session.PlaybackState state = mediaController.getPlaybackState();
+                        if (state != null) {
+                            if (state.getState() == android.media.session.PlaybackState.STATE_PLAYING) {
+                                mediaController.getTransportControls().pause();
+                            } else {
+                                mediaController.getTransportControls().play();
+                            }
+                        }
+                    }
+                });
+            }
+
+            private void updateMediaState(android.media.session.PlaybackState state) {
+                if (state == null) return;
+                
+                boolean isPlaying = state.getState() == android.media.session.PlaybackState.STATE_PLAYING;
+                btnPlay.setImageResource(isPlaying ? R.drawable.ic_media_pause : R.drawable.ic_media_play);
+            }
+
+            private void updateMediaMetadata(android.media.MediaMetadata metadata) {
+                if (metadata == null) return;
+                
+                // 可以从metadata获取更多信息，如封面图等
+                // String titleStr = metadata.getString(android.media.MediaMetadata.METADATA_KEY_TITLE);
+                // String artistStr = metadata.getString(android.media.MediaMetadata.METADATA_KEY_ARTIST);
+                // Bitmap art = metadata.getBitmap(android.media.MediaMetadata.METADATA_KEY_ALBUM_ART);
             }
         }
     }

@@ -32,7 +32,7 @@
             android:textColor="@android:color/white"
             android:textSize="18sp"
             android:textStyle="bold"
-            android:maxLines="2"
+            android:maxLines="1"
             android:ellipsize="end" />
 
         <TextView
@@ -44,6 +44,46 @@
             android:layout_marginTop="6dp"
             android:maxLines="3"
             android:ellipsize="end" />
+
+        <LinearLayout
+            android:id="@+id/media_controls"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:visibility="gone">
+
+            <ImageView
+                android:id="@+id/btn_prev"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:layout_weight="1"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/previous"
+                android:padding="4dp"
+                android:src="@drawable/ic_media_previous" />
+
+            <ImageView
+                android:id="@+id/btn_play"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_weight="1"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/play_pause"
+                android:padding="4dp"
+                android:src="@drawable/ic_media_play" />
+
+            <ImageView
+                android:id="@+id/btn_next"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:layout_weight="1"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/next"
+                android:padding="4dp"
+                android:src="@drawable/ic_media_next" />
+        </LinearLayout>
     </LinearLayout>
 
 </LinearLayout>

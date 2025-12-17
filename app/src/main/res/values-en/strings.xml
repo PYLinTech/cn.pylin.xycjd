@@ -128,4 +128,10 @@
     <string name="accessibility_downgraded_content">Super Island has been downgraded, please re-enable permission to support top-level display</string>
     <string name="accessibility_channel_name">Accessibility Service Status</string>
     <string name="accessibility_channel_desc">Notify accessibility permission status changes</string>
+        
+    <!-- Media control related strings -->
+    <string name="previous">Previous</string>
+    <string name="play_pause">Play/Pause</string>
+    <string name="next">Next</string>
+    <string name="log_activity_title">Notification Log</string>
 </resources>

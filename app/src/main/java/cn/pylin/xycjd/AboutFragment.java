@@ -30,6 +30,8 @@ public class AboutFragment extends Fragment {
     private ConstraintLayout layoutGithub;
     private ConstraintLayout layoutQqGroup;
 
+    private final long[] mHits = new long[7];
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -76,6 +78,16 @@ public class AboutFragment extends Fragment {
     }
 
     private void setClickListeners() {
+        tvVersion.setOnClickListener(v -> {
+            System.arraycopy(mHits, 1, mHits, 0, mHits.length - 1);
+            mHits[mHits.length - 1] = android.os.SystemClock.uptimeMillis();
+            if (mHits[0] >= (android.os.SystemClock.uptimeMillis() - 10000)) {
+                Intent intent = new Intent(requireContext(), LogActivity.class);
+                startActivity(intent);
+                java.util.Arrays.fill(mHits, 0);
+            }
+        });
+
         // 官网地址点击事件
         layoutWebsite.setOnClickListener(v -> {
             openUrl(getString(R.string.website_url));
