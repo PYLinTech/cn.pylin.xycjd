@@ -60,12 +60,22 @@
 
         <!-- 启用勾选框区域 -->
         <TextView
-            android:layout_width="64dp"
+            android:layout_width="72dp"
             android:layout_height="wrap_content"
             android:text="@string/enable_header"
             android:textStyle="bold"
             android:textSize="14sp"
             android:gravity="center" />
+
+        <TextView
+            android:layout_width="72dp"
+            android:layout_height="wrap_content"
+            android:text="@string/auto_expand_header"
+            android:textStyle="bold"
+            android:textSize="14sp"
+            android:gravity="center"
+            android:singleLine="true"
+            android:ellipsize="end" />
     </LinearLayout>
 
     <!-- 应用列表 -->

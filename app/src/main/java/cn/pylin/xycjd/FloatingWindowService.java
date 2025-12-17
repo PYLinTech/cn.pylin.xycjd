@@ -388,11 +388,6 @@ public class FloatingWindowService extends Service {
         return -1;
     }
 
-    public void updateNotificationData(String packageName, String title, String content) {
-        // 兼容旧方法，但建议使用addNotification
-        addNotification(packageName + title, packageName, title, content, null);
-    }
-    
     /**
      * 隐藏通知悬浮窗
      */
@@ -575,6 +570,16 @@ public class FloatingWindowService extends Service {
                 if (position != RecyclerView.NO_POSITION && position < notificationQueue.size()) {
                     NotificationInfo removedInfo = notificationQueue.remove(position);
                     notificationAdapter.notifyItemRemoved(position);
+                    
+                    // 尝试从系统通知栏移除通知
+                    AppNotificationListenerService listenerService = AppNotificationListenerService.getInstance();
+                    if (listenerService != null) {
+                        try {
+                            listenerService.cancelNotification(removedInfo.key);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
                     
                     // 如果队列为空，关闭悬浮窗
                     if (notificationQueue.isEmpty()) {
@@ -797,6 +802,12 @@ public class FloatingWindowService extends Service {
 
     public void showThreeCircleIsland(String packageName) {
         showThreeCircleIsland();
+    }
+
+    public void performThreeCircleClick() {
+        if (notificationQueue.isEmpty()) return;
+        NotificationInfo info = notificationQueue.getFirst();
+        showNotificationIsland(info.packageName, info.title, info.content);
     }
 
     /**

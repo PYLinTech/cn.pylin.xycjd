@@ -20,12 +20,14 @@ public class AppInfoAdapter extends BaseAdapter {
     private List<AppInfo> mAppInfoList;
     private LayoutInflater mInflater;
     private SharedPreferences mPrefs;
+    private SharedPreferences mAutoExpandPrefs;
     
     public AppInfoAdapter(Context context, List<AppInfo> appInfoList) {
         mContext = context;
         mAppInfoList = appInfoList;
         mInflater = LayoutInflater.from(context);
         mPrefs = context.getSharedPreferences("app_checkboxes", Context.MODE_PRIVATE);
+        mAutoExpandPrefs = context.getSharedPreferences("app_auto_expand", Context.MODE_PRIVATE);
     }
     
     @Override
@@ -55,6 +57,7 @@ public class AppInfoAdapter extends BaseAdapter {
             holder.packageName = convertView.findViewById(R.id.package_name);
             holder.systemApp = convertView.findViewById(R.id.system_app);
             holder.appCheckbox = convertView.findViewById(R.id.app_checkbox);
+            holder.appAutoExpandCheckbox = convertView.findViewById(R.id.app_auto_expand_checkbox);
             convertView.setTag(holder);
         } else {
             holder = (ViewHolder) convertView.getTag();
@@ -83,6 +86,9 @@ public class AppInfoAdapter extends BaseAdapter {
         String packageName = appInfo.getPackageName();
         boolean isChecked = mPrefs.getBoolean(packageName, false);
         appInfo.setChecked(isChecked);
+
+        boolean isAutoExpandChecked = mAutoExpandPrefs.getBoolean(packageName, false);
+        appInfo.setAutoExpandChecked(isAutoExpandChecked);
         
         // 先移除之前的监听器，避免在设置状态时触发
         holder.appCheckbox.setOnCheckedChangeListener(null);
@@ -97,6 +103,16 @@ public class AppInfoAdapter extends BaseAdapter {
                 mPrefs.edit().putBoolean(packageName, isChecked).apply();
                 // 更新AppInfo对象状态
                 appInfo.setChecked(isChecked);
+            }
+        });
+
+        holder.appAutoExpandCheckbox.setOnCheckedChangeListener(null);
+        holder.appAutoExpandCheckbox.setChecked(isAutoExpandChecked);
+        holder.appAutoExpandCheckbox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                mAutoExpandPrefs.edit().putBoolean(packageName, isChecked).apply();
+                appInfo.setAutoExpandChecked(isChecked);
             }
         });
         
@@ -124,6 +140,7 @@ public class AppInfoAdapter extends BaseAdapter {
         TextView packageName;
         TextView systemApp;
         CheckBox appCheckbox;
+        CheckBox appAutoExpandCheckbox;
     }
     
     /**
