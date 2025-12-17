@@ -128,4 +128,10 @@
     <string name="accessibility_downgraded_content">超级岛已被降级显示，请重新开启权限以支持在顶层显示</string>
     <string name="accessibility_channel_name">无障碍服务状态</string>
     <string name="accessibility_channel_desc">通知无障碍权限状态变更</string>
+    
+    <!-- 媒体控制相关字符串 -->
+    <string name="previous">上一首</string>
+    <string name="play_pause">播放/暂停</string>
+    <string name="next">下一首</string>
+    <string name="log_activity_title">通知日志</string>
 </resources>
