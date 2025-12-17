@@ -2,6 +2,7 @@ package cn.pylin.xycjd;
 
 import android.animation.ValueAnimator;
 import android.app.ActivityManager;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
@@ -34,7 +35,6 @@ import android.graphics.Shader;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.LinearSnapHelper;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.recyclerview.widget.ItemTouchHelper;
 
@@ -59,12 +59,14 @@ public class FloatingWindowService extends Service {
         String packageName;
         String title;
         String content;
+        PendingIntent pendingIntent;
 
-        public NotificationInfo(String key, String packageName, String title, String content) {
+        public NotificationInfo(String key, String packageName, String title, String content, PendingIntent pendingIntent) {
             this.key = key;
             this.packageName = packageName;
             this.title = title;
             this.content = content;
+            this.pendingIntent = pendingIntent;
         }
     }
 
@@ -140,10 +142,74 @@ public class FloatingWindowService extends Service {
         return false;
     }
 
-    private void createFloatingWindow() {
-        windowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
+    public void recreateWindow() {
+        if (windowManager != null) {
+            try {
+                if (floatingView != null && floatingView.getParent() != null) {
+                    windowManager.removeView(floatingView);
+                }
+                if (floatingIslandView != null && floatingIslandView.getParent() != null) {
+                    windowManager.removeView(floatingIslandView);
+                }
+                if (floatingThreeCircleView != null && floatingThreeCircleView.getParent() != null) {
+                    windowManager.removeView(floatingThreeCircleView);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            // 强制置空WindowManager，以便在ensureWindowManager中重新获取正确的实例
+            windowManager = null;
+        }
         
-        LayoutInflater inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
+        floatingView = null;
+        floatingIslandView = null;
+        floatingThreeCircleView = null;
+        
+        // 延迟重建窗口，确保旧窗口已完全移除，且系统状态已更新
+        // 解决降级时悬浮窗可能不显示的问题
+        new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> {
+            try {
+                // 再次检查服务是否存活
+                if (instance == null) return;
+                
+                createFloatingWindow();
+                
+                if (!notificationQueue.isEmpty()) {
+                    showThreeCircleIsland();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }, 200);
+    }
+    
+    private int getWindowType() {
+        if (AppAccessibilityService.getInstance() != null) {
+            return WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY;
+        }
+        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.O ? 
+                WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY : 
+                WindowManager.LayoutParams.TYPE_PHONE;
+    }
+    
+    private void ensureWindowManager() {
+        AppAccessibilityService service = AppAccessibilityService.getInstance();
+        if (service != null) {
+            windowManager = (WindowManager) service.getSystemService(WINDOW_SERVICE);
+        } else {
+            if (windowManager == null) {
+                windowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
+            }
+        }
+    }
+
+    private void createFloatingWindow() {
+        ensureWindowManager();
+        
+        // 使用ContextThemeWrapper应用AppCompat主题，解决CircleImageView报错问题
+        AppAccessibilityService service = AppAccessibilityService.getInstance();
+        Context context = new android.view.ContextThemeWrapper(service != null ? service : this, R.style.AppTheme);
+        LayoutInflater inflater = LayoutInflater.from(context);
         floatingView = inflater.inflate(R.layout.floating_window_layout, null);
         
         int size = preferences.getInt(PREF_FLOATING_SIZE, DEFAULT_SIZE);
@@ -153,9 +219,7 @@ public class FloatingWindowService extends Service {
         params = new WindowManager.LayoutParams(
                 size,
                 size,
-                Build.VERSION.SDK_INT >= Build.VERSION_CODES.O ? 
-                        WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY : 
-                        WindowManager.LayoutParams.TYPE_PHONE,
+                getWindowType(),
                 WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
                 PixelFormat.TRANSLUCENT
         );
@@ -203,9 +267,7 @@ public class FloatingWindowService extends Service {
 
 
     public void showNotificationIsland(String packageName, String title, String content) {
-        if (windowManager == null) {
-            windowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
-        }
+        ensureWindowManager();
         
         if (floatingIslandView == null) {
             createFloatingIsland();
@@ -254,12 +316,22 @@ public class FloatingWindowService extends Service {
                 .start();
     }
     
-    public void addNotification(String key, String packageName, String title, String content) {
+    public void addNotification(String key, String packageName, String title, String content, PendingIntent pendingIntent) {
+        // 忽略标题为空的通知
+        if (title == null || title.trim().isEmpty()) {
+            return;
+        }
+
+        boolean isIslandVisible = floatingIslandView != null && floatingIslandView.getParent() != null;
+
         // 移除已存在的同key通知（更新情况）
-        removeNotificationInternal(key);
+        int removedIndex = removeNotificationInternal(key);
+        if (isIslandVisible && notificationAdapter != null && removedIndex != -1) {
+            notificationAdapter.notifyItemRemoved(removedIndex);
+        }
         
         // 添加到头部（最新的）
-        notificationQueue.addFirst(new NotificationInfo(key, packageName, title, content));
+        notificationQueue.addFirst(new NotificationInfo(key, packageName, title, content, pendingIntent));
         
         // 更新最近的通知变量
         if (!notificationQueue.isEmpty()) {
@@ -271,6 +343,16 @@ public class FloatingWindowService extends Service {
 
         // 显示或更新三圆悬浮窗
         showThreeCircleIsland();
+        
+        // 如果展开的悬浮窗正在显示，也更新它
+        if (isIslandVisible && notificationAdapter != null) {
+            notificationAdapter.notifyItemInserted(0);
+            // 确保列表滚动到顶部以显示最新通知
+            RecyclerView rv = floatingIslandView.findViewById(R.id.notification_recycler_view);
+            if (rv != null) {
+                rv.scrollToPosition(0);
+            }
+        }
     }
 
     public void removeNotification(String key) {
@@ -295,19 +377,20 @@ public class FloatingWindowService extends Service {
         }
     }
 
-    private void removeNotificationInternal(String key) {
-        if (key == null) return;
+    private int removeNotificationInternal(String key) {
+        if (key == null) return -1;
         for (int i = 0; i < notificationQueue.size(); i++) {
             if (key.equals(notificationQueue.get(i).key)) {
                 notificationQueue.remove(i);
-                break;
+                return i;
             }
         }
+        return -1;
     }
 
     public void updateNotificationData(String packageName, String title, String content) {
         // 兼容旧方法，但建议使用addNotification
-        addNotification(packageName + title, packageName, title, content);
+        addNotification(packageName + title, packageName, title, content, null);
     }
     
     /**
@@ -429,7 +512,10 @@ public class FloatingWindowService extends Service {
      * 创建灵动岛样式的悬浮窗
      */
     private void createFloatingIsland() {
-        LayoutInflater inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
+        // 使用ContextThemeWrapper应用AppCompat主题
+        AppAccessibilityService service = AppAccessibilityService.getInstance();
+        Context context = new android.view.ContextThemeWrapper(service != null ? service : this, R.style.AppTheme);
+        LayoutInflater inflater = LayoutInflater.from(context);
         floatingIslandView = inflater.inflate(R.layout.floating_window_island, null);
         
         int x = preferences.getInt(PREF_FLOATING_X, DEFAULT_X);
@@ -473,8 +559,8 @@ public class FloatingWindowService extends Service {
         recyclerView.setPadding(0, paddingVertical, 0, paddingVertical);
         recyclerView.setClipToPadding(false);
 
-        // 3. 最佳位置吸附 (LinearSnapHelper 默认居中吸附)
-        new LinearSnapHelper().attachToRecyclerView(recyclerView);
+        // 3. 最佳位置吸附 (使用自定义的SpringSnapHelper实现物理弹簧效果)
+        new SpringSnapHelper().attachToRecyclerView(recyclerView);
 
         // 6. 左滑右滑移除
         ItemTouchHelper itemTouchHelper = new ItemTouchHelper(new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
@@ -560,9 +646,7 @@ public class FloatingWindowService extends Service {
         islandParams = new WindowManager.LayoutParams(
                 WindowManager.LayoutParams.MATCH_PARENT,
                 WindowManager.LayoutParams.MATCH_PARENT, // 全屏以捕获点击
-                Build.VERSION.SDK_INT >= Build.VERSION_CODES.O ? 
-                        WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY : 
-                        WindowManager.LayoutParams.TYPE_PHONE,
+                getWindowType(),
                 WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
                 PixelFormat.TRANSLUCENT
         );
@@ -631,12 +715,33 @@ public class FloatingWindowService extends Service {
             });
 
             holder.container.setOnClickListener(v -> {
-                Intent launchIntent = getPackageManager().getLaunchIntentForPackage(info.packageName);
-                if (launchIntent != null) {
-                    launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                    startActivity(launchIntent);
-                    hideNotificationIsland();
+                try {
+                    // 优先尝试使用 PendingIntent (响应通知事件)
+                    if (info.pendingIntent != null) {
+                        info.pendingIntent.send();
+                        // 成功响应后，尝试消除系统通知
+                        AppNotificationListenerService listenerService = AppNotificationListenerService.getInstance();
+                        if (listenerService != null) {
+                            listenerService.cancelNotification(info.key);
+                        }
+                    } else {
+                        // 如果没有 PendingIntent，则回退到打开应用
+                        throw new PendingIntent.CanceledException();
+                    }
+                } catch (PendingIntent.CanceledException e) {
+                    // 如果 PendingIntent 发送失败，尝试直接打开应用
+                    Intent launchIntent = getPackageManager().getLaunchIntentForPackage(info.packageName);
+                    if (launchIntent != null) {
+                        launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                        startActivity(launchIntent);
+                        // 打开应用后也尝试消除系统通知（可选，视需求而定，这里保持一致性也消除）
+                        AppNotificationListenerService listenerService = AppNotificationListenerService.getInstance();
+                        if (listenerService != null) {
+                            listenerService.cancelNotification(info.key);
+                        }
+                    }
                 }
+                hideNotificationIsland();
             });
         }
 
@@ -676,9 +781,7 @@ public class FloatingWindowService extends Service {
     public void showThreeCircleIsland() {
         if (notificationQueue.isEmpty()) return;
         
-        if (windowManager == null) {
-            windowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
-        }
+        ensureWindowManager();
         
         if (floatingThreeCircleView == null) {
             createThreeCircleIsland();
@@ -802,7 +905,9 @@ public class FloatingWindowService extends Service {
      * 创建三圆灵动岛样式的悬浮窗
      */
     private void createThreeCircleIsland() {
-        LayoutInflater inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
+        AppAccessibilityService service = AppAccessibilityService.getInstance();
+        Context context = new android.view.ContextThemeWrapper(service != null ? service : this, R.style.AppTheme);
+        LayoutInflater inflater = LayoutInflater.from(context);
         floatingThreeCircleView = inflater.inflate(R.layout.floating_window_island_three, null);
         
         // 获取第一个悬浮窗的位置和大小
@@ -851,9 +956,7 @@ public class FloatingWindowService extends Service {
         threeCircleParams = new WindowManager.LayoutParams(
                 totalWidth,
                 totalHeight,
-                Build.VERSION.SDK_INT >= Build.VERSION_CODES.O ? 
-                        WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY : 
-                        WindowManager.LayoutParams.TYPE_PHONE,
+                getWindowType(),
                 WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
                 PixelFormat.TRANSLUCENT
         );

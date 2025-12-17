@@ -10,6 +10,23 @@ public class AppNotificationListenerService extends NotificationListenerService 
     
     private static final String TAG = "AppNotificationListener";
     private static final String PREFS_NAME = "app_checkboxes";
+    private static AppNotificationListenerService instance;
+
+    public static AppNotificationListenerService getInstance() {
+        return instance;
+    }
+
+    @Override
+    public void onListenerConnected() {
+        super.onListenerConnected();
+        instance = this;
+    }
+
+    @Override
+    public void onListenerDisconnected() {
+        super.onListenerDisconnected();
+        instance = null;
+    }
     
     @Override
     public void onNotificationPosted(StatusBarNotification sbn) {
@@ -56,7 +73,7 @@ public class AppNotificationListenerService extends NotificationListenerService 
         
         FloatingWindowService service = FloatingWindowService.getInstance();
         if (service != null) {
-            service.addNotification(sbn.getKey(), packageName, title, text);
+            service.addNotification(sbn.getKey(), packageName, title, text, sbn.getNotification().contentIntent);
         }
     }
     

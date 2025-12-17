@@ -3,6 +3,7 @@ package cn.pylin.xycjd;
 import android.app.Activity;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -480,8 +481,17 @@ public class SettingsFragment extends Fragment {
         // 设置服务切换按钮点击事件
         btnServiceToggle.setOnClickListener(v -> {
             if (isFloatingWindowEnabled) {
-                // 当前服务已开启，执行关闭操作
-                stopFloatingWindowService();
+                // 检查权限状态
+                PermissionChecker.PermissionStatus status = PermissionChecker.checkAllPermissions(requireContext());
+                if (!status.hasOverlayPermission || !status.hasAccessibilityPermission) {
+                    // 跳转到权限设置页面
+                    Intent intent = new Intent(requireContext(), IntroActivity.class);
+                    intent.putExtra("direct_to_permission", true);
+                    startActivity(intent);
+                } else {
+                    // 当前服务已开启且权限正常，执行关闭操作
+                    stopFloatingWindowService();
+                }
             } else {
                 // 当前服务未开启，执行开启操作
                 // 检查悬浮窗权限
@@ -502,13 +512,25 @@ public class SettingsFragment extends Fragment {
         isFloatingWindowEnabled = FloatingWindowService.isServiceRunning(requireContext());
         
         if (isFloatingWindowEnabled) {
-            // 服务已开启
-            tvServiceStatus.setText(getString(R.string.service_running));
-            btnServiceToggle.setText(getString(R.string.stop_service));
-            btnServiceToggle.setBackgroundResource(R.drawable.btn_error_background);
+            // 服务已开启，检查权限
+            PermissionChecker.PermissionStatus status = PermissionChecker.checkAllPermissions(requireContext());
+            if (!status.hasOverlayPermission || !status.hasAccessibilityPermission) {
+                // 服务异常，关键权限未授予
+                tvServiceStatus.setText(getString(R.string.service_abnormal_permission_missing));
+                tvServiceStatus.setTextColor(getResources().getColor(R.color.colorWarning, null));
+                btnServiceToggle.setText(getString(R.string.grant_permission));
+                btnServiceToggle.setBackgroundResource(R.drawable.btn_warning_background);
+            } else {
+                // 服务正常运行
+                tvServiceStatus.setText(getString(R.string.service_running));
+                tvServiceStatus.setTextColor(getResources().getColor(R.color.colorSuccess, null));
+                btnServiceToggle.setText(getString(R.string.stop_service));
+                btnServiceToggle.setBackgroundResource(R.drawable.btn_error_background);
+            }
         } else {
             // 服务未开启
             tvServiceStatus.setText(getString(R.string.service_stopped));
+            tvServiceStatus.setTextColor(getResources().getColor(R.color.colorError, null));
             btnServiceToggle.setText(getString(R.string.start_service));
             btnServiceToggle.setBackgroundResource(R.drawable.btn_primary_background);
         }
@@ -612,11 +634,17 @@ public class SettingsFragment extends Fragment {
     }
     
     private void sendTestNotification() {
+        // 创建点击通知时跳转的Intent
+        Intent intent = new Intent(requireContext(), MainActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        PendingIntent pendingIntent = PendingIntent.getActivity(requireContext(), 0, intent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+
         NotificationCompat.Builder builder = new NotificationCompat.Builder(requireContext(), TEST_NOTIFICATION_CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_notification)
             .setContentTitle(getString(R.string.test_notification_title))
             .setContentText(getString(R.string.test_notification_content))
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .setContentIntent(pendingIntent) // 设置点击跳转Intent
             .setAutoCancel(true);
             
         NotificationManager notificationManager = (NotificationManager) requireContext().getSystemService(Context.NOTIFICATION_SERVICE);
