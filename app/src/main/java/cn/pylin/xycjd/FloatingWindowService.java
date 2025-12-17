@@ -24,7 +24,19 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import android.graphics.Canvas;
+import android.graphics.LinearGradient;
+import android.graphics.Paint;
+import android.graphics.PorterDuff;
+import android.graphics.PorterDuffXfermode;
+import android.graphics.Shader;
+
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.LinearSnapHelper;
+import androidx.recyclerview.widget.RecyclerView;
+import androidx.recyclerview.widget.ItemTouchHelper;
 
 import java.util.List;
 
@@ -40,6 +52,7 @@ public class FloatingWindowService extends Service {
     
     private View floatingThreeCircleView;
     private WindowManager.LayoutParams threeCircleParams;
+    private NotificationAdapter notificationAdapter;
     
     public static class NotificationInfo {
         String key;
@@ -202,7 +215,7 @@ public class FloatingWindowService extends Service {
         
         if (floatingIslandView.getParent() == null) {
             // 在添加视图前设置初始状态，防止闪烁
-            View islandContainer = floatingIslandView.findViewById(R.id.island_container);
+            View islandContainer = floatingIslandView.findViewById(R.id.notification_recycler_view);
             if (islandContainer != null) {
                 islandContainer.setAlpha(0f);
                 islandContainer.setScaleX(0.8f);
@@ -221,7 +234,7 @@ public class FloatingWindowService extends Service {
     private void startIslandEnterAnimation() {
         if (floatingIslandView == null) return;
         
-        View islandContainer = floatingIslandView.findViewById(R.id.island_container);
+        View islandContainer = floatingIslandView.findViewById(R.id.notification_recycler_view);
         if (islandContainer == null) return;
         
         // 确保初始状态（虽然addView前设置过，这里再次确保逻辑完整）
@@ -302,7 +315,7 @@ public class FloatingWindowService extends Service {
      */
     public void hideNotificationIsland() {
         if (windowManager != null && floatingIslandView != null && floatingIslandView.getParent() != null) {
-            View islandContainer = floatingIslandView.findViewById(R.id.island_container);
+            View islandContainer = floatingIslandView.findViewById(R.id.notification_recycler_view);
             if (islandContainer != null) {
                 // 执行退出动画
                 islandContainer.animate()
@@ -317,6 +330,7 @@ public class FloatingWindowService extends Service {
                             if (floatingIslandView != null && floatingIslandView.getParent() != null) {
                                 windowManager.removeView(floatingIslandView);
                                 floatingIslandView = null;
+                                notificationAdapter = null; // 清除引用
                             }
                         })
                         .start();
@@ -324,10 +338,93 @@ public class FloatingWindowService extends Service {
                 // 如果找不到容器，直接移除
                 windowManager.removeView(floatingIslandView);
                 floatingIslandView = null;
+                notificationAdapter = null; // 清除引用
             }
         }
     }
     
+    /**
+     * Fading Edge ItemDecoration
+     */
+    private class FadingEdgeDecoration extends RecyclerView.ItemDecoration {
+        private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        private final int fadeLength;
+        private final int estimatedCardHeight;
+        private LinearGradient topGradient;
+        private LinearGradient bottomGradient;
+        private int lastWidth = -1;
+        private int lastHeight = -1;
+
+        public FadingEdgeDecoration(int fadeLength, int estimatedCardHeight) {
+            this.fadeLength = fadeLength;
+            this.estimatedCardHeight = estimatedCardHeight;
+            paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.DST_IN));
+        }
+
+        @Override
+        public void onDraw(@NonNull Canvas c, @NonNull RecyclerView parent, @NonNull RecyclerView.State state) {
+            super.onDraw(c, parent, state);
+            // 在绘制子View之前更新缩放，确保动画平滑
+            // 这里使用 updateCardScales 更新 View 的 scale 属性
+            updateCardScales(parent, estimatedCardHeight);
+        }
+
+        @Override
+        public void onDrawOver(@NonNull Canvas c, @NonNull RecyclerView parent, @NonNull RecyclerView.State state) {
+            super.onDrawOver(c, parent, state);
+            
+            int width = parent.getWidth();
+            int height = parent.getHeight();
+            
+            if (width <= 0 || height <= 0) return;
+
+            if (width != lastWidth || height != lastHeight) {
+                lastWidth = width;
+                lastHeight = height;
+                
+                // Top gradient: Transparent -> Black (Opaque)
+                topGradient = new LinearGradient(0, 0, 0, fadeLength,
+                        0x00000000, 0xFF000000, Shader.TileMode.CLAMP);
+                
+                // Bottom gradient: Black (Opaque) -> Transparent
+                bottomGradient = new LinearGradient(0, height - fadeLength, 0, height,
+                        0xFF000000, 0x00000000, Shader.TileMode.CLAMP);
+            }
+
+            // Draw top fade
+            paint.setShader(topGradient);
+            c.drawRect(0, 0, width, fadeLength, paint);
+
+            // Draw bottom fade
+            paint.setShader(bottomGradient);
+            c.drawRect(0, height - fadeLength, width, height, paint);
+        }
+    }
+
+    private void updateCardScales(RecyclerView recyclerView, int estimatedCardHeight) {
+        float recyclerViewCenterY = recyclerView.getHeight() / 2f;
+        int minScaleDistance = estimatedCardHeight / 2 + dpToPx(20);
+
+        for (int i = 0; i < recyclerView.getChildCount(); i++) {
+            View child = recyclerView.getChildAt(i);
+            // 使用视觉位置 (Top + TranslationY) 计算中心点
+            // 这样在 ItemAnimator 移动动画过程中也能获取正确的实时位置
+            float childCenterY = child.getY() + child.getHeight() / 2f;
+            float absDistance = Math.abs(childCenterY - recyclerViewCenterY);
+
+            float scale;
+            if (absDistance < minScaleDistance) {
+                float fraction = absDistance / minScaleDistance;
+                scale = 1f - 0.2f * fraction * fraction;
+            } else {
+                scale = 0.8f;
+            }
+
+            child.setScaleX(scale);
+            child.setScaleY(scale);
+        }
+    }
+
     /**
      * 创建灵动岛样式的悬浮窗
      */
@@ -341,30 +438,128 @@ public class FloatingWindowService extends Service {
         
         int islandY = y + size + dpToPx(ISLAND_MARGIN_TOP);
 
-        View islandContainer = floatingIslandView.findViewById(R.id.island_container);
-        ViewGroup.MarginLayoutParams containerParams = (ViewGroup.MarginLayoutParams) islandContainer.getLayoutParams();
-        containerParams.topMargin = islandY;
-        islandContainer.setLayoutParams(containerParams);
-        islandContainer.setTranslationX(x);
-        islandContainer.setClickable(true);
-
-        View islandRoot = floatingIslandView.findViewById(R.id.island_root);
-        islandRoot.setOnClickListener(v -> hideNotificationIsland());
-
-        islandContainer.setOnClickListener(v -> {
-            if (lastNotificationPackageName != null) {
-                Intent launchIntent = getPackageManager().getLaunchIntentForPackage(lastNotificationPackageName);
-                if (launchIntent != null) {
-                    launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                    startActivity(launchIntent);
-                    hideNotificationIsland();
-                }
+        RecyclerView recyclerView = floatingIslandView.findViewById(R.id.notification_recycler_view);
+        
+        // 开启硬件加速 Layer 以支持 PorterDuff.Mode.DST_IN
+        recyclerView.setLayerType(View.LAYER_TYPE_HARDWARE, null);
+        
+        // 设置 RecyclerView
+        LinearLayoutManager layoutManager = new LinearLayoutManager(this);
+        recyclerView.setLayoutManager(layoutManager);
+        notificationAdapter = new NotificationAdapter();
+        recyclerView.setAdapter(notificationAdapter);
+        
+        // 添加间距装饰器
+        int itemSpacing = dpToPx(16);
+        recyclerView.addItemDecoration(new RecyclerView.ItemDecoration() {
+            @Override
+            public void getItemOffsets(@NonNull android.graphics.Rect outRect, @NonNull View view, @NonNull RecyclerView parent, @NonNull RecyclerView.State state) {
+                outRect.bottom = itemSpacing; // 卡片之间的间距
             }
         });
         
+        // 添加自定义模糊边界装饰器 (在代码中实现，不使用XML)
+        // 估算高度：Card(120dp) + Spacing(16dp) = 136dp
+        int estimatedCardHeight = dpToPx(136); 
+        recyclerView.addItemDecoration(new FadingEdgeDecoration(dpToPx(50), estimatedCardHeight)); // 50dp fade length
+
+        // 1. 略微增加可见高度为1张卡片高度的1.6倍
+        int visibleHeight = (int) (estimatedCardHeight * 1.8f);
+
+        // 设置 RecyclerView 的 padding，使得第一个 item 能居中（配合 LinearSnapHelper）
+        // 计算方式：(ViewHeight - ItemHeight) / 2
+        // ItemHeight 约为 estimatedCardHeight (实际可能会有细微差别，这里取估算值)
+        int paddingVertical = (visibleHeight - estimatedCardHeight) / 2;
+        recyclerView.setPadding(0, paddingVertical, 0, paddingVertical);
+        recyclerView.setClipToPadding(false);
+
+        // 3. 最佳位置吸附 (LinearSnapHelper 默认居中吸附)
+        new LinearSnapHelper().attachToRecyclerView(recyclerView);
+
+        // 6. 左滑右滑移除
+        ItemTouchHelper itemTouchHelper = new ItemTouchHelper(new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
+            @Override
+            public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, @NonNull RecyclerView.ViewHolder target) {
+                return false;
+            }
+
+            @Override
+            public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
+                int position = viewHolder.getAdapterPosition();
+                if (position != RecyclerView.NO_POSITION && position < notificationQueue.size()) {
+                    NotificationInfo removedInfo = notificationQueue.remove(position);
+                    notificationAdapter.notifyItemRemoved(position);
+                    
+                    // 如果队列为空，关闭悬浮窗
+                    if (notificationQueue.isEmpty()) {
+                        hideNotificationIsland();
+                        lastNotificationPackageName = null;
+                        hideThreeCircleIsland();
+                    } else if (position == 0) {
+                        // 如果移除了第一个（最新的），更新 lastNotification 为新的头部
+                        NotificationInfo latest = notificationQueue.getFirst();
+                        lastNotificationPackageName = latest.packageName;
+                        lastNotificationTitle = latest.title;
+                        lastNotificationContent = latest.content;
+                        // 更新三圆岛显示
+                        updateThreeCircleContent();
+                    }
+                }
+            }
+
+            @Override
+            public void onChildDraw(@NonNull Canvas c, @NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, float dX, float dY, int actionState, boolean isCurrentlyActive) {
+                super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
+                
+                // 实现非线性动画效果
+                if (actionState == ItemTouchHelper.ACTION_STATE_SWIPE) {
+                    float width = (float) viewHolder.itemView.getWidth();
+                    float absDx = Math.abs(dX);
+                    float fraction = absDx / width;
+                    
+                    // 非线性因子：使用平方函数让变化在移动初期较慢，随着距离增加加速
+                    // 限制最大缩放和透明度变化
+                    float nonlinearFraction = fraction * fraction; 
+                    
+                    // 缩放效果：从1.0减小到0.9
+                    float scale = 1.0f - 0.1f * nonlinearFraction;
+                    scale = Math.max(0.9f, scale);
+                    
+                    // 透明度效果：从1.0减小到0.2
+                    float alpha = 1.0f - 0.8f * nonlinearFraction;
+                    alpha = Math.max(0.2f, alpha);
+                    
+                    viewHolder.itemView.setScaleX(scale);
+                    viewHolder.itemView.setScaleY(scale);
+                    viewHolder.itemView.setAlpha(alpha);
+                }
+            }
+
+            @Override
+            public void clearView(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder) {
+                super.clearView(recyclerView, viewHolder);
+                // 恢复视图状态，防止复用问题
+                viewHolder.itemView.setScaleX(1.0f);
+                viewHolder.itemView.setScaleY(1.0f);
+                viewHolder.itemView.setAlpha(1.0f);
+            }
+        });
+        itemTouchHelper.attachToRecyclerView(recyclerView);
+
+        ViewGroup.MarginLayoutParams containerParams = (ViewGroup.MarginLayoutParams) recyclerView.getLayoutParams();
+        containerParams.topMargin = islandY;
+        containerParams.height = visibleHeight; // 设置 RecyclerView 高度
+        recyclerView.setLayoutParams(containerParams);
+        recyclerView.setTranslationX(x);
+        
+        // 5. 点击卡片以外的区域收起
+        // 将 Window 设置为全屏，并监听根布局点击事件
+        View islandRoot = floatingIslandView.findViewById(R.id.island_root);
+        islandRoot.setOnClickListener(v -> hideNotificationIsland());
+        
         islandParams = new WindowManager.LayoutParams(
                 WindowManager.LayoutParams.MATCH_PARENT,
-                WindowManager.LayoutParams.MATCH_PARENT,
+                WindowManager.LayoutParams.MATCH_PARENT, // 全屏以捕获点击
                 Build.VERSION.SDK_INT >= Build.VERSION_CODES.O ? 
                         WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY : 
                         WindowManager.LayoutParams.TYPE_PHONE,
@@ -375,6 +570,14 @@ public class FloatingWindowService extends Service {
         islandParams.gravity = Gravity.TOP | Gravity.START;
         islandParams.x = 0;
         islandParams.y = 0;
+        
+        // 初始触发一次滚动监听以设置初始缩放
+        recyclerView.post(() -> {
+            if (recyclerView.getLayoutManager() != null) {
+                // 模拟滚动以触发 onScrolled
+                recyclerView.scrollBy(0, 0);
+            }
+        });
     }
     
     /**
@@ -384,26 +587,78 @@ public class FloatingWindowService extends Service {
      * @param content 通知内容
      */
     private void updateNotificationContent(String packageName, String title, String content) {
-        if (floatingIslandView == null) {
-            return;
+        if (notificationAdapter != null) {
+            notificationAdapter.notifyDataSetChanged();
         }
-        
-        // 获取应用图标
-        ImageView appIcon = floatingIslandView.findViewById(R.id.app_icon);
-        try {
-            // 使用PackageManager获取应用图标
-            appIcon.setImageDrawable(getPackageManager().getApplicationIcon(packageName));
-        } catch (Exception e) {
-            // 如果获取失败，使用默认图标
-            appIcon.setImageResource(android.R.mipmap.sym_def_app_icon);
+    }
+
+    private class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapter.ViewHolder> {
+
+        @NonNull
+        @Override
+        public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+            View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_notification_card, parent, false);
+            return new ViewHolder(view);
         }
-        
-        // 设置通知标题和内容
-        TextView notificationTitle = floatingIslandView.findViewById(R.id.notification_title);
-        TextView notificationContent = floatingIslandView.findViewById(R.id.notification_content);
-        
-        notificationTitle.setText(title != null ? title : "");
-        notificationContent.setText(content != null ? content : "");
+
+        @Override
+        public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
+            NotificationInfo info = notificationQueue.get(position);
+            
+            holder.title.setText(info.title != null ? info.title : "");
+            holder.content.setText(info.content != null ? info.content : "");
+            
+            try {
+                holder.icon.setImageDrawable(getPackageManager().getApplicationIcon(info.packageName));
+            } catch (Exception e) {
+                holder.icon.setImageResource(android.R.mipmap.sym_def_app_icon);
+            }
+            
+            holder.container.setOnTouchListener((v, event) -> {
+                switch (event.getAction()) {
+                    case MotionEvent.ACTION_DOWN:
+                        v.animate().scaleX(0.95f).scaleY(0.95f).setDuration(100).start();
+                        break;
+                    case MotionEvent.ACTION_UP:
+                    case MotionEvent.ACTION_CANCEL:
+                        v.animate().scaleX(1f).scaleY(1f).setDuration(100).start();
+                        if (event.getAction() == MotionEvent.ACTION_UP) {
+                            v.performClick();
+                        }
+                        break;
+                }
+                return true;
+            });
+
+            holder.container.setOnClickListener(v -> {
+                Intent launchIntent = getPackageManager().getLaunchIntentForPackage(info.packageName);
+                if (launchIntent != null) {
+                    launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    startActivity(launchIntent);
+                    hideNotificationIsland();
+                }
+            });
+        }
+
+        @Override
+        public int getItemCount() {
+            return notificationQueue.size();
+        }
+
+        class ViewHolder extends RecyclerView.ViewHolder {
+            View container;
+            ImageView icon;
+            TextView title;
+            TextView content;
+
+            ViewHolder(View itemView) {
+                super(itemView);
+                container = itemView.findViewById(R.id.island_container);
+                icon = itemView.findViewById(R.id.app_icon);
+                title = itemView.findViewById(R.id.notification_title);
+                content = itemView.findViewById(R.id.notification_content);
+            }
+        }
     }
     
     /**
