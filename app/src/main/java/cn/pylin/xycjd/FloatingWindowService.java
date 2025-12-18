@@ -802,18 +802,17 @@ public class FloatingWindowService extends Service {
         @Override
         public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
             NotificationInfo info = notificationQueue.get(position);
+            holder.currentPackageName = info.packageName;
             
             holder.title.setText(info.title != null ? info.title : "");
             holder.content.setText(info.content != null ? info.content : "");
             
-            try {
-                holder.icon.setImageDrawable(getPackageManager().getApplicationIcon(info.packageName));
-            } catch (Exception e) {
-                holder.icon.setImageResource(android.R.mipmap.sym_def_app_icon);
-            }
-            
-            // 绑定媒体控制器
+            // 绑定媒体控制器（内部会处理图标显示）
             holder.bindMediaController(info.mediaToken);
+            // 如果没有 token，bindMediaController 可能直接返回了，需要在这里确保图标被设置
+            if (info.mediaToken == null) {
+                updateIcon(holder.icon, null, info.packageName);
+            }
 
             holder.container.setOnTouchListener((v, event) -> {
                 switch (event.getAction()) {
@@ -858,6 +857,10 @@ public class FloatingWindowService extends Service {
                         }
                     }
                 }
+                
+                // 点击后从APP列表中移除该通知
+                removeNotification(info.key);
+                
                 hideNotificationIsland();
             });
         }
@@ -878,6 +881,7 @@ public class FloatingWindowService extends Service {
             ImageView btnNext;
             android.media.session.MediaController mediaController;
             android.media.session.MediaController.Callback mediaCallback;
+            String currentPackageName;
 
             ViewHolder(View itemView) {
                 super(itemView);
@@ -967,12 +971,8 @@ public class FloatingWindowService extends Service {
             }
 
             private void updateMediaMetadata(android.media.MediaMetadata metadata) {
-                if (metadata == null) return;
-                
-                // 可以从metadata获取更多信息，如封面图等
-                // String titleStr = metadata.getString(android.media.MediaMetadata.METADATA_KEY_TITLE);
-                // String artistStr = metadata.getString(android.media.MediaMetadata.METADATA_KEY_ARTIST);
-                // Bitmap art = metadata.getBitmap(android.media.MediaMetadata.METADATA_KEY_ALBUM_ART);
+                // 使用外部通用方法更新图标
+                updateIcon(icon, metadata, currentPackageName);
             }
         }
     }
@@ -1016,6 +1016,39 @@ public class FloatingWindowService extends Service {
         showNotificationIsland(info.packageName, info.title, info.content);
     }
 
+        /**
+     * 更新图标显示（通用方法）
+     * @param iconView 目标ImageView
+     * @param metadata 媒体元数据（可选）
+     * @param packageName 应用包名
+     */
+    private void updateIcon(ImageView iconView, android.media.MediaMetadata metadata, String packageName) {
+        if (iconView == null) return;
+        
+        boolean iconSet = false;
+        
+        // 尝试从媒体元数据获取封面
+        if (metadata != null) {
+            android.graphics.Bitmap art = metadata.getBitmap(android.media.MediaMetadata.METADATA_KEY_ALBUM_ART);
+            if (art == null) {
+                art = metadata.getBitmap(android.media.MediaMetadata.METADATA_KEY_ART);
+            }
+            if (art != null) {
+                iconView.setImageBitmap(art);
+                iconSet = true;
+            }
+        }
+        
+        // 如果没有封面，显示应用图标
+        if (!iconSet && packageName != null) {
+            try {
+                iconView.setImageDrawable(getPackageManager().getApplicationIcon(packageName));
+            } catch (Exception e) {
+                iconView.setImageResource(android.R.mipmap.sym_def_app_icon);
+            }
+        }
+    }
+
     /**
      * 更新三圆灵动岛内容
      */
@@ -1027,15 +1060,22 @@ public class FloatingWindowService extends Service {
         NotificationInfo info = notificationQueue.getFirst();
         String packageName = info.packageName;
         
-        // 获取应用图标
+        // 获取应用图标 View
         CircleImageView appIcon = floatingThreeCircleView.findViewById(R.id.circle_app_icon);
-        try {
-            // 使用PackageManager获取应用图标
-            appIcon.setImageDrawable(getPackageManager().getApplicationIcon(packageName));
-        } catch (Exception e) {
-            // 如果获取失败，使用默认图标
-            appIcon.setImageResource(android.R.mipmap.sym_def_app_icon);
+        
+        // 获取媒体元数据（如果有）
+        android.media.MediaMetadata metadata = null;
+        if (info.mediaToken != null) {
+            try {
+                android.media.session.MediaController controller = new android.media.session.MediaController(this, info.mediaToken);
+                metadata = controller.getMetadata();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
+        
+        // 更新图标
+        updateIcon(appIcon, metadata, packageName);
         
         // 更新数量
         TextView countText = floatingThreeCircleView.findViewById(R.id.circle_black2);
