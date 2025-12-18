@@ -10,6 +10,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.PopupMenu;
 import android.widget.Toast;
@@ -21,15 +22,23 @@ import androidx.fragment.app.Fragment;
 import java.util.ArrayList;
 import java.util.List;
 
-public class AppsFragment extends Fragment {
+public class AppsRulesFragment extends Fragment {
     
     private Context mContext;
     private ListView listView;
     private ImageButton menuButton;
+    private View headerApps, headerRules;
+    private View contentApps, contentRules;
+    private View cardApps, cardRules;
+    private ImageButton arrowApps, arrowRules;
+    
     private List<AppInfo> allAppsList;
     private List<AppInfo> filteredAppsList;
     private AppInfoAdapter adapter;
     private int currentFilterType = 1; // 默认为用户应用
+    
+    private boolean isAppsExpanded = false;
+    private boolean isRulesExpanded = false;
     
     @Override
     public void onAttach(@NonNull Context context) {
@@ -40,9 +49,10 @@ public class AppsFragment extends Fragment {
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_apps, container, false);
+        View view = inflater.inflate(R.layout.fragment_apps_rules, container, false);
         
         initViews(view);
+        updateUIState();
         loadApps();
         
         return view;
@@ -52,6 +62,29 @@ public class AppsFragment extends Fragment {
         listView = view.findViewById(R.id.apps_list);
         menuButton = view.findViewById(R.id.menu_button);
         
+        cardApps = view.findViewById(R.id.card_apps);
+        cardRules = view.findViewById(R.id.card_rules);
+        headerApps = view.findViewById(R.id.header_apps);
+        headerRules = view.findViewById(R.id.header_rules);
+        contentApps = view.findViewById(R.id.content_apps);
+        contentRules = view.findViewById(R.id.content_rules);
+        arrowApps = view.findViewById(R.id.arrow_apps);
+        arrowRules = view.findViewById(R.id.arrow_rules);
+        
+        headerApps.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                toggleAppsSection();
+            }
+        });
+        
+        headerRules.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                toggleRulesSection();
+            }
+        });
+        
         // 设置菜单按钮点击事件
         menuButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -59,6 +92,55 @@ public class AppsFragment extends Fragment {
                 showPopupMenu(v);
             }
         });
+    }
+    
+    private void toggleAppsSection() {
+        isAppsExpanded = !isAppsExpanded;
+        // 如果展开应用列表，建议折叠规则设置，以获得更多空间
+        if (isAppsExpanded) {
+            isRulesExpanded = false;
+        }
+        updateUIState();
+    }
+    
+    private void toggleRulesSection() {
+        isRulesExpanded = !isRulesExpanded;
+        // 如果展开规则设置，建议折叠应用列表
+        if (isRulesExpanded) {
+            isAppsExpanded = false;
+        }
+        updateUIState();
+    }
+    
+    private void updateUIState() {
+        // 更新应用列表板块状态
+        contentApps.setVisibility(isAppsExpanded ? View.VISIBLE : View.GONE);
+        arrowApps.setRotation(isAppsExpanded ? 180 : 0);
+        menuButton.setVisibility(isAppsExpanded ? View.VISIBLE : View.GONE);
+        
+        LinearLayout.LayoutParams paramsApps = (LinearLayout.LayoutParams) cardApps.getLayoutParams();
+        if (isAppsExpanded) {
+            paramsApps.height = 0;
+            paramsApps.weight = 1;
+        } else {
+            paramsApps.height = LinearLayout.LayoutParams.WRAP_CONTENT;
+            paramsApps.weight = 0;
+        }
+        cardApps.setLayoutParams(paramsApps);
+        
+        // 更新规则设置板块状态
+        contentRules.setVisibility(isRulesExpanded ? View.VISIBLE : View.GONE);
+        arrowRules.setRotation(isRulesExpanded ? 180 : 0);
+        
+        LinearLayout.LayoutParams paramsRules = (LinearLayout.LayoutParams) cardRules.getLayoutParams();
+        if (isRulesExpanded) {
+            paramsRules.height = 0;
+            paramsRules.weight = 1;
+        } else {
+            paramsRules.height = LinearLayout.LayoutParams.WRAP_CONTENT;
+            paramsRules.weight = 0;
+        }
+        cardRules.setLayoutParams(paramsRules);
     }
     
     private void showPopupMenu(View anchorView) {
@@ -94,10 +176,6 @@ public class AppsFragment extends Fragment {
         
         popup.show();
     }
-    
-
-    
-
     
     private void loadApps() {
         // 使用AsyncTask在后台加载应用列表

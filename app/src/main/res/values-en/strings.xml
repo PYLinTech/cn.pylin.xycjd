@@ -1,7 +1,12 @@
 <resources>
     <string name="app_name">Xiaoyu Super Island</string>
     <string name="nav_settings">Settings</string>
-    <string name="nav_apps">Apps</string>
+    <string name="nav_apps_rules">Apps &amp; Rules</string>
+    <string name="section_apps">Apps List</string>
+    <string name="section_rules">Rules Settings</string>
+    <string name="app_name_header">App Name</string>
+    <string name="enable_header">Enable</string>
+    <string name="auto_expand_header">Auto Expand</string>
     <string name="nav_about">About</string>
 
     <!-- Language settings -->
@@ -83,7 +88,6 @@
     <!-- Floating window related strings -->
     <string name="floating_window_setting">Floating Window Settings</string>
     <string name="floating_window_size">Floating Window Size</string>
-    <string name="floating_window_position">Floating Window Position</string>
     <string name="floating_window_position_x">Horizontal Position</string>
     <string name="floating_window_position_y">Vertical Position</string>
     <string name="floating_window_permission_denied">Floating window permission denied, please enable in settings</string>
@@ -117,12 +121,7 @@
     
     <!-- Back key related strings -->
     <string name="double_back_to_exit">Press again to hide to background</string>
-    
-    <!-- App list header strings -->
-    <string name="app_name_header">App Name</string>
-    <string name="enable_header">Enable</string>
-    <string name="auto_expand_header">Auto Expand</string>
-    
+
     <!-- Accessibility service status notification -->
     <string name="accessibility_downgraded_title">Accessibility status abnormal</string>
     <string name="accessibility_downgraded_content">Super Island has been downgraded, please re-enable permission to support top-level display</string>

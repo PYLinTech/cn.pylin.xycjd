@@ -24,13 +24,13 @@ import java.util.Locale;
 public class MainActivity extends AppCompatActivity {
 
     private static final int PAGE_SETTINGS = 0;
-    private static final int PAGE_APPS = 1;
+    private static final int PAGE_APPS_RULES = 1;
     private static final int PAGE_ABOUT = 2;
 
     private int currentPage = PAGE_SETTINGS;
 
     private Button btnSettings;
-    private Button btnApps;
+    private Button btnAppsRules;
     private Button btnAbout;
     private View navigationIndicator;
     private SpringAnimation indicatorSpringAnimation;
@@ -62,7 +62,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         btnSettings = findViewById(R.id.btn_settings);
-        btnApps = findViewById(R.id.btn_apps);
+        btnAppsRules = findViewById(R.id.btn_apps_rules);
         btnAbout = findViewById(R.id.btn_about);
         navigationIndicator = findViewById(R.id.navigation_indicator);
 
@@ -107,11 +107,11 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        btnApps.setOnClickListener(new View.OnClickListener() {
+        btnAppsRules.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (currentPage != PAGE_APPS) {
-                    currentPage = PAGE_APPS;
+                if (currentPage != PAGE_APPS_RULES) {
+                    currentPage = PAGE_APPS_RULES;
                     loadPage(currentPage);
                     updateButtonStates();
                     updateIndicatorPosition(currentPage, true);
@@ -138,9 +138,9 @@ public class MainActivity extends AppCompatActivity {
         // 根据页面类型创建对应的Fragment
         if (page == PAGE_SETTINGS) {
             fragment = new SettingsFragment();
-        } else if (page == PAGE_APPS) {
-            // 使用AppsFragment
-            fragment = new AppsFragment();
+        } else if (page == PAGE_APPS_RULES) {
+            // 使用AppsRulesFragment
+            fragment = new AppsRulesFragment();
         } else if (page == PAGE_ABOUT) {
             fragment = new AboutFragment();
         }
@@ -160,15 +160,15 @@ public class MainActivity extends AppCompatActivity {
         // 更新按钮状态，当前页面按钮显示不同颜色
         if (currentPage == PAGE_SETTINGS) {
             btnSettings.setTextColor(inverseColor);
-            btnApps.setTextColor(defaultColor);
+            btnAppsRules.setTextColor(defaultColor);
             btnAbout.setTextColor(defaultColor);
-        } else if (currentPage == PAGE_APPS) {
+        } else if (currentPage == PAGE_APPS_RULES) {
             btnSettings.setTextColor(defaultColor);
-            btnApps.setTextColor(inverseColor);
+            btnAppsRules.setTextColor(inverseColor);
             btnAbout.setTextColor(defaultColor);
         } else if (currentPage == PAGE_ABOUT) {
             btnSettings.setTextColor(defaultColor);
-            btnApps.setTextColor(defaultColor);
+            btnAppsRules.setTextColor(defaultColor);
             btnAbout.setTextColor(inverseColor);
         }
     }
@@ -186,7 +186,7 @@ public class MainActivity extends AppCompatActivity {
             case PAGE_SETTINGS:
                 targetX = buttonWidth / 2 - indicatorWidth / 2;
                 break;
-            case PAGE_APPS:
+            case PAGE_APPS_RULES:
                 targetX = buttonWidth + buttonWidth / 2 - indicatorWidth / 2;
                 break;
             case PAGE_ABOUT:

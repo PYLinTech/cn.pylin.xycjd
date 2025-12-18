@@ -50,12 +50,12 @@
                 android:stateListAnimator="@null" />
 
             <Button
-                android:id="@+id/btn_apps"
+                android:id="@+id/btn_apps_rules"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:background="@android:color/transparent"
-                android:text="@string/nav_apps"
+                android:text="@string/nav_apps_rules"
                 android:textColor="?android:attr/textColorPrimary"
                 android:textSize="16sp"
                 android:stateListAnimator="@null" />
