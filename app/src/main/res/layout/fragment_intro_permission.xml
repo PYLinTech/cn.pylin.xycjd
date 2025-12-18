@@ -51,10 +51,10 @@
                 android:id="@+id/permission_item_accessibility"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="12dp"
+                android:layout_marginBottom="16dp"
                 app:cardBackgroundColor="@color/colorSurface"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="6dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="2dp"
                 app:cardUseCompatPadding="true">
 
                 <FrameLayout
@@ -114,22 +114,19 @@
                                 android:layout_weight="1"
                                 android:text="@string/permission_status_denied"
                                 android:textColor="@color/red"
-                                android:textSize="16sp"
+                                android:textSize="14sp"
                                 android:textStyle="bold" />
 
                             <Button
                                 android:id="@+id/accessibility_btn"
                                 android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:minWidth="120dp"
-                                android:backgroundTint="@color/colorPrimary"
-                                android:text="@string/permission_action_grant"
-                                android:textColor="@color/white"
+                                android:layout_height="36dp"
+                                android:paddingStart="16dp"
+                                android:paddingEnd="16dp"
                                 android:textSize="14sp"
-                                android:textStyle="bold"
-                                android:paddingHorizontal="24dp"
-                                android:paddingVertical="12dp"
-                                app:cornerRadius="8dp" />
+                                android:textColor="@android:color/white"
+                                android:text="@string/permission_action_grant"
+                                android:background="@drawable/btn_primary_background" />
                         </LinearLayout>
                     </LinearLayout>
 
@@ -150,10 +147,10 @@
                 android:id="@+id/permission_item_overlay"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="12dp"
+                android:layout_marginBottom="16dp"
                 app:cardBackgroundColor="@color/colorSurface"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="6dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="2dp"
                 app:cardUseCompatPadding="true">
 
                 <FrameLayout
@@ -213,22 +210,19 @@
                                 android:layout_weight="1"
                                 android:text="@string/permission_status_denied"
                                 android:textColor="@color/red"
-                                android:textSize="16sp"
+                                android:textSize="14sp"
                                 android:textStyle="bold" />
 
                             <Button
                                 android:id="@+id/overlay_btn"
                                 android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:minWidth="120dp"
-                                android:backgroundTint="@color/colorPrimary"
-                                android:text="@string/permission_action_grant"
-                                android:textColor="@color/white"
+                                android:layout_height="36dp"
+                                android:paddingStart="16dp"
+                                android:paddingEnd="16dp"
                                 android:textSize="14sp"
-                                android:textStyle="bold"
-                                android:paddingHorizontal="24dp"
-                                android:paddingVertical="12dp"
-                                app:cornerRadius="8dp" />
+                                android:textColor="@android:color/white"
+                                android:text="@string/permission_action_grant"
+                                android:background="@drawable/btn_primary_background" />
                         </LinearLayout>
                     </LinearLayout>
 
@@ -249,10 +243,10 @@
                 android:id="@+id/permission_item_notification"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="12dp"
+                android:layout_marginBottom="16dp"
                 app:cardBackgroundColor="@color/colorSurface"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="6dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="2dp"
                 app:cardUseCompatPadding="true">
 
                 <LinearLayout
@@ -308,22 +302,19 @@
                             android:layout_weight="1"
                             android:text="@string/permission_status_denied"
                             android:textColor="@color/red"
-                            android:textSize="16sp"
+                            android:textSize="14sp"
                             android:textStyle="bold" />
 
                         <Button
                             android:id="@+id/notification_btn"
                             android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:minWidth="120dp"
-                            android:backgroundTint="@color/colorPrimary"
-                            android:text="@string/permission_action_grant"
-                            android:textColor="@color/white"
+                            android:layout_height="36dp"
+                            android:paddingStart="16dp"
+                            android:paddingEnd="16dp"
                             android:textSize="14sp"
-                            android:textStyle="bold"
-                            android:paddingHorizontal="24dp"
-                            android:paddingVertical="12dp"
-                            app:cornerRadius="8dp" />
+                            android:textColor="@android:color/white"
+                            android:text="@string/permission_action_grant"
+                            android:background="@drawable/btn_primary_background" />
                     </LinearLayout>
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
@@ -333,10 +324,10 @@
                 android:id="@+id/permission_item_notification_post"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="12dp"
+                android:layout_marginBottom="16dp"
                 app:cardBackgroundColor="@color/colorSurface"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="6dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="2dp"
                 app:cardUseCompatPadding="true">
 
                 <LinearLayout
@@ -392,22 +383,19 @@
                             android:layout_weight="1"
                             android:text="@string/permission_status_denied"
                             android:textColor="@color/red"
-                            android:textSize="16sp"
+                            android:textSize="14sp"
                             android:textStyle="bold" />
 
                         <Button
                             android:id="@+id/notification_post_btn"
                             android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:minWidth="120dp"
-                            android:backgroundTint="@color/colorPrimary"
-                            android:text="@string/permission_action_grant"
-                            android:textColor="@color/white"
+                            android:layout_height="36dp"
+                            android:paddingStart="16dp"
+                            android:paddingEnd="16dp"
                             android:textSize="14sp"
-                            android:textStyle="bold"
-                            android:paddingHorizontal="24dp"
-                            android:paddingVertical="12dp"
-                            app:cornerRadius="8dp" />
+                            android:textColor="@android:color/white"
+                            android:text="@string/permission_action_grant"
+                            android:background="@drawable/btn_primary_background" />
                     </LinearLayout>
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
@@ -417,10 +405,10 @@
                 android:id="@+id/permission_item_battery_optimization"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="12dp"
+                android:layout_marginBottom="16dp"
                 app:cardBackgroundColor="@color/colorSurface"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="6dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="2dp"
                 app:cardUseCompatPadding="true">
 
                 <LinearLayout
@@ -476,22 +464,19 @@
                             android:layout_weight="1"
                             android:text="@string/permission_status_denied"
                             android:textColor="@color/red"
-                            android:textSize="16sp"
+                            android:textSize="14sp"
                             android:textStyle="bold" />
 
                         <Button
                             android:id="@+id/battery_optimization_btn"
                             android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:minWidth="120dp"
-                            android:backgroundTint="@color/colorPrimary"
-                            android:text="@string/permission_action_grant"
-                            android:textColor="@color/white"
+                            android:layout_height="36dp"
+                            android:paddingStart="16dp"
+                            android:paddingEnd="16dp"
                             android:textSize="14sp"
-                            android:textStyle="bold"
-                            android:paddingHorizontal="24dp"
-                            android:paddingVertical="12dp"
-                            app:cornerRadius="8dp" />
+                            android:textColor="@android:color/white"
+                            android:text="@string/permission_action_grant"
+                            android:background="@drawable/btn_primary_background" />
                     </LinearLayout>
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
