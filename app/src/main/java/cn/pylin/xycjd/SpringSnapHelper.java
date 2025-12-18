@@ -87,7 +87,7 @@ public class SpringSnapHelper extends LinearSnapHelper {
         
         if (fling) {
             // Reduce fling velocity to prevent scrolling too far/fast
-            velocityX = (int) (velocityX * 0.8f);
+            velocityX = (int) (velocityX * 0.6f);
             velocityY = (int) (velocityY * 0.6f);
 
             int targetPosition = findTargetSnapPosition(layoutManager, velocityX, velocityY);

@@ -586,11 +586,15 @@ public class FloatingWindowService extends Service {
         notificationAdapter = new NotificationAdapter();
         recyclerView.setAdapter(notificationAdapter);
         
-        // 关闭默认动画以防止闪烁
-        RecyclerView.ItemAnimator animator = recyclerView.getItemAnimator();
-        if (animator instanceof SimpleItemAnimator) {
-            ((SimpleItemAnimator) animator).setSupportsChangeAnimations(false);
-        }
+        // 显式设置 DefaultItemAnimator 并配置参数
+        // 必须使用 DefaultItemAnimator 以确保 Move 动画生效
+        androidx.recyclerview.widget.DefaultItemAnimator animator = new androidx.recyclerview.widget.DefaultItemAnimator();
+        animator.setSupportsChangeAnimations(false);
+        // 优化动画时长：移除要快，补位移动要慢且清晰
+        animator.setRemoveDuration(200);
+        animator.setMoveDuration(300);
+        animator.setAddDuration(300);
+        recyclerView.setItemAnimator(animator);
         
         // 添加间距装饰器
         int itemSpacing = dpToPx(16);
@@ -621,6 +625,24 @@ public class FloatingWindowService extends Service {
 
         // 6. 左滑右滑移除
         ItemTouchHelper itemTouchHelper = new ItemTouchHelper(new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
+            @Override
+            public float getSwipeThreshold(@NonNull RecyclerView.ViewHolder viewHolder) {
+                // 降低滑动阈值，只需滑动 25% 即可触发移除，提升跟手感
+                return 0.25f;
+            }
+
+            @Override
+            public float getSwipeEscapeVelocity(float defaultValue) {
+                // 降低逃逸速度要求，让轻微的甩动也能触发移除
+                return defaultValue * 0.5f;
+            }
+
+            @Override
+            public long getAnimationDuration(@NonNull RecyclerView recyclerView, int animationType, float animateDx, float animateDy) {
+                // 缩短动画时间，提升响应速度
+                return (long) (super.getAnimationDuration(recyclerView, animationType, animateDx, animateDy) * 0.6f);
+            }
+
             @Override
             public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, @NonNull RecyclerView.ViewHolder target) {
                 return false;
@@ -664,15 +686,15 @@ public class FloatingWindowService extends Service {
             public void onChildDraw(@NonNull Canvas c, @NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, float dX, float dY, int actionState, boolean isCurrentlyActive) {
                 super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
                 
-                // 实现非线性动画效果
+                // 实现非线性动画效果：先快后慢
                 if (actionState == ItemTouchHelper.ACTION_STATE_SWIPE) {
                     float width = (float) viewHolder.itemView.getWidth();
                     float absDx = Math.abs(dX);
                     float fraction = absDx / width;
                     
-                    // 非线性因子：使用平方函数让变化在移动初期较慢，随着距离增加加速
                     // 限制最大缩放和透明度变化
-                    float nonlinearFraction = fraction * fraction; 
+                    // 使用 sin 函数实现先快后慢的效果 (0 -> 1 的过程变化率逐渐减小)
+                    float nonlinearFraction = (float) Math.sin(Math.min(1f, fraction) * Math.PI / 2);
                     
                     // 缩放效果：从1.0减小到0.9
                     float scale = 1.0f - 0.1f * nonlinearFraction;
@@ -685,6 +707,11 @@ public class FloatingWindowService extends Service {
                     viewHolder.itemView.setScaleX(scale);
                     viewHolder.itemView.setScaleY(scale);
                     viewHolder.itemView.setAlpha(alpha);
+                    
+                    // 必须调用 super 否则没有平移效果
+                    super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
+                } else {
+                    super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
                 }
             }
 
@@ -744,6 +771,16 @@ public class FloatingWindowService extends Service {
     }
 
     private class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapter.ViewHolder> {
+
+        NotificationAdapter() {
+            setHasStableIds(true);
+        }
+
+        @Override
+        public long getItemId(int position) {
+            // 使用 key 的 hashCode 作为唯一 ID，确保动画正确执行
+            return notificationQueue.get(position).key.hashCode();
+        }
 
         @NonNull
         @Override
