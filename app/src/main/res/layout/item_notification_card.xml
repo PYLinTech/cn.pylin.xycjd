@@ -2,7 +2,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/island_container"
     android:layout_width="match_parent"
-    android:layout_height="120dp"
+    android:layout_height="@dimen/notification_card_height"
     android:orientation="horizontal"
     android:background="@drawable/island_card_background"
     android:padding="20dp"

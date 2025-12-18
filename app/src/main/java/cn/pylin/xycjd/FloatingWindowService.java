@@ -581,7 +581,14 @@ public class FloatingWindowService extends Service {
         recyclerView.setLayerType(View.LAYER_TYPE_HARDWARE, null);
         
         // 设置 RecyclerView
-        LinearLayoutManager layoutManager = new LinearLayoutManager(this);
+        LinearLayoutManager layoutManager = new LinearLayoutManager(this) {
+            @Override
+            protected int getExtraLayoutSpace(RecyclerView.State state) {
+                // 增加额外的布局空间，确保屏幕外的 item 也能参与布局和动画
+                // 这样当删除卡片时，下方的卡片（即使原本不可见）也能平滑地移入
+                return 1000;
+            }
+        };
         recyclerView.setLayoutManager(layoutManager);
         notificationAdapter = new NotificationAdapter();
         recyclerView.setAdapter(notificationAdapter);
@@ -606,8 +613,9 @@ public class FloatingWindowService extends Service {
         });
         
         // 添加自定义模糊边界装饰器 (在代码中实现，不使用XML)
-        // 估算高度：Card(120dp) + Spacing(16dp) = 136dp
-        int estimatedCardHeight = dpToPx(136); 
+        // 估算高度：Card(height) + Spacing(16dp)
+        int cardHeight = getResources().getDimensionPixelSize(R.dimen.notification_card_height);
+        int estimatedCardHeight = cardHeight + dpToPx(16); 
         recyclerView.addItemDecoration(new FadingEdgeDecoration(dpToPx(50), estimatedCardHeight)); // 50dp fade length
 
         // 1. 略微增加可见高度为1张卡片高度的1.6倍
@@ -652,10 +660,12 @@ public class FloatingWindowService extends Service {
             public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
                 int position = viewHolder.getAdapterPosition();
                 if (position != RecyclerView.NO_POSITION && position < notificationQueue.size()) {
-                    NotificationInfo removedInfo = notificationQueue.remove(position);
-                    notificationAdapter.notifyItemRemoved(position);
+                        NotificationInfo removedInfo = notificationQueue.remove(position);
+                        notificationAdapter.notifyItemRemoved(position);
+                        // 通知后续数据位置发生变化，确保动画连贯
+                        notificationAdapter.notifyItemRangeChanged(position, notificationQueue.size() - position);
                     
-                    // 尝试从系统通知栏移除通知
+                        // 尝试从系统通知栏移除通知
                     AppNotificationListenerService listenerService = AppNotificationListenerService.getInstance();
                     if (listenerService != null) {
                         try {
