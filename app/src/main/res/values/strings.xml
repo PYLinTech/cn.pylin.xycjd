@@ -1,7 +1,12 @@
 <resources>
     <string name="app_name">小雨超级岛</string>
     <string name="nav_settings">设定</string>
-    <string name="nav_apps">应用列表</string>
+    <string name="nav_apps_rules">应用及规则</string>
+    <string name="section_apps">应用列表</string>
+    <string name="section_rules">规则设置</string>
+    <string name="app_name_header">应用名称</string>
+    <string name="enable_header">启用</string>
+    <string name="auto_expand_header">自动展开</string>
     <string name="nav_about">关于</string>
 
     <!-- 语言设置相关字符串 -->
@@ -83,7 +88,6 @@
     <!-- 悬浮窗相关字符串 -->
     <string name="floating_window_setting">悬浮窗设置</string>
     <string name="floating_window_size">悬浮窗大小</string>
-    <string name="floating_window_position">悬浮窗位置</string>
     <string name="floating_window_position_x">水平位置</string>
     <string name="floating_window_position_y">垂直位置</string>
     <string name="floating_window_permission_denied">悬浮窗权限被拒绝，请在设置中开启</string>
@@ -117,12 +121,7 @@
     
     <!-- 返回键相关字符串 -->
     <string name="double_back_to_exit">再按一次隐藏到后台</string>
-    
-    <!-- 应用列表表头字符串 -->
-    <string name="app_name_header">应用名称</string>
-    <string name="enable_header">启用</string>
-    <string name="auto_expand_header">自动展开</string>
-    
+
     <!-- 无障碍服务状态通知 -->
     <string name="accessibility_downgraded_title">无障碍权限状态异常</string>
     <string name="accessibility_downgraded_content">超级岛已被降级显示，请重新开启权限以支持在顶层显示</string>
