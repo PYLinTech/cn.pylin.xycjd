@@ -1,9 +1,9 @@
 <resources>
     <string name="app_name">Xiaoyu Super Island</string>
     <string name="nav_settings">Settings</string>
-    <string name="nav_apps_rules">Apps &amp; Rules</string>
+    <string name="nav_filter">Filter</string>
     <string name="section_apps">Apps List</string>
-    <string name="section_rules">Rules Settings</string>
+    <string name="section_notice">Notice Filter</string>
     <string name="app_name_header">App Name</string>
     <string name="enable_header">Enable</string>
     <string name="auto_expand_header">Auto Expand</string>

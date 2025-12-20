@@ -22,15 +22,15 @@ import androidx.fragment.app.Fragment;
 import java.util.ArrayList;
 import java.util.List;
 
-public class AppsRulesFragment extends Fragment {
+public class FilterFragment extends Fragment {
     
     private Context mContext;
     private ListView listView;
     private ImageButton menuButton;
-    private View headerApps, headerRules;
-    private View contentApps, contentRules;
-    private View cardApps, cardRules;
-    private ImageButton arrowApps, arrowRules;
+    private View headerApps, headerNotice;
+    private View contentApps, contentNotice;
+    private View cardApps, cardNotice;
+    private ImageButton arrowApps, arrowNotice;
     
     private List<AppInfo> allAppsList;
     private List<AppInfo> filteredAppsList;
@@ -38,7 +38,7 @@ public class AppsRulesFragment extends Fragment {
     private int currentFilterType = 1; // 默认为用户应用
     
     private boolean isAppsExpanded = false;
-    private boolean isRulesExpanded = false;
+    private boolean isNoticeExpanded = false;
     
     @Override
     public void onAttach(@NonNull Context context) {
@@ -49,7 +49,7 @@ public class AppsRulesFragment extends Fragment {
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_apps_rules, container, false);
+        View view = inflater.inflate(R.layout.fragment_filter, container, false);
         
         initViews(view);
         updateUIState();
@@ -63,13 +63,13 @@ public class AppsRulesFragment extends Fragment {
         menuButton = view.findViewById(R.id.menu_button);
         
         cardApps = view.findViewById(R.id.card_apps);
-        cardRules = view.findViewById(R.id.card_rules);
+        cardNotice = view.findViewById(R.id.card_notice);
         headerApps = view.findViewById(R.id.header_apps);
-        headerRules = view.findViewById(R.id.header_rules);
+        headerNotice = view.findViewById(R.id.header_notice);
         contentApps = view.findViewById(R.id.content_apps);
-        contentRules = view.findViewById(R.id.content_rules);
+        contentNotice = view.findViewById(R.id.content_notice);
         arrowApps = view.findViewById(R.id.arrow_apps);
-        arrowRules = view.findViewById(R.id.arrow_rules);
+        arrowNotice = view.findViewById(R.id.arrow_notice);
         
         headerApps.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -78,10 +78,10 @@ public class AppsRulesFragment extends Fragment {
             }
         });
         
-        headerRules.setOnClickListener(new View.OnClickListener() {
+        headerNotice.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                toggleRulesSection();
+                toggleNoticeSection();
             }
         });
         
@@ -96,17 +96,17 @@ public class AppsRulesFragment extends Fragment {
     
     private void toggleAppsSection() {
         isAppsExpanded = !isAppsExpanded;
-        // 如果展开应用列表，建议折叠规则设置，以获得更多空间
+        // 如果展开应用列表，建议折叠通知设置，以获得更多空间
         if (isAppsExpanded) {
-            isRulesExpanded = false;
+            isNoticeExpanded = false;
         }
         updateUIState();
     }
     
-    private void toggleRulesSection() {
-        isRulesExpanded = !isRulesExpanded;
-        // 如果展开规则设置，建议折叠应用列表
-        if (isRulesExpanded) {
+    private void toggleNoticeSection() {
+        isNoticeExpanded = !isNoticeExpanded;
+        // 如果展开通知设置，建议折叠应用列表
+        if (isNoticeExpanded) {
             isAppsExpanded = false;
         }
         updateUIState();
@@ -128,19 +128,19 @@ public class AppsRulesFragment extends Fragment {
         }
         cardApps.setLayoutParams(paramsApps);
         
-        // 更新规则设置板块状态
-        contentRules.setVisibility(isRulesExpanded ? View.VISIBLE : View.GONE);
-        arrowRules.setRotation(isRulesExpanded ? 180 : 0);
+        // 更新通知设置板块状态
+        contentNotice.setVisibility(isNoticeExpanded ? View.VISIBLE : View.GONE);
+        arrowNotice.setRotation(isNoticeExpanded ? 180 : 0);
         
-        LinearLayout.LayoutParams paramsRules = (LinearLayout.LayoutParams) cardRules.getLayoutParams();
-        if (isRulesExpanded) {
-            paramsRules.height = 0;
-            paramsRules.weight = 1;
+        LinearLayout.LayoutParams paramsNotice = (LinearLayout.LayoutParams) cardNotice.getLayoutParams();
+        if (isNoticeExpanded) {
+            paramsNotice.height = 0;
+            paramsNotice.weight = 1;
         } else {
-            paramsRules.height = LinearLayout.LayoutParams.WRAP_CONTENT;
-            paramsRules.weight = 0;
+            paramsNotice.height = LinearLayout.LayoutParams.WRAP_CONTENT;
+            paramsNotice.weight = 0;
         }
-        cardRules.setLayoutParams(paramsRules);
+        cardNotice.setLayoutParams(paramsNotice);
     }
     
     private void showPopupMenu(View anchorView) {
