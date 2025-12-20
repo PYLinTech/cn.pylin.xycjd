@@ -1,6 +1,8 @@
 package cn.pylin.xycjd;
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.widget.Button;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
@@ -20,14 +22,19 @@ public class LogActivity extends AppCompatActivity implements NotificationLogMan
 
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        if (getSupportActionBar() != null) {
-            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-            getSupportActionBar().setDisplayShowHomeEnabled(true);
-        }
-        toolbar.setNavigationOnClickListener(v -> finish());
 
         tvLog = findViewById(R.id.tv_log);
         scrollView = findViewById(R.id.scrollView);
+
+        Button btnReturn = findViewById(R.id.btn_return);
+        Button btnExit = findViewById(R.id.btn_exit);
+
+        btnReturn.setOnClickListener(v -> {
+            Intent intent = new Intent(this, MainActivity.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+            startActivity(intent);
+        });
+        btnExit.setOnClickListener(v -> finish());
 
         // Load existing logs
         StringBuilder sb = new StringBuilder();

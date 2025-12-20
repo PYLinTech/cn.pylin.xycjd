@@ -2,6 +2,7 @@ package cn.pylin.xycjd;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -194,6 +195,15 @@ public class FilterFragment extends Fragment {
     private void showPopupMenuNotice(View anchorView) {
         PopupMenu popup = new PopupMenu(mContext, anchorView);
         popup.getMenuInflater().inflate(R.menu.notice_menu, popup.getMenu());
+        
+        // 检查当前使用的模型
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(mContext);
+        String modelType = prefs.getString("pref_filter_model", SettingsFragment.MODEL_LOCAL);
+        
+        // 如果是混元模型，隐藏"需要"选项，因为混元模型不支持用户反馈学习
+        if (SettingsFragment.MODEL_HUNYUAN.equals(modelType)) {
+            popup.getMenu().findItem(R.id.notice_need).setVisible(false);
+        }
         
         popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
             @Override

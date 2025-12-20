@@ -6,8 +6,8 @@
     <string name="section_notice">Notice Filter</string>
     <string name="app_name_header">App Name</string>
     <string name="enable_header">Enable</string>
-    <string name="model_filter_header">Model Filter</string>
-    <string name="auto_expand_header">Auto Expand</string>
+    <string name="model_filter_header">Model\nFilter</string>
+    <string name="auto_expand_header">Auto\nExpand</string>
     <string name="nav_about">About</string>
 
     <!-- Language settings -->
@@ -104,24 +104,24 @@
     <string name="floating_window_position_x">Horizontal Position</string>
     <string name="floating_window_position_y">Vertical Position</string>
     <string name="floating_window_permission_denied">Floating window permission denied, please enable in settings</string>
-    <string name="service_status">Service Status</string>
+    <string name="service_status">Floating Window Status</string>
     <string name="service_status_desc">Manage floating window service status</string>
     <string name="service_running">Service is running</string>
     <string name="service_stopped">Service stopped</string>
     <string name="start_service">Start Service</string>
     <string name="stop_service">Stop Service</string>
 
-    <!-- Local learning related strings -->
-    <string name="local_learning_title">Local Learning</string>
-    <string name="local_learning_desc">Manage local learning service status</string>
-    <string name="learning_config_title">Learning Config</string>
-    <string name="learning_config_desc">Model will score notifications, notifications with score lower than filtering degree will be filtered\nHigher learning degree means faster learning of click and remove events</string>
+    <!-- Filter model setting strings -->
+    <string name="model_filtering_title">Model Filtering Status</string>
+    <string name="model_filtering_desc">Use the selected model to identify and filter notifications</string>
+    <string name="learning_config_title">Learning Configuration</string>
+    <string name="learning_config_desc">The selected AI model will score the content of received notifications\nNotifications with a score lower than the filtering degree will be filtered\nHigher learning degree means faster learning of click and remove events</string>
     <string name="filtering_degree">Filtering Degree</string>
     <string name="learning_degree">Learning Degree</string>
-    <string name="local_learning_stopped">Stopped, will not read any notifications</string>
-    <string name="local_learning_running">Running, filtered %d notifications</string>
-    <string name="start_learning">Start</string>
-    <string name="stop_learning">Stop</string>
+    <string name="model_filtering_stopped">Model Filtering Stopped</string>
+    <string name="model_filtering_running">Model Filtering Running, Intercepted %d Notifications</string>
+    <string name="start_filtering">Start Filtering</string>
+    <string name="stop_filtering">Stop Filtering</string>
 
     <string name="permission_all_granted">All permissions granted</string>
     <string name="permission_some_denied">%d permissions denied</string>
@@ -134,8 +134,8 @@
     <string name="permission_tag_critical">Critical</string>
     <string name="reset_to_default_position">Reset to Default Position</string>
     <string name="reset_to_default_config">Reset to Default Config</string>
-    <string name="clear_learning_model">Clear Learning Model</string>
-    <string name="clear_learning_model_success">Learning model cleared</string>
+    <string name="clear_learning_model">Clear Local Learning Model</string>
+    <string name="clear_learning_model_success">Local learning model cleared</string>
     <string name="floating_window_placeholder_text">Floating window service not started\nPlease start the service before configuring settings</string>
     
     <!-- Test notification related strings -->
@@ -162,4 +162,26 @@
     <string name="play_pause">Play/Pause</string>
     <string name="next">Next</string>
     <string name="log_activity_title">Notification Log</string>
+        
+    <!-- Filter model setting strings -->
+    <string name="filter_model_setting">Filter Model</string>
+    <string name="model_local">Local Learning Model</string>
+    <string name="model_hunyuan">Tencent Hunyuan Model</string>
+    <string name="online_model_config_title">Online Model Config</string>
+    <string name="online_model_config_desc">Filtering degree higher means stricter judgment on irrelevant notifications</string>
+    <string name="reset_to_default_online_config">Reset to Default Config</string>
+    
+    <!-- Log activity related strings -->
+    <string name="log_return">Return</string>
+    <string name="log_exit">Exit</string>
+    <string name="log_hunyuan_check">Hunyuan Model Check: %1$s | Score: %2$.1f (Threshold: %3$.1f) | Result: %4$s | Original: %5$s</string>
+    <string name="log_local_check">Local Model Check: %1$s | Score: %2$.2f (Threshold: %3$.1f) | Result: %4$s | Original: %5$s</string>
+    <string name="log_result_filtered">Filtered</string>
+    <string name="log_result_allowed">Allowed</string>
+
+    <!-- Online model warning dialog related strings -->
+    <string name="warning_title">Warning</string>
+    <string name="hunyuan_warning_content">Switching to the online model will upload the notification title and content to the cloud model.\nIf you click confirm and use the model, you confirm that you have read and accepted the potential privacy risks.</string>
+    <string name="cancel">Cancel</string>
+    <string name="confirm">Confirm</string>
 </resources>

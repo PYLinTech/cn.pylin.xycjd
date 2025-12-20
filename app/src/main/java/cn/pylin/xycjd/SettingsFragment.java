@@ -78,10 +78,15 @@ public class SettingsFragment extends Fragment {
     private TextView tvServiceStatus;
     private Button btnServiceToggle;
 
-    // 本地学习相关控件
-    private CardView cardLocalLearning;
-    private TextView tvLocalLearningStatus;
-    private Button btnLocalLearningToggle;
+    // 模型过滤相关控件
+    private CardView cardModelFiltering;
+    private TextView tvModelFilteringStatus;
+    private Button btnModelFilteringToggle;
+
+    // 过滤模型控件
+    private RadioGroup radioGroupFilterModel;
+    private RadioButton radioBtnModelLocal;
+    private RadioButton radioBtnModelHunyuan;
 
     // 学习配置相关控件
     private CardView cardLearningConfig;
@@ -91,7 +96,13 @@ public class SettingsFragment extends Fragment {
     private SeekBar seekBarLearningDegree;
     private Button btnResetLearningConfig;
     private Button btnClearLearningModel;
-    
+
+    // 在线模型配置相关控件
+    private CardView cardOnlineModelConfig;
+    private TextView tvOnlineFilteringDegreeValue;
+    private SeekBar seekBarOnlineFilteringDegree;
+    private Button btnResetOnlineConfig;
+
     // 测试通知相关控件
     private CardView cardTestNotification;
     private Button btnSendTestNotification;
@@ -99,13 +110,19 @@ public class SettingsFragment extends Fragment {
     private boolean isFloatingWindowEnabled = false;
     private static final int REQUEST_OVERLAY_PERMISSION = 1001;
     private static final String TEST_NOTIFICATION_CHANNEL_ID = "test_notification_channel";
-    private static final String PREF_LOCAL_LEARNING_ENABLED = "pref_local_learning_enabled";
+    private static final String PREF_MODEL_FILTERING_ENABLED = "pref_model_filtering_enabled";
     private static final String PREF_FILTERING_DEGREE = "pref_filtering_degree";
     private static final String PREF_LEARNING_DEGREE = "pref_learning_degree";
+    private static final String PREF_ONLINE_FILTERING_DEGREE = "pref_online_filtering_degree";
     private static final String PREF_NOTIFICATION_MODE = "pref_notification_mode";
     public static final String MODE_SUPER_ISLAND_ONLY = "mode_super_island_only";
     public static final String MODE_NOTIFICATION_BAR_ONLY = "mode_notification_bar_only";
     public static final String MODE_BOTH = "mode_both";
+    
+    private static final String PREF_FILTER_MODEL = "pref_filter_model";
+    public static final String MODEL_LOCAL = "model_local";
+    public static final String MODEL_HUNYUAN = "model_hunyuan";
+
     private static final String PREF_SETTINGS_SCROLL_Y = "pref_settings_scroll_y";
 
     @Nullable
@@ -137,11 +154,17 @@ public class SettingsFragment extends Fragment {
         // 设置服务状态相关
         setupServiceStatusControls();
 
-        // 设置本地学习相关
-        setupLocalLearningControls();
+        // 设置模型过滤相关
+        setupModelFilteringControls();
+        
+        // 设置过滤模型相关
+        setupFilterModelControls();
         
         // 设置学习配置相关
         setupLearningConfigControls();
+
+        // 设置在线模型配置相关
+        setupOnlineModelConfigControls();
         
         // 设置测试通知相关
         setupTestNotificationControls();
@@ -193,11 +216,16 @@ public class SettingsFragment extends Fragment {
         tvServiceStatus = view.findViewById(R.id.tv_service_status);
         btnServiceToggle = view.findViewById(R.id.btn_service_toggle);
 
-        // 初始化本地学习相关控件
-        cardLocalLearning = view.findViewById(R.id.card_local_learning);
-        tvLocalLearningStatus = view.findViewById(R.id.tv_local_learning_status);
-        btnLocalLearningToggle = view.findViewById(R.id.btn_local_learning_toggle);
+        // 初始化模型过滤相关控件
+        cardModelFiltering = view.findViewById(R.id.card_model_filtering);
+        tvModelFilteringStatus = view.findViewById(R.id.tv_model_filtering_status);
+        btnModelFilteringToggle = view.findViewById(R.id.btn_model_filtering_toggle);
         
+        // 初始化过滤模型控件
+        radioGroupFilterModel = view.findViewById(R.id.radio_group_filter_model);
+        radioBtnModelLocal = view.findViewById(R.id.radio_btn_model_local);
+        radioBtnModelHunyuan = view.findViewById(R.id.radio_btn_model_hunyuan);
+
         // 初始化学习配置相关控件
         cardLearningConfig = view.findViewById(R.id.card_learning_config);
         tvFilteringDegreeValue = view.findViewById(R.id.tv_filtering_degree_value);
@@ -206,6 +234,13 @@ public class SettingsFragment extends Fragment {
         seekBarLearningDegree = view.findViewById(R.id.seekbar_learning_degree);
         btnResetLearningConfig = view.findViewById(R.id.btn_reset_learning_config);
         btnClearLearningModel = view.findViewById(R.id.btn_clear_learning_model);
+
+        // 初始化在线模型配置相关控件
+        cardOnlineModelConfig = view.findViewById(R.id.card_online_model_config);
+        tvOnlineFilteringDegreeValue = view.findViewById(R.id.tv_online_filtering_degree_value);
+        seekBarOnlineFilteringDegree = view.findViewById(R.id.seekbar_online_filtering_degree);
+        btnResetOnlineConfig = view.findViewById(R.id.btn_reset_online_config);
+
         // 初始化测试通知相关控件
         cardTestNotification = view.findViewById(R.id.card_test_notification);
         btnSendTestNotification = view.findViewById(R.id.btn_send_test_notification);
@@ -644,46 +679,186 @@ public class SettingsFragment extends Fragment {
         }
     }
 
-    private void setupLocalLearningControls() {
+    private void setupModelFilteringControls() {
         // 更新UI状态
-        updateLocalLearningUI();
+        updateModelFilteringUI();
 
         // 设置点击事件
-        btnLocalLearningToggle.setOnClickListener(v -> {
+        btnModelFilteringToggle.setOnClickListener(v -> {
             SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(requireContext());
-            boolean isEnabled = preferences.getBoolean(PREF_LOCAL_LEARNING_ENABLED, false);
+            boolean isEnabled = preferences.getBoolean(PREF_MODEL_FILTERING_ENABLED, false);
             
             // 切换状态
             SharedPreferences.Editor editor = preferences.edit();
-            editor.putBoolean(PREF_LOCAL_LEARNING_ENABLED, !isEnabled);
+            editor.putBoolean(PREF_MODEL_FILTERING_ENABLED, !isEnabled);
             editor.apply();
             
             // 更新UI
-            updateLocalLearningUI();
+            updateModelFilteringUI();
         });
     }
 
-    private void updateLocalLearningUI() {
+    private void updateModelFilteringUI() {
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(requireContext());
-        boolean isEnabled = preferences.getBoolean(PREF_LOCAL_LEARNING_ENABLED, false);
+        boolean isEnabled = preferences.getBoolean(PREF_MODEL_FILTERING_ENABLED, false);
         
         if (isEnabled) {
             // 获取已过滤数量
             int filteredCount = FilteredNotificationManager.getInstance(requireContext()).getAllNotifications().size();
-            tvLocalLearningStatus.setText(getString(R.string.local_learning_running, filteredCount));
-            tvLocalLearningStatus.setTextColor(getResources().getColor(R.color.colorSuccess, null));
+            tvModelFilteringStatus.setText(getString(R.string.model_filtering_running, filteredCount));
+            tvModelFilteringStatus.setTextColor(getResources().getColor(R.color.colorSuccess, null));
             
-            btnLocalLearningToggle.setText(getString(R.string.stop_learning));
-            btnLocalLearningToggle.setBackgroundResource(R.drawable.btn_error_background);
+            btnModelFilteringToggle.setText(getString(R.string.stop_filtering));
+            btnModelFilteringToggle.setBackgroundResource(R.drawable.btn_error_background);
         } else {
-            tvLocalLearningStatus.setText(getString(R.string.local_learning_stopped));
-            tvLocalLearningStatus.setTextColor(getResources().getColor(R.color.colorError, null));
+            tvModelFilteringStatus.setText(getString(R.string.model_filtering_stopped));
+            tvModelFilteringStatus.setTextColor(getResources().getColor(R.color.colorError, null));
             
-            btnLocalLearningToggle.setText(getString(R.string.start_learning));
-            btnLocalLearningToggle.setBackgroundResource(R.drawable.btn_primary_background);
+            btnModelFilteringToggle.setText(getString(R.string.start_filtering));
+            btnModelFilteringToggle.setBackgroundResource(R.drawable.btn_primary_background);
         }
     }
     
+    private void setupFilterModelControls() {
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(requireContext());
+        String model = preferences.getString(PREF_FILTER_MODEL, MODEL_LOCAL);
+        
+        // 设置选中状态
+        if (MODEL_HUNYUAN.equals(model)) {
+            radioBtnModelHunyuan.setChecked(true);
+            cardLearningConfig.setVisibility(View.GONE);
+            cardOnlineModelConfig.setVisibility(View.VISIBLE);
+        } else {
+            radioBtnModelLocal.setChecked(true);
+            cardLearningConfig.setVisibility(View.VISIBLE);
+            cardOnlineModelConfig.setVisibility(View.GONE);
+        }
+        
+        // 设置监听器
+        radioGroupFilterModel.setOnCheckedChangeListener((group, checkedId) -> {
+            SharedPreferences.Editor editor = preferences.edit();
+            if (checkedId == R.id.radio_btn_model_local) {
+                editor.putString(PREF_FILTER_MODEL, MODEL_LOCAL);
+                editor.apply();
+                cardLearningConfig.setVisibility(View.VISIBLE);
+                cardOnlineModelConfig.setVisibility(View.GONE);
+            } else if (checkedId == R.id.radio_btn_model_hunyuan) {
+                // 显示警告弹窗，暂不保存设置
+                showHunyuanWarningDialog();
+            }
+        });
+    }
+
+    private void showHunyuanWarningDialog() {
+        android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(requireContext());
+        View view = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_warning, null);
+        builder.setView(view);
+        android.app.AlertDialog dialog = builder.create();
+        
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT));
+        }
+
+        Button btnConfirm = view.findViewById(R.id.btn_confirm);
+        String confirmText = getString(R.string.confirm);
+        
+        // 初始禁用确定按钮
+        btnConfirm.setEnabled(false);
+        btnConfirm.setAlpha(0.5f);
+        
+        // 创建倒计时，总时长10秒，间隔1秒
+        android.os.CountDownTimer timer = new android.os.CountDownTimer(10000, 1000) {
+            @Override
+            public void onTick(long millisUntilFinished) {
+                // 显示倒计时 10-1
+                long seconds = (millisUntilFinished / 1000) + 1;
+                btnConfirm.setText(confirmText + " (" + seconds + ")");
+            }
+
+            @Override
+            public void onFinish() {
+                // 倒计时结束，恢复文本并启用
+                btnConfirm.setText(confirmText);
+                btnConfirm.setEnabled(true);
+                btnConfirm.setAlpha(1.0f);
+            }
+        };
+        timer.start();
+        
+        // 确保dialog消失时取消timer
+        dialog.setOnDismissListener(d -> timer.cancel());
+
+        view.findViewById(R.id.btn_cancel).setOnClickListener(v -> {
+            dialog.dismiss();
+            // 恢复到本地模型
+            radioBtnModelLocal.setChecked(true);
+        });
+
+        btnConfirm.setOnClickListener(v -> {
+            dialog.dismiss();
+            // 确认切换到混元模型
+            SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(requireContext());
+            SharedPreferences.Editor editor = preferences.edit();
+            editor.putString(PREF_FILTER_MODEL, MODEL_HUNYUAN);
+            editor.apply();
+            
+            cardLearningConfig.setVisibility(View.GONE);
+            cardOnlineModelConfig.setVisibility(View.VISIBLE);
+        });
+        
+        dialog.setCancelable(false);
+        dialog.show();
+    }
+
+    private void setupOnlineModelConfigControls() {
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(requireContext());
+        
+        // 获取保存的值，如果不存在则使用默认值
+        float filteringDegree = preferences.getFloat(PREF_ONLINE_FILTERING_DEGREE, 5.0f);
+        
+        // 设置初始值
+        // SeekBar范围是0-100，对应0.0-10.0
+        seekBarOnlineFilteringDegree.setProgress((int) (filteringDegree * 10));
+        tvOnlineFilteringDegreeValue.setText(String.format("%.1f", filteringDegree));
+        
+        // 设置监听器
+        seekBarOnlineFilteringDegree.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                float value = progress / 10.0f;
+                tvOnlineFilteringDegreeValue.setText(String.format("%.1f", value));
+                
+                if (fromUser) {
+                    // 保存设置
+                    SharedPreferences.Editor editor = preferences.edit();
+                    editor.putFloat(PREF_ONLINE_FILTERING_DEGREE, value);
+                    editor.apply();
+                }
+            }
+            
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {}
+            
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {}
+        });
+
+        // 重置按钮点击事件
+        btnResetOnlineConfig.setOnClickListener(v -> {
+            // 恢复默认值
+            float defaultFilteringDegree = 5.0f;
+
+            // 更新 SharedPreferences
+            SharedPreferences.Editor editor = preferences.edit();
+            editor.putFloat(PREF_ONLINE_FILTERING_DEGREE, defaultFilteringDegree);
+            editor.apply();
+
+            // 更新 UI
+            seekBarOnlineFilteringDegree.setProgress((int) (defaultFilteringDegree * 10));
+            tvOnlineFilteringDegreeValue.setText(String.format("%.1f", defaultFilteringDegree));
+        });
+    }
+
     private void setupLearningConfigControls() {
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(requireContext());
         
