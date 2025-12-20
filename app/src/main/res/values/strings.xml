@@ -1,9 +1,9 @@
 <resources>
     <string name="app_name">小雨超级岛</string>
     <string name="nav_settings">设定</string>
-    <string name="nav_apps_rules">应用及规则</string>
+    <string name="nav_filter">过滤</string>
     <string name="section_apps">应用列表</string>
-    <string name="section_rules">规则设置</string>
+    <string name="section_notice">通知过滤</string>
     <string name="app_name_header">应用名称</string>
     <string name="enable_header">启用</string>
     <string name="auto_expand_header">自动展开</string>

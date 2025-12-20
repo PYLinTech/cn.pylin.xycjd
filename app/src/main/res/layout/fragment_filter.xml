@@ -10,7 +10,7 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/nav_apps_rules"
+        android:text="@string/nav_filter"
         android:textSize="18sp"
         android:textStyle="bold"
         android:layout_marginBottom="16dp" />
@@ -144,9 +144,9 @@
         </LinearLayout>
     </androidx.cardview.widget.CardView>
 
-    <!-- 规则设置板块 -->
+    <!-- 通知过滤板块 -->
     <androidx.cardview.widget.CardView
-        android:id="@+id/card_rules"
+        android:id="@+id/card_notice"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:cardBackgroundColor="@color/colorSurface"
@@ -159,9 +159,9 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <!-- 规则设置标题栏 -->
+            <!-- 通知过滤标题栏 -->
             <RelativeLayout
-                android:id="@+id/header_rules"
+                android:id="@+id/header_notice"
                 android:layout_width="match_parent"
                 android:layout_height="64dp"
                 android:background="?attr/selectableItemBackground"
@@ -170,13 +170,13 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/section_rules"
+                    android:text="@string/section_notice"
                     android:textSize="16sp"
                     android:textStyle="bold"
                     android:layout_centerVertical="true" />
 
                 <ImageButton
-                    android:id="@+id/arrow_rules"
+                    android:id="@+id/arrow_notice"
                     android:layout_width="40dp"
                     android:layout_height="40dp"
                     android:src="@drawable/ic_arrow_down"
@@ -190,9 +190,9 @@
 
             </RelativeLayout>
 
-            <!-- 规则设置内容区域 -->
+            <!-- 通知过滤内容区域 -->
             <LinearLayout
-                android:id="@+id/content_rules"
+                android:id="@+id/content_notice"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
@@ -202,7 +202,7 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="规则设置内容待添加..."
+                    android:text="通知过滤内容待添加..."
                     android:gravity="center"
                     android:padding="20dp" />
                     
