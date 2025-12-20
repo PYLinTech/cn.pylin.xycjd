@@ -20,6 +20,7 @@ public class AppInfoAdapter extends BaseAdapter {
     private List<AppInfo> mAppInfoList;
     private LayoutInflater mInflater;
     private SharedPreferences mPrefs;
+    private SharedPreferences mModelFilterPrefs;
     private SharedPreferences mAutoExpandPrefs;
     
     public AppInfoAdapter(Context context, List<AppInfo> appInfoList) {
@@ -27,6 +28,7 @@ public class AppInfoAdapter extends BaseAdapter {
         mAppInfoList = appInfoList;
         mInflater = LayoutInflater.from(context);
         mPrefs = context.getSharedPreferences("app_checkboxes", Context.MODE_PRIVATE);
+        mModelFilterPrefs = context.getSharedPreferences("app_model_filter", Context.MODE_PRIVATE);
         mAutoExpandPrefs = context.getSharedPreferences("app_auto_expand", Context.MODE_PRIVATE);
     }
     
@@ -57,6 +59,7 @@ public class AppInfoAdapter extends BaseAdapter {
             holder.packageName = convertView.findViewById(R.id.package_name);
             holder.systemApp = convertView.findViewById(R.id.system_app);
             holder.appCheckbox = convertView.findViewById(R.id.app_checkbox);
+            holder.appModelFilterCheckbox = convertView.findViewById(R.id.app_model_filter_checkbox);
             holder.appAutoExpandCheckbox = convertView.findViewById(R.id.app_auto_expand_checkbox);
             convertView.setTag(holder);
         } else {
@@ -87,6 +90,9 @@ public class AppInfoAdapter extends BaseAdapter {
         boolean isChecked = mPrefs.getBoolean(packageName, false);
         appInfo.setChecked(isChecked);
 
+        boolean isModelFilterChecked = mModelFilterPrefs.getBoolean(packageName, false);
+        appInfo.setModelFilterChecked(isModelFilterChecked);
+
         boolean isAutoExpandChecked = mAutoExpandPrefs.getBoolean(packageName, false);
         appInfo.setAutoExpandChecked(isAutoExpandChecked);
         
@@ -103,6 +109,16 @@ public class AppInfoAdapter extends BaseAdapter {
                 mPrefs.edit().putBoolean(packageName, isChecked).apply();
                 // 更新AppInfo对象状态
                 appInfo.setChecked(isChecked);
+            }
+        });
+
+        holder.appModelFilterCheckbox.setOnCheckedChangeListener(null);
+        holder.appModelFilterCheckbox.setChecked(isModelFilterChecked);
+        holder.appModelFilterCheckbox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                mModelFilterPrefs.edit().putBoolean(packageName, isChecked).apply();
+                appInfo.setModelFilterChecked(isChecked);
             }
         });
 
@@ -140,6 +156,7 @@ public class AppInfoAdapter extends BaseAdapter {
         TextView packageName;
         TextView systemApp;
         CheckBox appCheckbox;
+        CheckBox appModelFilterCheckbox;
         CheckBox appAutoExpandCheckbox;
     }
     

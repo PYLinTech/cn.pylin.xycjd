@@ -71,28 +71,7 @@ public class MainActivity extends AppCompatActivity {
         updateButtonStates();
         
         // 初始化指示器位置
-        findViewById(R.id.navigation_bar).post(new Runnable() {
-            @Override
-            public void run() {
-                // 调整指示器宽度为按钮宽度的80%
-                int navigationBarWidth = findViewById(R.id.navigation_bar).getWidth();
-                int buttonWidth = navigationBarWidth / 3;
-                int indicatorWidth = (int)(buttonWidth * 0.8f);
-                
-                FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) navigationIndicator.getLayoutParams();
-                params.width = indicatorWidth;
-                navigationIndicator.setLayoutParams(params);
-                
-                // 确保布局完成后再设置初始位置
-                navigationIndicator.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        // 设置初始位置
-                        updateIndicatorPosition(currentPage, false);
-                    }
-                });
-            }
-        });
+        updateIndicatorLayout();
 
         // 设置按钮点击事件
         btnSettings.setOnClickListener(new View.OnClickListener() {
@@ -211,6 +190,48 @@ public class MainActivity extends AppCompatActivity {
             navigationIndicator.setX(targetX);
         }
     }
+
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        updateIndicatorLayout();
+    }
+
+    private void updateIndicatorLayout() {
+        final View navBar = findViewById(R.id.navigation_bar);
+        if (navBar == null) return;
+        
+        navBar.getViewTreeObserver().addOnGlobalLayoutListener(new android.view.ViewTreeObserver.OnGlobalLayoutListener() {
+            @Override
+            public void onGlobalLayout() {
+                // 移除监听器，避免重复调用
+                navBar.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+                
+                // 调整指示器宽度为按钮宽度的80%
+                int navigationBarWidth = navBar.getWidth();
+                // 避免宽度为0的情况
+                if (navigationBarWidth <= 0) return;
+                
+                int buttonWidth = navigationBarWidth / 3;
+                int indicatorWidth = (int)(buttonWidth * 0.8f);
+                
+                if (navigationIndicator != null) {
+                    FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) navigationIndicator.getLayoutParams();
+                    params.width = indicatorWidth;
+                    navigationIndicator.setLayoutParams(params);
+                    
+                    // 确保布局完成后再设置初始位置
+                    navigationIndicator.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            // 设置初始位置
+                            updateIndicatorPosition(currentPage, false);
+                        }
+                    });
+                }
+            }
+        });
+    }
     
     /**
      * 加载保存的语言设置
@@ -252,6 +273,13 @@ public class MainActivity extends AppCompatActivity {
         return savedVersion < IntroActivity.INTRO_VERSION;
     }
     
+    @Override
+    protected void onUserLeaveHint() {
+        super.onUserLeaveHint();
+        // 当用户离开应用（如按下Home键或切换任务）时，从最近任务列表中隐藏
+        hideFromRecents();
+    }
+
     @Override
     public void onBackPressed() {
         long currentTime = System.currentTimeMillis();

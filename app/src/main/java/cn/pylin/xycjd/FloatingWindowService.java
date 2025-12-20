@@ -57,6 +57,8 @@ public class FloatingWindowService extends Service {
     private WindowManager.LayoutParams threeCircleParams;
     private NotificationAdapter notificationAdapter;
     
+    private boolean isClosingIsland = false;
+
     public static class NotificationInfo {
         String key;
         String packageName;
@@ -86,6 +88,7 @@ public class FloatingWindowService extends Service {
     private String lastNotificationContent;
     
     private SharedPreferences preferences;
+    private SharedPreferences modelFilterPrefs;
     
     private static final String PREF_FLOATING_SIZE = "floating_size";
     private static final String PREF_FLOATING_X = "floating_x";
@@ -103,6 +106,7 @@ public class FloatingWindowService extends Service {
         super.onCreate();
         instance = this;
         preferences = PreferenceManager.getDefaultSharedPreferences(this);
+        modelFilterPrefs = getSharedPreferences("app_model_filter", Context.MODE_PRIVATE);
     }
     
     @Override
@@ -273,11 +277,17 @@ public class FloatingWindowService extends Service {
         return preferences.getInt(PREF_FLOATING_Y, DEFAULT_Y);
     }
 
-
+    private boolean isModelFilterEnabled(String packageName) {
+        if (modelFilterPrefs == null || packageName == null) return false;
+        return modelFilterPrefs.getBoolean(packageName, false);
+    }
 
     public void showNotificationIsland(String packageName, String title, String content) {
         ensureWindowManager();
         
+        // 确保状态复位
+        isClosingIsland = false;
+
         if (floatingIslandView == null) {
             createFloatingIsland();
         }
@@ -334,6 +344,14 @@ public class FloatingWindowService extends Service {
             // 忽略标题为空的通知
             if (title == null || title.trim().isEmpty()) {
                 return;
+            }
+
+            // 模型过滤逻辑：如果启用了模型过滤，且预测分数低于阈值(4.0)，则不显示
+            if (isModelFilterEnabled(packageName)) {
+                float score = NotificationMLManager.getInstance(this).predict(content != null ? content : "");
+                if (score < 4.0f) {
+                    return;
+                }
             }
 
             boolean isIslandVisible = floatingIslandView != null && floatingIslandView.getParent() != null;
@@ -448,7 +466,22 @@ public class FloatingWindowService extends Service {
      * 隐藏通知悬浮窗
      */
     public void hideNotificationIsland() {
+        if (isClosingIsland) return;
+        
         if (windowManager != null && floatingIslandView != null && floatingIslandView.getParent() != null) {
+            isClosingIsland = true;
+            
+            // 禁用点击事件，防止重复触发
+            View islandRoot = floatingIslandView.findViewById(R.id.island_root);
+            if (islandRoot != null) {
+                islandRoot.setClickable(false);
+                islandRoot.setOnClickListener(null);
+            }
+
+            // 更新Flags，移除焦点和触摸事件，防止动画过程中点击造成卡顿
+            islandParams.flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE | WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS;
+            windowManager.updateViewLayout(floatingIslandView, islandParams);
+
             View islandContainer = floatingIslandView.findViewById(R.id.notification_recycler_view);
             if (islandContainer != null) {
                 // 执行退出动画
@@ -466,6 +499,7 @@ public class FloatingWindowService extends Service {
                                 floatingIslandView = null;
                                 notificationAdapter = null; // 清除引用
                             }
+                            isClosingIsland = false;
                         })
                         .start();
             } else {
@@ -473,6 +507,7 @@ public class FloatingWindowService extends Service {
                 windowManager.removeView(floatingIslandView);
                 floatingIslandView = null;
                 notificationAdapter = null; // 清除引用
+                isClosingIsland = false;
             }
         }
     }
@@ -661,6 +696,13 @@ public class FloatingWindowService extends Service {
                 int position = viewHolder.getAdapterPosition();
                 if (position != RecyclerView.NO_POSITION && position < notificationQueue.size()) {
                         NotificationInfo removedInfo = notificationQueue.remove(position);
+
+                        // 只使用内容进行训练
+                        String trainingText = (removedInfo.content != null ? removedInfo.content : "");
+                        if (preferences.getBoolean("pref_local_learning_enabled", false) && isModelFilterEnabled(removedInfo.packageName)) {
+                            NotificationMLManager.getInstance(FloatingWindowService.this).updateModel(trainingText, false);
+                        }
+
                         notificationAdapter.notifyItemRemoved(position);
                         // 通知后续数据位置发生变化，确保动画连贯
                         notificationAdapter.notifyItemRangeChanged(position, notificationQueue.size() - position);
@@ -831,6 +873,11 @@ public class FloatingWindowService extends Service {
             });
 
             holder.container.setOnClickListener(v -> {
+                // 只使用内容进行训练
+                String trainingText = (info.content != null ? info.content : "");
+                if (preferences.getBoolean("pref_local_learning_enabled", false) && isModelFilterEnabled(info.packageName)) {
+                    NotificationMLManager.getInstance(FloatingWindowService.this).updateModel(trainingText, true);
+                }
                 try {
                     // 优先尝试使用 PendingIntent (响应通知事件)
                     if (info.pendingIntent != null) {

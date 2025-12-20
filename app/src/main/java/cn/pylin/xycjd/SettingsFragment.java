@@ -48,6 +48,12 @@ public class SettingsFragment extends Fragment {
     private RadioButton radioBtnLight;
     private RadioButton radioBtnDark;
     private RadioButton radioBtnSystem;
+
+    // 通知模式相关控件
+    private RadioGroup radioGroupNotificationMode;
+    private RadioButton radioBtnSuperIslandOnly;
+    private RadioButton radioBtnNotificationBarOnly;
+    private RadioButton radioBtnModeBoth;
     
     // 悬浮窗相关控件
     private CardView cardFloatingWindow;
@@ -76,6 +82,15 @@ public class SettingsFragment extends Fragment {
     private CardView cardLocalLearning;
     private TextView tvLocalLearningStatus;
     private Button btnLocalLearningToggle;
+
+    // 学习配置相关控件
+    private CardView cardLearningConfig;
+    private TextView tvFilteringDegreeValue;
+    private SeekBar seekBarFilteringDegree;
+    private TextView tvLearningDegreeValue;
+    private SeekBar seekBarLearningDegree;
+    private Button btnResetLearningConfig;
+    private Button btnClearLearningModel;
     
     // 测试通知相关控件
     private CardView cardTestNotification;
@@ -84,6 +99,14 @@ public class SettingsFragment extends Fragment {
     private boolean isFloatingWindowEnabled = false;
     private static final int REQUEST_OVERLAY_PERMISSION = 1001;
     private static final String TEST_NOTIFICATION_CHANNEL_ID = "test_notification_channel";
+    private static final String PREF_LOCAL_LEARNING_ENABLED = "pref_local_learning_enabled";
+    private static final String PREF_FILTERING_DEGREE = "pref_filtering_degree";
+    private static final String PREF_LEARNING_DEGREE = "pref_learning_degree";
+    private static final String PREF_NOTIFICATION_MODE = "pref_notification_mode";
+    public static final String MODE_SUPER_ISLAND_ONLY = "mode_super_island_only";
+    public static final String MODE_NOTIFICATION_BAR_ONLY = "mode_notification_bar_only";
+    public static final String MODE_BOTH = "mode_both";
+    private static final String PREF_SETTINGS_SCROLL_Y = "pref_settings_scroll_y";
 
     @Nullable
     @Override
@@ -98,6 +121,9 @@ public class SettingsFragment extends Fragment {
         
         // 设置主题选择状态
         setThemeSelection();
+
+        // 设置通知模式选择状态
+        setupNotificationModeControls();
         
         // 设置点击事件
         setClickListeners();
@@ -113,6 +139,9 @@ public class SettingsFragment extends Fragment {
 
         // 设置本地学习相关
         setupLocalLearningControls();
+        
+        // 设置学习配置相关
+        setupLearningConfigControls();
         
         // 设置测试通知相关
         setupTestNotificationControls();
@@ -134,6 +163,12 @@ public class SettingsFragment extends Fragment {
         radioBtnLight = view.findViewById(R.id.radio_btn_light);
         radioBtnDark = view.findViewById(R.id.radio_btn_dark);
         radioBtnSystem = view.findViewById(R.id.radio_btn_system);
+
+        // 初始化通知模式控件
+        radioGroupNotificationMode = view.findViewById(R.id.radio_group_notification_mode);
+        radioBtnSuperIslandOnly = view.findViewById(R.id.radio_btn_super_island_only);
+        radioBtnNotificationBarOnly = view.findViewById(R.id.radio_btn_notification_bar_only);
+        radioBtnModeBoth = view.findViewById(R.id.radio_btn_mode_both);
         
         // 初始化悬浮窗相关控件
         cardFloatingWindow = view.findViewById(R.id.card_floating_window);
@@ -163,6 +198,14 @@ public class SettingsFragment extends Fragment {
         tvLocalLearningStatus = view.findViewById(R.id.tv_local_learning_status);
         btnLocalLearningToggle = view.findViewById(R.id.btn_local_learning_toggle);
         
+        // 初始化学习配置相关控件
+        cardLearningConfig = view.findViewById(R.id.card_learning_config);
+        tvFilteringDegreeValue = view.findViewById(R.id.tv_filtering_degree_value);
+        seekBarFilteringDegree = view.findViewById(R.id.seekbar_filtering_degree);
+        tvLearningDegreeValue = view.findViewById(R.id.tv_learning_degree_value);
+        seekBarLearningDegree = view.findViewById(R.id.seekbar_learning_degree);
+        btnResetLearningConfig = view.findViewById(R.id.btn_reset_learning_config);
+        btnClearLearningModel = view.findViewById(R.id.btn_clear_learning_model);
         // 初始化测试通知相关控件
         cardTestNotification = view.findViewById(R.id.card_test_notification);
         btnSendTestNotification = view.findViewById(R.id.btn_send_test_notification);
@@ -200,6 +243,37 @@ public class SettingsFragment extends Fragment {
         }
     }
 
+    private void setupNotificationModeControls() {
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(requireContext());
+        String mode = preferences.getString(PREF_NOTIFICATION_MODE, MODE_SUPER_ISLAND_ONLY);
+        
+        // 设置选中状态
+        switch (mode) {
+            case MODE_SUPER_ISLAND_ONLY:
+                radioBtnSuperIslandOnly.setChecked(true);
+                break;
+            case MODE_NOTIFICATION_BAR_ONLY:
+                radioBtnNotificationBarOnly.setChecked(true);
+                break;
+            case MODE_BOTH:
+                radioBtnModeBoth.setChecked(true);
+                break;
+        }
+
+        // 设置监听器
+        radioGroupNotificationMode.setOnCheckedChangeListener((group, checkedId) -> {
+            SharedPreferences.Editor editor = preferences.edit();
+            if (checkedId == R.id.radio_btn_super_island_only) {
+                editor.putString(PREF_NOTIFICATION_MODE, MODE_SUPER_ISLAND_ONLY);
+            } else if (checkedId == R.id.radio_btn_notification_bar_only) {
+                editor.putString(PREF_NOTIFICATION_MODE, MODE_NOTIFICATION_BAR_ONLY);
+            } else if (checkedId == R.id.radio_btn_mode_both) {
+                editor.putString(PREF_NOTIFICATION_MODE, MODE_BOTH);
+            }
+            editor.apply();
+        });
+    }
+
     private void setClickListeners() {
         // 语言选择变化监听
         radioGroupLanguage.setOnCheckedChangeListener((group, checkedId) -> {
@@ -228,6 +302,9 @@ public class SettingsFragment extends Fragment {
     }
 
     private void changeLanguage(String languageCode) {
+        // 保存当前滚动位置
+        saveScrollPosition();
+        
         // 保存语言设置到SharedPreferences
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(requireContext());
         SharedPreferences.Editor editor = preferences.edit();
@@ -239,6 +316,9 @@ public class SettingsFragment extends Fragment {
     }
     
     private void changeTheme(int themeMode) {
+        // 保存当前滚动位置
+        saveScrollPosition();
+        
         // 保存主题设置到SharedPreferences
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(requireContext());
         SharedPreferences.Editor editor = preferences.edit();
@@ -565,16 +645,127 @@ public class SettingsFragment extends Fragment {
     }
 
     private void setupLocalLearningControls() {
-        // 设置初始状态
-        // 默认为停止状态
-        tvLocalLearningStatus.setText(getString(R.string.local_learning_stopped));
-        tvLocalLearningStatus.setTextColor(getResources().getColor(R.color.colorError, null));
-        btnLocalLearningToggle.setText(getString(R.string.start_learning));
-        btnLocalLearningToggle.setBackgroundResource(R.drawable.btn_primary_background);
+        // 更新UI状态
+        updateLocalLearningUI();
 
-        // 设置点击事件（留空）
+        // 设置点击事件
         btnLocalLearningToggle.setOnClickListener(v -> {
-            // TODO: 实现本地学习开启/关闭逻辑
+            SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(requireContext());
+            boolean isEnabled = preferences.getBoolean(PREF_LOCAL_LEARNING_ENABLED, false);
+            
+            // 切换状态
+            SharedPreferences.Editor editor = preferences.edit();
+            editor.putBoolean(PREF_LOCAL_LEARNING_ENABLED, !isEnabled);
+            editor.apply();
+            
+            // 更新UI
+            updateLocalLearningUI();
+        });
+    }
+
+    private void updateLocalLearningUI() {
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(requireContext());
+        boolean isEnabled = preferences.getBoolean(PREF_LOCAL_LEARNING_ENABLED, false);
+        
+        if (isEnabled) {
+            // 获取已过滤数量
+            int filteredCount = FilteredNotificationManager.getInstance(requireContext()).getAllNotifications().size();
+            tvLocalLearningStatus.setText(getString(R.string.local_learning_running, filteredCount));
+            tvLocalLearningStatus.setTextColor(getResources().getColor(R.color.colorSuccess, null));
+            
+            btnLocalLearningToggle.setText(getString(R.string.stop_learning));
+            btnLocalLearningToggle.setBackgroundResource(R.drawable.btn_error_background);
+        } else {
+            tvLocalLearningStatus.setText(getString(R.string.local_learning_stopped));
+            tvLocalLearningStatus.setTextColor(getResources().getColor(R.color.colorError, null));
+            
+            btnLocalLearningToggle.setText(getString(R.string.start_learning));
+            btnLocalLearningToggle.setBackgroundResource(R.drawable.btn_primary_background);
+        }
+    }
+    
+    private void setupLearningConfigControls() {
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(requireContext());
+        
+        // 获取保存的值，如果不存在则使用默认值
+        float filteringDegree = preferences.getFloat(PREF_FILTERING_DEGREE, 5.0f);
+        float learningDegree = preferences.getFloat(PREF_LEARNING_DEGREE, 3.0f);
+        
+        // 设置初始值
+        // SeekBar范围是0-100，对应0.0-10.0
+        seekBarFilteringDegree.setProgress((int) (filteringDegree * 10));
+        tvFilteringDegreeValue.setText(String.format("%.1f", filteringDegree));
+        
+        seekBarLearningDegree.setProgress((int) (learningDegree * 10));
+        tvLearningDegreeValue.setText(String.format("%.1f", learningDegree));
+        
+        // 设置监听器
+        seekBarFilteringDegree.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                float value = progress / 10.0f;
+                tvFilteringDegreeValue.setText(String.format("%.1f", value));
+                
+                if (fromUser) {
+                    // 保存设置
+                    SharedPreferences.Editor editor = preferences.edit();
+                    editor.putFloat(PREF_FILTERING_DEGREE, value);
+                    editor.apply();
+                }
+            }
+            
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {}
+            
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {}
+        });
+        
+        seekBarLearningDegree.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                float value = progress / 10.0f;
+                tvLearningDegreeValue.setText(String.format("%.1f", value));
+                
+                if (fromUser) {
+                    // 保存设置
+                    SharedPreferences.Editor editor = preferences.edit();
+                    editor.putFloat(PREF_LEARNING_DEGREE, value);
+                    editor.apply();
+                }
+            }
+            
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {}
+            
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {}
+        });
+
+        // 重置按钮点击事件
+        btnResetLearningConfig.setOnClickListener(v -> {
+            // 恢复默认值
+            float defaultFilteringDegree = 5.0f;
+            float defaultLearningDegree = 3.0f;
+
+            // 更新 SharedPreferences
+            SharedPreferences.Editor editor = preferences.edit();
+            editor.putFloat(PREF_FILTERING_DEGREE, defaultFilteringDegree);
+            editor.putFloat(PREF_LEARNING_DEGREE, defaultLearningDegree);
+            editor.apply();
+
+            // 更新 UI
+            seekBarFilteringDegree.setProgress((int) (defaultFilteringDegree * 10));
+            tvFilteringDegreeValue.setText(String.format("%.1f", defaultFilteringDegree));
+
+            seekBarLearningDegree.setProgress((int) (defaultLearningDegree * 10));
+            tvLearningDegreeValue.setText(String.format("%.1f", defaultLearningDegree));
+        });
+
+        // 清空学习模型按钮点击事件
+        btnClearLearningModel.setOnClickListener(v -> {
+            NotificationMLManager.getInstance(requireContext()).clearModel();
+            Toast.makeText(requireContext(), getString(R.string.clear_learning_model_success), Toast.LENGTH_SHORT).show();
         });
     }
     
@@ -622,6 +813,8 @@ public class SettingsFragment extends Fragment {
         updatePermissionStatus();
         // 更新服务状态
         updateServiceStatus();
+        // 恢复滚动位置
+        restoreScrollPosition();
     }
     
     private void setupTestNotificationControls() {
@@ -680,5 +873,23 @@ public class SettingsFragment extends Fragment {
         notificationManager.notify(uniqueNotificationId, builder.build());
         
         Toast.makeText(requireContext(), getString(R.string.test_notification_sent), Toast.LENGTH_SHORT).show();
+    }
+
+    private void saveScrollPosition() {
+        if (scrollView != null) {
+            SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(requireContext());
+            preferences.edit().putInt(PREF_SETTINGS_SCROLL_Y, scrollView.getScrollY()).apply();
+        }
+    }
+
+    private void restoreScrollPosition() {
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(requireContext());
+        if (preferences.contains(PREF_SETTINGS_SCROLL_Y)) {
+            final int scrollY = preferences.getInt(PREF_SETTINGS_SCROLL_Y, 0);
+            if (scrollView != null) {
+                scrollView.post(() -> scrollView.scrollTo(0, scrollY));
+            }
+            preferences.edit().remove(PREF_SETTINGS_SCROLL_Y).apply();
+        }
     }
 }

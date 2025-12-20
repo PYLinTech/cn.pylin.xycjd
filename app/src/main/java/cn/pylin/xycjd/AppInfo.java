@@ -10,6 +10,7 @@ public class AppInfo {
     private int versionCode;
     private String versionName;
     private boolean isChecked;
+    private boolean isModelFilterChecked;
     private boolean isAutoExpandChecked;
 
     public AppInfo(String packageName, String appName, Drawable appIcon, boolean isSystemApp, int versionCode, String versionName) {
@@ -20,6 +21,7 @@ public class AppInfo {
         this.versionCode = versionCode;
         this.versionName = versionName;
         this.isChecked = false;
+        this.isModelFilterChecked = false;
         this.isAutoExpandChecked = false;
     }
 
@@ -77,6 +79,14 @@ public class AppInfo {
 
     public void setChecked(boolean checked) {
         isChecked = checked;
+    }
+
+    public boolean isModelFilterChecked() {
+        return isModelFilterChecked;
+    }
+
+    public void setModelFilterChecked(boolean modelFilterChecked) {
+        isModelFilterChecked = modelFilterChecked;
     }
 
     public boolean isAutoExpandChecked() {
