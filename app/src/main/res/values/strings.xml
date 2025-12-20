@@ -114,7 +114,7 @@
     <!-- 模型过滤相关字符串 -->
     <string name="model_filtering_title">模型过滤状态</string>
     <string name="model_filtering_desc">使用选定的模型对通知进行识别与过滤</string>
-    <string name="learning_config_title">学习配置</string>
+    <string name="learning_config_title">学习模型配置</string>
     <string name="learning_config_desc">模型将会对收到的通知内容进行打分\n小于过滤程度的通知将被过滤\n学习程度越高，模型对点击和移除事件的学习越快</string>
     <string name="filtering_degree">过滤程度</string>
     <string name="learning_degree">学习程度</string>
@@ -137,6 +137,13 @@
     <string name="clear_learning_model">清空本地学习模型</string>
     <string name="clear_learning_model_success">本地学习模型已清空</string>
     <string name="floating_window_placeholder_text">悬浮窗服务未启动\n请先启动服务后再进行设置</string>
+    
+    <!-- 动画速率设置 -->
+    <string name="animation_speed_setting">动画速率</string>
+    <string name="animation_speed_desc">用于调整超级岛的动画</string>
+    <string name="current_speed">当前速率</string>
+    <string name="reset_speed">还原默认速率</string>
+    <string name="value_speed">%.1fx</string>
     
     <!-- 测试通知相关字符串 -->
     <string name="test_notification">测试通知</string>
@@ -184,4 +191,13 @@
     <string name="hunyuan_warning_content">切换到在线模型会将通知标题及内容上传到云端模型。\n如果您点击确定并使用模型即代表您已经了解并接受潜在的隐私风险。</string>
     <string name="cancel">取消</string>
     <string name="confirm">确定</string>
+
+    <!-- 格式化字符串 -->
+    <string name="value_dp">%d dp</string>
+    <string name="default_size">100dp</string>
+    <string name="default_x">0dp</string>
+    <string name="default_y">-100dp</string>
+    <string name="default_filtering_degree">5.0</string>
+    <string name="default_learning_degree">3.0</string>
+    <string name="text_9_plus">9+</string>
 </resources>

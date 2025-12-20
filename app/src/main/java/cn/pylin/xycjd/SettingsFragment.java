@@ -107,6 +107,14 @@ public class SettingsFragment extends Fragment {
     private CardView cardTestNotification;
     private Button btnSendTestNotification;
     
+    // 动画速率相关控件
+    private CardView cardAnimationSpeed;
+    private TextView tvSpeedValue;
+    private SeekBar seekBarSpeed;
+    private ImageButton btnSpeedDecrease;
+    private ImageButton btnSpeedIncrease;
+    private Button btnResetSpeed;
+    
     private boolean isFloatingWindowEnabled = false;
     private static final int REQUEST_OVERLAY_PERMISSION = 1001;
     private static final String TEST_NOTIFICATION_CHANNEL_ID = "test_notification_channel";
@@ -124,6 +132,7 @@ public class SettingsFragment extends Fragment {
     public static final String MODEL_HUNYUAN = "model_hunyuan";
 
     private static final String PREF_SETTINGS_SCROLL_Y = "pref_settings_scroll_y";
+    private static final String PREF_ANIMATION_SPEED = "pref_animation_speed";
 
     @Nullable
     @Override
@@ -168,6 +177,9 @@ public class SettingsFragment extends Fragment {
         
         // 设置测试通知相关
         setupTestNotificationControls();
+        
+        // 设置动画速率相关
+        setupAnimationSpeedControls();
         
         return view;
     }
@@ -244,6 +256,14 @@ public class SettingsFragment extends Fragment {
         // 初始化测试通知相关控件
         cardTestNotification = view.findViewById(R.id.card_test_notification);
         btnSendTestNotification = view.findViewById(R.id.btn_send_test_notification);
+
+        // 初始化动画速率控件
+        cardAnimationSpeed = view.findViewById(R.id.card_animation_speed);
+        tvSpeedValue = view.findViewById(R.id.tv_speed_value);
+        seekBarSpeed = view.findViewById(R.id.seekbar_speed);
+        btnSpeedDecrease = view.findViewById(R.id.btn_speed_decrease);
+        btnSpeedIncrease = view.findViewById(R.id.btn_speed_increase);
+        btnResetSpeed = view.findViewById(R.id.btn_reset_speed);
     }
 
     private void setLanguageSelection() {
@@ -382,9 +402,9 @@ public class SettingsFragment extends Fragment {
         seekBarX.setProgress(x + 500); // 调整范围，使0在中间
         seekBarY.setProgress(y + 200); // 调整范围，使-200在0位置
         
-        tvSizeValue.setText(size + "dp");
-        tvXValue.setText(x + "dp");
-        tvYValue.setText(y + "dp");
+        tvSizeValue.setText(getString(R.string.value_dp, size));
+        tvXValue.setText(getString(R.string.value_dp, x));
+        tvYValue.setText(getString(R.string.value_dp, y));
         
         // 设置控件启用状态
         updateFloatingWindowControlsState(isFloatingWindowEnabled);
@@ -403,9 +423,9 @@ public class SettingsFragment extends Fragment {
             seekBarY.setProgress(100); // 默认垂直位置(-100)
             
             // 更新显示值
-            tvSizeValue.setText("100dp");
-            tvXValue.setText("0dp");
-            tvYValue.setText("-100dp");
+            tvSizeValue.setText(getString(R.string.default_size));
+            tvXValue.setText(getString(R.string.default_x));
+            tvYValue.setText(getString(R.string.default_y));
             
             // 如果悬浮窗已启用，立即更新
             if (isFloatingWindowEnabled) {
@@ -416,7 +436,7 @@ public class SettingsFragment extends Fragment {
         seekBarSize.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                tvSizeValue.setText(progress + "dp");
+                tvSizeValue.setText(getString(R.string.value_dp, progress));
                 if (fromUser && isFloatingWindowEnabled) {
                     updateFloatingWindow();
                 }
@@ -433,7 +453,7 @@ public class SettingsFragment extends Fragment {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 int xValue = progress - 500; // 调整范围，使0在中间
-                tvXValue.setText(xValue + "dp");
+                tvXValue.setText(getString(R.string.value_dp, xValue));
                 if (fromUser && isFloatingWindowEnabled) {
                     updateFloatingWindow();
                 }
@@ -450,7 +470,7 @@ public class SettingsFragment extends Fragment {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 int y = progress - 200; // 调整范围，使-200在0位置
-                tvYValue.setText(y + "dp");
+                tvYValue.setText(getString(R.string.value_dp, y));
                 if (fromUser && isFloatingWindowEnabled) {
                     updateFloatingWindow();
                 }
@@ -533,7 +553,7 @@ public class SettingsFragment extends Fragment {
             if (currentProgress > 0) { // 设置最小值为0
                 seekBarY.setProgress(currentProgress - 1);
                 int y = (currentProgress - 1) - 200; // 调整范围，使-200在0位置
-                tvYValue.setText(y + "dp");
+                tvYValue.setText(getString(R.string.value_dp, y));
                 if (isFloatingWindowEnabled) {
                     updateFloatingWindow();
                 }
@@ -545,7 +565,7 @@ public class SettingsFragment extends Fragment {
             if (currentProgress < seekBarY.getMax()) { // 确保不超过最大值
                 seekBarY.setProgress(currentProgress + 1);
                 int y = (currentProgress + 1) - 200; // 调整范围，使-200在0位置
-                tvYValue.setText(y + "dp");
+                tvYValue.setText(getString(R.string.value_dp, y));
                 if (isFloatingWindowEnabled) {
                     updateFloatingWindow();
                 }
@@ -1048,6 +1068,48 @@ public class SettingsFragment extends Fragment {
         notificationManager.notify(uniqueNotificationId, builder.build());
         
         Toast.makeText(requireContext(), getString(R.string.test_notification_sent), Toast.LENGTH_SHORT).show();
+    }
+
+    private void setupAnimationSpeedControls() {
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(requireContext());
+        
+        // 1. 初始化回显
+        float speed = preferences.getFloat(PREF_ANIMATION_SPEED, 1.0f);
+        int progress = Math.max(0, Math.min(29, (int) (speed * 10) - 1));
+        
+        seekBarSpeed.setProgress(progress);
+        tvSpeedValue.setText(getString(R.string.value_speed, (progress + 1) / 10.0f));
+        
+        // 2. 统一监听逻辑（拖动+按钮点击都会触发 onProgressChanged）
+        seekBarSpeed.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                float newSpeed = (progress + 1) / 10.0f;
+                tvSpeedValue.setText(getString(R.string.value_speed, newSpeed));
+                saveAnimationSpeed(newSpeed);
+            }
+            
+            @Override public void onStartTrackingTouch(SeekBar seekBar) {}
+            @Override public void onStopTrackingTouch(SeekBar seekBar) {}
+        });
+        
+        // 3. 按钮直接操作进度，复用监听器逻辑
+        btnSpeedDecrease.setOnClickListener(v -> seekBarSpeed.setProgress(seekBarSpeed.getProgress() - 1));
+        btnSpeedIncrease.setOnClickListener(v -> seekBarSpeed.setProgress(seekBarSpeed.getProgress() + 1));
+        btnResetSpeed.setOnClickListener(v -> seekBarSpeed.setProgress(9)); // 1.0x 对应 progress 9
+    }
+
+    private void saveAnimationSpeed(float speed) {
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(requireContext());
+        preferences.edit().putFloat(PREF_ANIMATION_SPEED, speed).apply();
+        
+        // Notify service to update animation config
+        if (FloatingWindowService.isServiceRunning(requireContext())) {
+            FloatingWindowService service = FloatingWindowService.getInstance();
+            if (service != null) {
+                service.updateAnimationConfiguration();
+            }
+        }
     }
 
     private void saveScrollPosition() {

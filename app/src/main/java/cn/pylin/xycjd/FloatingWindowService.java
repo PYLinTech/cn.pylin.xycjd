@@ -93,6 +93,7 @@ public class FloatingWindowService extends Service {
     private static final String PREF_FLOATING_SIZE = "floating_size";
     private static final String PREF_FLOATING_X = "floating_x";
     private static final String PREF_FLOATING_Y = "floating_y";
+    private static final String PREF_ANIMATION_SPEED = "pref_animation_speed";
     
     private static final int DEFAULT_SIZE = 100;
     private static final int DEFAULT_X = 0;
@@ -262,6 +263,18 @@ public class FloatingWindowService extends Service {
         }
     }
     
+    public void updateAnimationConfiguration() {
+        if (floatingIslandView != null) {
+            RecyclerView recyclerView = floatingIslandView.findViewById(R.id.notification_recycler_view);
+            if (recyclerView != null && recyclerView.getItemAnimator() instanceof androidx.recyclerview.widget.DefaultItemAnimator) {
+                androidx.recyclerview.widget.DefaultItemAnimator animator = (androidx.recyclerview.widget.DefaultItemAnimator) recyclerView.getItemAnimator();
+                animator.setRemoveDuration(getScaledDuration(200));
+                animator.setMoveDuration(getScaledDuration(300));
+                animator.setAddDuration(getScaledDuration(300));
+            }
+        }
+    }
+    
     public static int getSize(Context context) {
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
         return preferences.getInt(PREF_FLOATING_SIZE, DEFAULT_SIZE);
@@ -330,7 +343,7 @@ public class FloatingWindowService extends Service {
                 .scaleX(1f)
                 .scaleY(1f)
                 .translationY(0f)
-                .setDuration(500)
+                .setDuration(getScaledDuration(500))
                 .setInterpolator(new OvershootInterpolator(1.2f)) // 轻微弹跳
                 .start();
     }
@@ -344,21 +357,6 @@ public class FloatingWindowService extends Service {
             // 忽略标题为空的通知
             if (title == null || title.trim().isEmpty()) {
                 return;
-            }
-
-            // 模型过滤逻辑：如果启用了模型过滤，且预测分数低于阈值(4.0)，则不显示
-            if (isModelFilterEnabled(packageName)) {
-                // 检查当前选择的模型类型
-                String modelType = preferences.getString("pref_filter_model", SettingsFragment.MODEL_LOCAL);
-                
-                // 仅当选择本地模型时，才进行本地预检查
-                // 如果是混元模型，由 AppNotificationListenerService 负责异步检查和移除，这里不做拦截，确保乐观展示
-                if (SettingsFragment.MODEL_LOCAL.equals(modelType)) {
-                    float score = NotificationMLManager.getInstance(this).predict(title, content != null ? content : "");
-                    if (score < 4.0f) {
-                        return;
-                    }
-                }
             }
 
             boolean isIslandVisible = floatingIslandView != null && floatingIslandView.getParent() != null;
@@ -497,7 +495,7 @@ public class FloatingWindowService extends Service {
                         .scaleX(0.8f)
                         .scaleY(0.8f)
                         .translationY(-dpToPx(50))
-                        .setDuration(330)
+                        .setDuration(getScaledDuration(330))
                         .setInterpolator(new AnticipateInterpolator(1f))
                         .withEndAction(() -> {
                             // 动画结束后移除视图
@@ -640,9 +638,9 @@ public class FloatingWindowService extends Service {
         androidx.recyclerview.widget.DefaultItemAnimator animator = new androidx.recyclerview.widget.DefaultItemAnimator();
         animator.setSupportsChangeAnimations(false);
         // 优化动画时长：移除要快，补位移动要慢且清晰
-        animator.setRemoveDuration(200);
-        animator.setMoveDuration(300);
-        animator.setAddDuration(300);
+        animator.setRemoveDuration(getScaledDuration(200));
+        animator.setMoveDuration(getScaledDuration(300));
+        animator.setAddDuration(getScaledDuration(300));
         recyclerView.setItemAnimator(animator);
         
         // 添加间距装饰器
@@ -653,19 +651,13 @@ public class FloatingWindowService extends Service {
                 outRect.bottom = itemSpacing; // 卡片之间的间距
             }
         });
-        
-        // 添加自定义模糊边界装饰器 (在代码中实现，不使用XML)
-        // 估算高度：Card(height) + Spacing(16dp)
+
         int cardHeight = getResources().getDimensionPixelSize(R.dimen.notification_card_height);
         int estimatedCardHeight = cardHeight + dpToPx(16); 
         recyclerView.addItemDecoration(new FadingEdgeDecoration(dpToPx(50), estimatedCardHeight)); // 50dp fade length
 
-        // 1. 略微增加可见高度为1张卡片高度的1.6倍
         int visibleHeight = (int) (estimatedCardHeight * 1.8f);
 
-        // 设置 RecyclerView 的 padding，使得第一个 item 能居中（配合 LinearSnapHelper）
-        // 计算方式：(ViewHeight - ItemHeight) / 2
-        // ItemHeight 约为 estimatedCardHeight (实际可能会有细微差别，这里取估算值)
         int paddingVertical = (visibleHeight - estimatedCardHeight) / 2;
         recyclerView.setPadding(0, paddingVertical, 0, paddingVertical);
         recyclerView.setClipToPadding(false);
@@ -690,7 +682,8 @@ public class FloatingWindowService extends Service {
             @Override
             public long getAnimationDuration(@NonNull RecyclerView recyclerView, int animationType, float animateDx, float animateDy) {
                 // 缩短动画时间，提升响应速度
-                return (long) (super.getAnimationDuration(recyclerView, animationType, animateDx, animateDy) * 0.6f);
+                long baseDuration = (long) (super.getAnimationDuration(recyclerView, animationType, animateDx, animateDy) * 0.6f);
+                return getScaledDuration(baseDuration);
             }
 
             @Override
@@ -866,11 +859,11 @@ public class FloatingWindowService extends Service {
             holder.container.setOnTouchListener((v, event) -> {
                 switch (event.getAction()) {
                     case MotionEvent.ACTION_DOWN:
-                        v.animate().scaleX(0.95f).scaleY(0.95f).setDuration(100).start();
+                        v.animate().scaleX(0.95f).scaleY(0.95f).setDuration(getScaledDuration(100)).start();
                         break;
                     case MotionEvent.ACTION_UP:
                     case MotionEvent.ACTION_CANCEL:
-                        v.animate().scaleX(1f).scaleY(1f).setDuration(100).start();
+                        v.animate().scaleX(1f).scaleY(1f).setDuration(getScaledDuration(100)).start();
                         if (event.getAction() == MotionEvent.ACTION_UP) {
                             v.performClick();
                         }
@@ -1039,6 +1032,12 @@ public class FloatingWindowService extends Service {
     private int dpToPx(int dp) {
         return (int) (dp * getResources().getDisplayMetrics().density);
     }
+
+    private long getScaledDuration(long baseDuration) {
+        float speed = preferences.getFloat(PREF_ANIMATION_SPEED, 1.0f);
+        if (speed <= 0) speed = 0.1f;
+        return (long) (baseDuration / speed);
+    }
     
     /**
      * 显示三圆灵动岛悬浮窗
@@ -1055,6 +1054,7 @@ public class FloatingWindowService extends Service {
         updateThreeCircleContent();
         
         if (floatingThreeCircleView.getParent() == null) {
+            prepareThreeCircleAnimation();
             windowManager.addView(floatingThreeCircleView, threeCircleParams);
             floatingThreeCircleView.post(this::startThreeCircleAnimation);
         }
@@ -1135,7 +1135,7 @@ public class FloatingWindowService extends Service {
         TextView countText = floatingThreeCircleView.findViewById(R.id.circle_black2);
         if (countText != null) {
             int count = notificationQueue.size();
-            countText.setText(count > 9 ? "9+" : String.valueOf(count));
+            countText.setText(count > 9 ? getString(R.string.text_9_plus) : String.valueOf(count));
         }
     }
 
@@ -1179,7 +1179,7 @@ public class FloatingWindowService extends Service {
 
         // 倒放：从1f到0f
         ValueAnimator animator = ValueAnimator.ofFloat(1f, 0f);
-        animator.setDuration(400); // 退出动画稍微快一点
+        animator.setDuration(getScaledDuration(400)); // 退出动画稍微快一点
         animator.setInterpolator(new AnticipateInterpolator(1.2f)); // 使用Anticipate实现倒放的"回弹"效果
         animator.addUpdateListener(animation -> {
             float fraction = (float) animation.getAnimatedValue();
@@ -1198,6 +1198,10 @@ public class FloatingWindowService extends Service {
             
             // Circle 3 (Right) moves back to center
             circle3.setTranslationX(currentOffset);
+            
+            // 3. 非线性渐隐
+            circle1.setAlpha(fraction);
+            circle3.setAlpha(fraction);
         });
         
         animator.addListener(new android.animation.AnimatorListenerAdapter() {
@@ -1286,6 +1290,33 @@ public class FloatingWindowService extends Service {
     }
 
     /**
+     * 准备三圆灵动岛动画初始状态
+     * 防止addView后闪烁
+     */
+    private void prepareThreeCircleAnimation() {
+        if (floatingThreeCircleView == null) return;
+
+        int size = preferences.getInt(PREF_FLOATING_SIZE, DEFAULT_SIZE);
+        int circleSize = size - dpToPx(4);
+
+        final View background = floatingThreeCircleView.findViewById(R.id.island_background);
+        final View circle1 = floatingThreeCircleView.findViewById(R.id.circle_app_icon);
+        final View circle3 = floatingThreeCircleView.findViewById(R.id.circle_black2);
+
+        // 1. 设置背景初始宽度
+        ViewGroup.LayoutParams bgParams = background.getLayoutParams();
+        bgParams.width = circleSize;
+        background.setLayoutParams(bgParams);
+
+        // 2. 设置圆形初始位置和透明度
+        circle1.setTranslationX(0);
+        circle1.setAlpha(0f);
+        
+        circle3.setTranslationX(0);
+        circle3.setAlpha(0f);
+    }
+
+    /**
      * 执行三圆灵动岛的入场动画
      */
     private void startThreeCircleAnimation() {
@@ -1306,7 +1337,7 @@ public class FloatingWindowService extends Service {
         final View circle3 = floatingThreeCircleView.findViewById(R.id.circle_black2);
 
         ValueAnimator animator = ValueAnimator.ofFloat(0f, 1f);
-        animator.setDuration(600);
+        animator.setDuration(getScaledDuration(600));
         animator.setInterpolator(new DecelerateInterpolator(2f));
         animator.addUpdateListener(animation -> {
             float fraction = (float) animation.getAnimatedValue();
@@ -1325,6 +1356,10 @@ public class FloatingWindowService extends Service {
             
             // Circle 3 (Right) moves right (positive X)
             circle3.setTranslationX(currentOffset);
+            
+            // 3. 非线性渐显 (使用 DecelerateInterpolator 自身的曲线)
+            circle1.setAlpha(fraction);
+            circle3.setAlpha(fraction);
         });
         animator.start();
     }

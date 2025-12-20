@@ -361,7 +361,7 @@
                             android:id="@+id/tv_online_filtering_degree_value"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="5.0"
+                            android:text="@string/default_filtering_degree"
                             android:textSize="14sp"
                             android:textColor="?android:attr/textColorPrimary" />
                     </LinearLayout>
@@ -459,7 +459,7 @@
                             android:id="@+id/tv_filtering_degree_value"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="5.0"
+                            android:text="@string/default_filtering_degree"
                             android:textSize="14sp"
                             android:textColor="?android:attr/textColorPrimary" />
                     </LinearLayout>
@@ -500,7 +500,7 @@
                             android:id="@+id/tv_learning_degree_value"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="3.0"
+                            android:text="@string/default_learning_degree"
                             android:textSize="14sp"
                             android:textColor="?android:attr/textColorPrimary" />
                     </LinearLayout>
@@ -855,7 +855,7 @@
                                 android:id="@+id/tv_y_value"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="-100dp"
+                                android:text="@string/default_y"
                                 android:textSize="14sp"
                                 android:textColor="?android:attr/textColorPrimary" />
                         </LinearLayout>
@@ -915,6 +915,130 @@
                     android:paddingTop="8dp"
                     android:paddingBottom="8dp" />
                 </LinearLayout>
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- 动画速率设置 -->
+        <androidx.cardview.widget.CardView
+            android:id="@+id/card_animation_speed"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            app:cardBackgroundColor="@color/colorSurface"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="2dp"
+            app:cardUseCompatPadding="true"
+            android:clickable="true"
+            android:focusable="true"
+            android:foreground="?attr/selectableItemBackground">
+            
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+                
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/animation_speed_setting"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:textColor="?android:attr/textColorPrimary"
+                    android:layout_marginBottom="8dp" />
+                
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/animation_speed_desc"
+                    android:textSize="14sp"
+                    android:textColor="?android:attr/textColorSecondary"
+                    android:layout_marginBottom="16dp" />
+
+                <!-- 速率调整 -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginBottom="12dp">
+                    
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginBottom="8dp">
+                        
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/current_speed"
+                            android:textSize="14sp"
+                            android:textColor="?android:attr/textColorSecondary" />
+                        
+                        <TextView
+                            android:id="@+id/tv_speed_value"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="1.0x"
+                            android:textSize="14sp"
+                            android:textColor="?android:attr/textColorPrimary" />
+                    </LinearLayout>
+                    
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical">
+                        
+                        <ImageButton
+                            android:id="@+id/btn_speed_decrease"
+                            android:layout_width="36dp"
+                            android:layout_height="36dp"
+                            android:src="@drawable/ic_remove"
+                            android:background="?attr/selectableItemBackgroundBorderless"
+                            android:contentDescription="@string/decrease"
+                            app:tint="?android:attr/textColorSecondary" />
+                        
+                        <SeekBar
+                            android:id="@+id/seekbar_speed"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:layout_marginStart="8dp"
+                            android:layout_marginEnd="8dp"
+                            android:max="29"
+                            android:progress="9"
+                            android:progressTint="@color/colorPrimary"
+                            android:thumbTint="@color/colorPrimary"
+                            android:progressBackgroundTint="?android:attr/textColorSecondary" />
+                        
+                        <ImageButton
+                            android:id="@+id/btn_speed_increase"
+                            android:layout_width="36dp"
+                            android:layout_height="36dp"
+                            android:src="@drawable/ic_add"
+                            android:background="?attr/selectableItemBackgroundBorderless"
+                            android:contentDescription="@string/increase"
+                            app:tint="?android:attr/textColorSecondary" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <!-- 还原默认按钮 -->
+                <Button
+                    android:id="@+id/btn_reset_speed"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="@string/reset_speed"
+                    android:textSize="14sp"
+                    android:textColor="@color/colorPrimary"
+                    android:background="?attr/selectableItemBackground"
+                    android:paddingStart="16dp"
+                    android:paddingEnd="16dp"
+                    android:paddingTop="8dp"
+                    android:paddingBottom="8dp" />
             </LinearLayout>
         </androidx.cardview.widget.CardView>
 

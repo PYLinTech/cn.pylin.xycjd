@@ -114,7 +114,7 @@
     <!-- Filter model setting strings -->
     <string name="model_filtering_title">Model Filtering Status</string>
     <string name="model_filtering_desc">Use the selected model to identify and filter notifications</string>
-    <string name="learning_config_title">Learning Configuration</string>
+    <string name="learning_config_title">Learning Model Configuration</string>
     <string name="learning_config_desc">The selected AI model will score the content of received notifications\nNotifications with a score lower than the filtering degree will be filtered\nHigher learning degree means faster learning of click and remove events</string>
     <string name="filtering_degree">Filtering Degree</string>
     <string name="learning_degree">Learning Degree</string>
@@ -137,7 +137,14 @@
     <string name="clear_learning_model">Clear Local Learning Model</string>
     <string name="clear_learning_model_success">Local learning model cleared</string>
     <string name="floating_window_placeholder_text">Floating window service not started\nPlease start the service before configuring settings</string>
-    
+            
+    <!-- Animation speed setting -->
+    <string name="animation_speed_setting">Animation Speed</string>
+    <string name="animation_speed_desc">Used to adjust the animation speed of the super island</string>
+    <string name="current_speed">Current Speed</string>
+    <string name="reset_speed">Reset to Default Speed</string>
+    <string name="value_speed">%.1fx</string>
+
     <!-- Test notification related strings -->
     <string name="test_notification">Test Notification</string>
     <string name="test_notification_desc">Send a test notification to verify if the notification feature works properly</string>
@@ -184,4 +191,13 @@
     <string name="hunyuan_warning_content">Switching to the online model will upload the notification title and content to the cloud model.\nIf you click confirm and use the model, you confirm that you have read and accepted the potential privacy risks.</string>
     <string name="cancel">Cancel</string>
     <string name="confirm">Confirm</string>
+    
+    <!-- Default values for floating window -->
+    <string name="value_dp">%d dp</string>
+    <string name="default_size">100dp</string>
+    <string name="default_x">0dp</string>
+    <string name="default_y">-100dp</string>
+    <string name="default_filtering_degree">5.0</string>
+    <string name="default_learning_degree">3.0</string>
+    <string name="text_9_plus">9+</string>
 </resources>
