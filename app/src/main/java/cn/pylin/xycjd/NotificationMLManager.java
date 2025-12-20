@@ -48,29 +48,32 @@ public class NotificationMLManager {
 
     /**
      * 核心处理方法：模型输入文本和反馈类型；自动读取配置的学习率。
+     * @param title 输入标题
      * @param text 输入文本
      * @param isPositive 反馈类型 (true: 正向/保留, false: 负向/删除)
      * @return 新的分数
      */
-    public float process(String text, boolean isPositive) {
+    public float process(String title, String text, boolean isPositive) {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
         float learningDegree = prefs.getFloat("pref_learning_degree", 3.0f);
-        return process(text, isPositive, learningDegree);
+        return process(title, text, isPositive, learningDegree);
     }
 
     /**
      * 核心处理方法：模型输入文本、反馈类型和学习率；模型输出新的分数。
+     * @param title 输入标题
      * @param text 输入文本
      * @param isPositive 反馈类型 (true: 正向/保留, false: 负向/删除)
      * @param learningRate 学习率 (0.0 - 10.0)
      * @return 新的分数
      */
-    public float process(String text, boolean isPositive, float learningRate) {
-        if (text == null || text.trim().isEmpty()) {
+    public float process(String title, String text, boolean isPositive, float learningRate) {
+        String combinedText = (title == null ? "" : title) + " " + (text == null ? "" : text);
+        if (combinedText.trim().isEmpty()) {
             return DEFAULT_WEIGHT;
         }
 
-        String[] tokens = tokenize(text);
+        String[] tokens = tokenize(combinedText);
         if (tokens.length == 0) {
             return DEFAULT_WEIGHT;
         }
@@ -114,14 +117,16 @@ public class NotificationMLManager {
 
     /**
      * 预测文本分数 (0-10)
+     * @param title 输入标题
      * @param text 输入文本
      * @return 分数
      */
-    public float predict(String text) {
-        if (text == null || text.trim().isEmpty()) {
+    public float predict(String title, String text) {
+        String combinedText = (title == null ? "" : title) + " " + (text == null ? "" : text);
+        if (combinedText.trim().isEmpty()) {
             return DEFAULT_WEIGHT;
         }
-        String[] tokens = tokenize(text);
+        String[] tokens = tokenize(combinedText);
         if (tokens.length == 0) {
             return DEFAULT_WEIGHT;
         }

@@ -132,7 +132,7 @@ public class AppNotificationListenerService extends NotificationListenerService 
 
         if (isLocalLearningEnabled && isAppModelFilterSelected(packageName)) {
             String predictionText = (text != null ? text : "");
-            float score = NotificationMLManager.getInstance(this).predict(predictionText);
+            float score = NotificationMLManager.getInstance(this).predict(title, predictionText);
             
             // 获取过滤程度设置
             float filteringDegree = prefs.getFloat("pref_filtering_degree", 5.0f);
