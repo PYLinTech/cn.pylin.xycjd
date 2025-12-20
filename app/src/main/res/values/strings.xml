@@ -77,6 +77,11 @@
     <string name="select_all">全选</string>
     <string name="deselect_all">全不选</string>
     <string name="menu">菜单</string>
+
+    <!-- 通知相关字符串 -->
+    <string name="notice_need">需要</string>
+    <string name="notice_delete">删除</string>
+    <string name="notice_clear_all">清空</string>
     
     <!-- 通知监听器相关字符串 -->
     <string name="notification_listener_service_label">小雨超级岛通知监听器</string>
@@ -97,6 +102,15 @@
     <string name="service_stopped">服务已停止</string>
     <string name="start_service">启动服务</string>
     <string name="stop_service">停止服务</string>
+
+    <!-- 本地学习相关字符串 -->
+    <string name="local_learning_title">本地学习</string>
+    <string name="local_learning_desc">管理本地学习服务状态</string>
+    <string name="local_learning_stopped">已完全停止</string>
+    <string name="local_learning_running">正在学习，已过滤%d条</string>
+    <string name="start_learning">开始</string>
+    <string name="stop_learning">停止</string>
+
     <string name="permission_all_granted">全部权限已开启</string>
     <string name="permission_some_denied">%d项权限未开启</string>
     <string name="go_to_permission">前往开启</string>

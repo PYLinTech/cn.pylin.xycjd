@@ -40,7 +40,6 @@ public class AppNotificationListenerService extends NotificationListenerService 
         
         if (isSelected) {
             handleNotification(sbn);
-            cancelNotification(sbn.getKey());
 
             if (isAppAutoExpandSelected(packageName)) {
                 new Handler(Looper.getMainLooper()).postDelayed(() -> {
@@ -56,7 +55,7 @@ public class AppNotificationListenerService extends NotificationListenerService 
     @Override
     public void onNotificationRemoved(StatusBarNotification sbn) {
         super.onNotificationRemoved(sbn);
-        
+        handleNotificationRemoved(sbn);
     }
     
     /**

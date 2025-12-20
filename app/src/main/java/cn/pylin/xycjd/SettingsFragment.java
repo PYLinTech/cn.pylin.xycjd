@@ -71,6 +71,11 @@ public class SettingsFragment extends Fragment {
     private CardView cardServiceStatus;
     private TextView tvServiceStatus;
     private Button btnServiceToggle;
+
+    // 本地学习相关控件
+    private CardView cardLocalLearning;
+    private TextView tvLocalLearningStatus;
+    private Button btnLocalLearningToggle;
     
     // 测试通知相关控件
     private CardView cardTestNotification;
@@ -105,6 +110,9 @@ public class SettingsFragment extends Fragment {
         
         // 设置服务状态相关
         setupServiceStatusControls();
+
+        // 设置本地学习相关
+        setupLocalLearningControls();
         
         // 设置测试通知相关
         setupTestNotificationControls();
@@ -149,6 +157,11 @@ public class SettingsFragment extends Fragment {
         cardServiceStatus = view.findViewById(R.id.card_service_status);
         tvServiceStatus = view.findViewById(R.id.tv_service_status);
         btnServiceToggle = view.findViewById(R.id.btn_service_toggle);
+
+        // 初始化本地学习相关控件
+        cardLocalLearning = view.findViewById(R.id.card_local_learning);
+        tvLocalLearningStatus = view.findViewById(R.id.tv_local_learning_status);
+        btnLocalLearningToggle = view.findViewById(R.id.btn_local_learning_toggle);
         
         // 初始化测试通知相关控件
         cardTestNotification = view.findViewById(R.id.card_test_notification);
@@ -549,6 +562,20 @@ public class SettingsFragment extends Fragment {
             layoutPlaceholder.setVisibility(View.VISIBLE);
             layoutFloatingContent.setVisibility(View.GONE);
         }
+    }
+
+    private void setupLocalLearningControls() {
+        // 设置初始状态
+        // 默认为停止状态
+        tvLocalLearningStatus.setText(getString(R.string.local_learning_stopped));
+        tvLocalLearningStatus.setTextColor(getResources().getColor(R.color.colorError, null));
+        btnLocalLearningToggle.setText(getString(R.string.start_learning));
+        btnLocalLearningToggle.setBackgroundResource(R.drawable.btn_primary_background);
+
+        // 设置点击事件（留空）
+        btnLocalLearningToggle.setOnClickListener(v -> {
+            // TODO: 实现本地学习开启/关闭逻辑
+        });
     }
     
     private void setupPermissionControls() {
