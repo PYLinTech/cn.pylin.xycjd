@@ -4,13 +4,21 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Handler;
 import android.os.Looper;
+import android.preference.PreferenceManager;
 import android.service.notification.NotificationListenerService;
 import android.service.notification.StatusBarNotification;
 
 public class AppNotificationListenerService extends NotificationListenerService {
     
     private static final String PREFS_NAME = "app_checkboxes";
+    private static final String PREFS_MODEL_FILTER_NAME = "app_model_filter";
     private static final String PREFS_AUTO_EXPAND_NAME = "app_auto_expand";
+    
+    private static final String PREF_NOTIFICATION_MODE = "pref_notification_mode";
+    private static final String MODE_SUPER_ISLAND_ONLY = "mode_super_island_only";
+    private static final String MODE_NOTIFICATION_BAR_ONLY = "mode_notification_bar_only";
+    private static final String MODE_BOTH = "mode_both";
+
     private static AppNotificationListenerService instance;
 
     public static AppNotificationListenerService getInstance() {
@@ -39,6 +47,17 @@ public class AppNotificationListenerService extends NotificationListenerService 
         logNotification(sbn, isSelected);
         
         if (isSelected) {
+            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+            String mode = prefs.getString(PREF_NOTIFICATION_MODE, MODE_SUPER_ISLAND_ONLY);
+
+            if (MODE_NOTIFICATION_BAR_ONLY.equals(mode)) {
+                return;
+            }
+
+            if (MODE_SUPER_ISLAND_ONLY.equals(mode)) {
+                cancelNotification(sbn.getKey());
+            }
+
             handleNotification(sbn);
 
             if (isAppAutoExpandSelected(packageName)) {
@@ -58,6 +77,23 @@ public class AppNotificationListenerService extends NotificationListenerService 
         handleNotificationRemoved(sbn);
     }
     
+    @Override
+    public void onNotificationRemoved(StatusBarNotification sbn, NotificationListenerService.RankingMap rankingMap, int reason) {
+        String packageName = sbn.getPackageName();
+        if (isAppSelected(packageName)) {
+             SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+             String mode = prefs.getString(PREF_NOTIFICATION_MODE, MODE_SUPER_ISLAND_ONLY);
+             
+             if (MODE_SUPER_ISLAND_ONLY.equals(mode)) {
+                 // REASON_LISTENER_CANCEL = 10 (Listener cancelled it)
+                 if (reason == 10) {
+                     return;
+                 }
+             }
+        }
+        super.onNotificationRemoved(sbn, rankingMap, reason);
+    }
+    
     /**
      * 检查应用是否被选中监听
      * @param packageName 应用包名
@@ -65,6 +101,11 @@ public class AppNotificationListenerService extends NotificationListenerService 
      */
     private boolean isAppSelected(String packageName) {
         SharedPreferences prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        return prefs.getBoolean(packageName, false);
+    }
+
+    private boolean isAppModelFilterSelected(String packageName) {
+        SharedPreferences prefs = getSharedPreferences(PREFS_MODEL_FILTER_NAME, Context.MODE_PRIVATE);
         return prefs.getBoolean(packageName, false);
     }
 
@@ -84,6 +125,29 @@ public class AppNotificationListenerService extends NotificationListenerService 
 
         String title = extras.getString("android.title");
         String text = extras.getString("android.text");
+
+        // 智能过滤：使用本地机器学习模型评分
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        boolean isLocalLearningEnabled = prefs.getBoolean("pref_local_learning_enabled", false);
+
+        if (isLocalLearningEnabled && isAppModelFilterSelected(packageName)) {
+            String predictionText = (text != null ? text : "");
+            float score = NotificationMLManager.getInstance(this).predict(predictionText);
+            
+            // 获取过滤程度设置
+            float filteringDegree = prefs.getFloat("pref_filtering_degree", 5.0f);
+            
+            if (score < filteringDegree) {
+                // 将过滤的通知存入列表
+                FilteredNotificationManager.getInstance(this).addNotification(
+                    sbn.getKey(), 
+                    packageName, 
+                    title, 
+                    text
+                );
+                return;
+            }
+        }
 
         // 检查是否为媒体通知
         String template = extras.getString(android.app.Notification.EXTRA_TEMPLATE);

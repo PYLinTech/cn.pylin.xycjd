@@ -63,26 +63,35 @@
 
         <CheckBox
             android:id="@+id/app_checkbox"
-            android:layout_width="64dp"
+            android:layout_width="42dp"
             android:layout_height="48dp"
             android:layout_gravity="center_vertical"
             android:clickable="true"
             android:focusable="true"
             android:padding="0dp"
             android:gravity="center"
-            android:minWidth="48dp"
+            android:minHeight="48dp" />
+
+        <CheckBox
+            android:id="@+id/app_model_filter_checkbox"
+            android:layout_width="42dp"
+            android:layout_height="48dp"
+            android:layout_gravity="center_vertical"
+            android:clickable="true"
+            android:focusable="true"
+            android:padding="0dp"
+            android:gravity="center"
             android:minHeight="48dp" />
 
         <CheckBox
             android:id="@+id/app_auto_expand_checkbox"
-            android:layout_width="64dp"
+            android:layout_width="42dp"
             android:layout_height="48dp"
             android:layout_gravity="center_vertical"
             android:clickable="true"
             android:focusable="true"
             android:padding="0dp"
             android:gravity="center"
-            android:minWidth="48dp"
             android:minHeight="48dp" />
 
     </LinearLayout>

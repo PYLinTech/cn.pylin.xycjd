@@ -6,6 +6,7 @@
     <string name="section_notice">Notice Filter</string>
     <string name="app_name_header">App Name</string>
     <string name="enable_header">Enable</string>
+    <string name="model_filter_header">Model Filter</string>
     <string name="auto_expand_header">Auto Expand</string>
     <string name="nav_about">About</string>
 
@@ -13,6 +14,12 @@
     <string name="language_setting">Language</string>
     <string name="chinese">中文</string>
     <string name="english">English</string>
+    
+    <!-- Notification mode settings -->
+    <string name="notification_mode_setting">Notification Mode</string>
+    <string name="notification_mode_super_island_only">Super Island Only</string>
+    <string name="notification_mode_notification_bar_only">Notification Bar Only</string>
+    <string name="notification_mode_both">Both</string>
     
     <!-- Theme settings -->
     <string name="theme_setting">Theme</string>
@@ -82,6 +89,7 @@
     <string name="notice_need">Need</string>
     <string name="notice_delete">Delete</string>
     <string name="notice_clear_all">Clear All</string>
+    <string name="notice_need_feedback">Already marked as need and feedback to model</string>
 
     <!-- Notification listener related strings -->
     <string name="notification_listener_service_label">Xiaoyu Super Island Notification Listener</string>
@@ -106,7 +114,11 @@
     <!-- Local learning related strings -->
     <string name="local_learning_title">Local Learning</string>
     <string name="local_learning_desc">Manage local learning service status</string>
-    <string name="local_learning_stopped">Stopped</string>
+    <string name="learning_config_title">Learning Config</string>
+    <string name="learning_config_desc">Model will score notifications, notifications with score lower than filtering degree will be filtered\nHigher learning degree means faster learning of click and remove events</string>
+    <string name="filtering_degree">Filtering Degree</string>
+    <string name="learning_degree">Learning Degree</string>
+    <string name="local_learning_stopped">Stopped, will not read any notifications</string>
     <string name="local_learning_running">Running, filtered %d notifications</string>
     <string name="start_learning">Start</string>
     <string name="stop_learning">Stop</string>
@@ -121,6 +133,9 @@
     <string name="decrease">Decrease</string>
     <string name="permission_tag_critical">Critical</string>
     <string name="reset_to_default_position">Reset to Default Position</string>
+    <string name="reset_to_default_config">Reset to Default Config</string>
+    <string name="clear_learning_model">Clear Learning Model</string>
+    <string name="clear_learning_model_success">Learning model cleared</string>
     <string name="floating_window_placeholder_text">Floating window service not started\nPlease start the service before configuring settings</string>
     
     <!-- Test notification related strings -->

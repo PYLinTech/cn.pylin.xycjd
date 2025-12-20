@@ -6,8 +6,15 @@
     <string name="section_notice">通知过滤</string>
     <string name="app_name_header">应用名称</string>
     <string name="enable_header">启用</string>
+    <string name="model_filter_header">模型过滤</string>
     <string name="auto_expand_header">自动展开</string>
     <string name="nav_about">关于</string>
+
+    <!-- 通知模式设置 -->
+    <string name="notification_mode_setting">通知处理模式</string>
+    <string name="notification_mode_super_island_only">仅超级岛显示</string>
+    <string name="notification_mode_notification_bar_only">仅通知栏显示</string>
+    <string name="notification_mode_both">双显模式</string>
 
     <!-- 语言设置相关字符串 -->
     <string name="language_setting">语言设置</string>
@@ -82,6 +89,7 @@
     <string name="notice_need">需要</string>
     <string name="notice_delete">删除</string>
     <string name="notice_clear_all">清空</string>
+    <string name="notice_need_feedback">已经标记为需要并反馈给模型</string>
     
     <!-- 通知监听器相关字符串 -->
     <string name="notification_listener_service_label">小雨超级岛通知监听器</string>
@@ -106,8 +114,12 @@
     <!-- 本地学习相关字符串 -->
     <string name="local_learning_title">本地学习</string>
     <string name="local_learning_desc">管理本地学习服务状态</string>
-    <string name="local_learning_stopped">已完全停止</string>
-    <string name="local_learning_running">正在学习，已过滤%d条</string>
+    <string name="learning_config_title">学习配置</string>
+    <string name="learning_config_desc">模型将会对收到的通知内容进行打分\n小于过滤程度的通知将被过滤\n学习程度越高，模型对点击和移除事件的学习越快</string>
+    <string name="filtering_degree">过滤程度</string>
+    <string name="learning_degree">学习程度</string>
+    <string name="local_learning_stopped">已完全停止，将不读取任何通知</string>
+    <string name="local_learning_running">正在学习，已过滤%d条通知</string>
     <string name="start_learning">开始</string>
     <string name="stop_learning">停止</string>
 
@@ -121,6 +133,9 @@
     <string name="decrease">减少</string>
     <string name="permission_tag_critical">关键</string>
     <string name="reset_to_default_position">还原默认位置</string>
+    <string name="reset_to_default_config">还原默认配置</string>
+    <string name="clear_learning_model">清空学习模型</string>
+    <string name="clear_learning_model_success">学习模型已清空</string>
     <string name="floating_window_placeholder_text">悬浮窗服务未启动\n请先启动服务后再进行设置</string>
     
     <!-- 测试通知相关字符串 -->

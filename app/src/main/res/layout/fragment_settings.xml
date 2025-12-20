@@ -85,6 +85,86 @@
             </LinearLayout>
         </androidx.cardview.widget.CardView>
 
+        <!-- 通知模式设置 -->
+        <androidx.cardview.widget.CardView
+            android:id="@+id/card_notification_mode"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            app:cardBackgroundColor="@color/colorSurface"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="2dp"
+            app:cardUseCompatPadding="true"
+            android:clickable="true"
+            android:focusable="true"
+            android:foreground="?attr/selectableItemBackground">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <!-- 标题 -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/notification_mode_setting"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:textColor="?android:attr/textColorPrimary"
+                    android:layout_marginBottom="16dp" />
+
+                <!-- 选项 -->
+                <RadioGroup
+                    android:id="@+id/radio_group_notification_mode"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:background="@color/colorSurface">
+
+                    <RadioButton
+                        android:id="@+id/radio_btn_super_island_only"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/notification_mode_super_island_only"
+                        android:textSize="14sp"
+                        android:textColor="?android:attr/textColorSecondary"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:buttonTint="@color/colorPrimary"
+                        android:gravity="center_vertical"
+                        android:padding="16dp"
+                        android:layout_marginHorizontal="8dp" />
+
+                    <RadioButton
+                        android:id="@+id/radio_btn_notification_bar_only"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/notification_mode_notification_bar_only"
+                        android:textSize="14sp"
+                        android:textColor="?android:attr/textColorSecondary"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:buttonTint="@color/colorPrimary"
+                        android:gravity="center_vertical"
+                        android:padding="16dp"
+                        android:layout_marginHorizontal="8dp" />
+
+                    <RadioButton
+                        android:id="@+id/radio_btn_mode_both"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginHorizontal="8dp"
+                        android:text="@string/notification_mode_both"
+                        android:textSize="14sp"
+                        android:textColor="?android:attr/textColorSecondary"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:buttonTint="@color/colorPrimary"
+                        android:gravity="center_vertical"
+                        android:padding="16dp" />
+                </RadioGroup>
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
         <!-- 本地学习 -->
         <androidx.cardview.widget.CardView
             android:id="@+id/card_local_learning"
@@ -152,6 +232,159 @@
                         android:text="@string/start_learning"
                         android:background="@drawable/btn_primary_background" />
                 </LinearLayout>
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- 学习配置 -->
+        <androidx.cardview.widget.CardView
+            android:id="@+id/card_learning_config"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            app:cardBackgroundColor="@color/colorSurface"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="2dp"
+            app:cardUseCompatPadding="true"
+            android:clickable="true"
+            android:focusable="true"
+            android:foreground="?attr/selectableItemBackground">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <!-- 标题和描述 -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/learning_config_title"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:textColor="?android:attr/textColorPrimary"
+                    android:layout_marginBottom="8dp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/learning_config_desc"
+                    android:textSize="14sp"
+                    android:textColor="?android:attr/textColorSecondary"
+                    android:layout_marginBottom="16dp" />
+
+                <!-- 过滤程度 -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginBottom="12dp">
+                    
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginBottom="4dp">
+                        
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/filtering_degree"
+                            android:textSize="14sp"
+                            android:textColor="?android:attr/textColorSecondary" />
+                            
+                        <TextView
+                            android:id="@+id/tv_filtering_degree_value"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="5.0"
+                            android:textSize="14sp"
+                            android:textColor="?android:attr/textColorPrimary" />
+                    </LinearLayout>
+                    
+                    <SeekBar
+                        android:id="@+id/seekbar_filtering_degree"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:max="100"
+                        android:progress="50"
+                        android:progressTint="@color/colorPrimary"
+                        android:thumbTint="@color/colorPrimary"
+                        android:progressBackgroundTint="?android:attr/textColorSecondary" />
+                </LinearLayout>
+
+                <!-- 学习程度 -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+                    
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginBottom="4dp">
+                        
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/learning_degree"
+                            android:textSize="14sp"
+                            android:textColor="?android:attr/textColorSecondary" />
+                            
+                        <TextView
+                            android:id="@+id/tv_learning_degree_value"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="3.0"
+                            android:textSize="14sp"
+                            android:textColor="?android:attr/textColorPrimary" />
+                    </LinearLayout>
+                    
+                    <SeekBar
+                        android:id="@+id/seekbar_learning_degree"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:max="100"
+                        android:progress="30"
+                        android:progressTint="@color/colorPrimary"
+                        android:thumbTint="@color/colorPrimary"
+                        android:progressBackgroundTint="?android:attr/textColorSecondary" />
+                </LinearLayout>
+
+                <!-- 还原默认配置按钮 -->
+                <Button
+                    android:id="@+id/btn_reset_learning_config"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:text="@string/reset_to_default_config"
+                    android:textSize="14sp"
+                    android:textColor="@color/colorPrimary"
+                    android:background="?attr/selectableItemBackground"
+                    android:paddingStart="16dp"
+                    android:paddingEnd="16dp"
+                    android:paddingTop="8dp"
+                    android:paddingBottom="8dp" />
+
+                <Button
+                    android:id="@+id/btn_clear_learning_model"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="@string/clear_learning_model"
+                    android:textSize="14sp"
+                    android:textColor="@color/colorError"
+                    android:background="?attr/selectableItemBackground"
+                    android:paddingStart="16dp"
+                    android:paddingEnd="16dp"
+                    android:paddingTop="8dp"
+                    android:paddingBottom="8dp" />
+
             </LinearLayout>
         </androidx.cardview.widget.CardView>
 

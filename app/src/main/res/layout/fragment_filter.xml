@@ -111,22 +111,31 @@
 
                 <!-- 启用勾选框区域 -->
                 <TextView
-                    android:layout_width="72dp"
+                    android:layout_width="42dp"
                     android:layout_height="wrap_content"
                     android:text="@string/enable_header"
                     android:textStyle="bold"
-                    android:textSize="14sp"
-                    android:gravity="center" />
+                    android:textSize="12sp"
+                    android:gravity="center"
+                    android:maxLines="2" />
 
                 <TextView
-                    android:layout_width="72dp"
+                    android:layout_width="42dp"
+                    android:layout_height="wrap_content"
+                    android:text="@string/model_filter_header"
+                    android:textStyle="bold"
+                    android:textSize="12sp"
+                    android:gravity="center"
+                    android:maxLines="2" />
+
+                <TextView
+                    android:layout_width="42dp"
                     android:layout_height="wrap_content"
                     android:text="@string/auto_expand_header"
                     android:textStyle="bold"
-                    android:textSize="14sp"
+                    android:textSize="12sp"
                     android:gravity="center"
-                    android:singleLine="true"
-                    android:ellipsize="end" />
+                    android:maxLines="2" />
             </LinearLayout>
 
             <View
@@ -208,15 +217,14 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:visibility="gone"
-                android:padding="16dp">
+                android:visibility="gone">
                 
-                <TextView
+                <ListView
+                    android:id="@+id/notice_list"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="通知过滤内容待添加..."
-                    android:gravity="center"
-                    android:padding="20dp" />
+                    android:layout_height="match_parent"
+                    android:divider="@android:color/transparent"
+                    android:dividerHeight="0dp" />
                     
             </LinearLayout>
         </LinearLayout>

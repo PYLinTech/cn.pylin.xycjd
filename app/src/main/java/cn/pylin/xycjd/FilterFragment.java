@@ -26,6 +26,7 @@ public class FilterFragment extends Fragment {
     
     private Context mContext;
     private ListView listView;
+    private ListView noticeListView;
     private ImageButton menuButtonApps, menuButtonNotice;
     private View headerApps, headerNotice;
     private View contentApps, contentNotice;
@@ -35,6 +36,8 @@ public class FilterFragment extends Fragment {
     private List<AppInfo> allAppsList;
     private List<AppInfo> filteredAppsList;
     private AppInfoAdapter adapter;
+    private FilteredNotificationAdapter noticeAdapter;
+    private List<FilteredNotificationManager.FilteredNotification> filteredNotificationList;
     private int currentFilterType = 1; // 默认为用户应用
     
     private boolean isAppsExpanded = false;
@@ -54,12 +57,14 @@ public class FilterFragment extends Fragment {
         initViews(view);
         updateUIState();
         loadApps();
+        loadNotices();
         
         return view;
     }
     
     private void initViews(View view) {
         listView = view.findViewById(R.id.apps_list);
+        noticeListView = view.findViewById(R.id.notice_list);
         menuButtonApps = view.findViewById(R.id.menu_button_apps);
         menuButtonNotice = view.findViewById(R.id.menu_button_notice);
         
@@ -212,15 +217,62 @@ public class FilterFragment extends Fragment {
     }
 
     private void noticeNeed() {
-        // TODO: Implement notice need logic
+        if (noticeAdapter == null || filteredNotificationList == null) return;
+        
+        List<FilteredNotificationManager.FilteredNotification> toRemove = new ArrayList<>();
+        FilteredNotificationManager manager = FilteredNotificationManager.getInstance(mContext);
+        NotificationMLManager mlManager = NotificationMLManager.getInstance(mContext);
+        
+        for (FilteredNotificationManager.FilteredNotification notification : filteredNotificationList) {
+            if (notification.isChecked) {
+                // 正向反馈到模型 (分数 10)
+                // 只使用内容进行训练
+                String trainingText = (notification.content != null ? notification.content : "");
+                mlManager.train(trainingText, 10f);
+                toRemove.add(notification);
+            }
+        }
+        
+        for (FilteredNotificationManager.FilteredNotification notification : toRemove) {
+            manager.removeNotification(notification);
+        }
+        
+        loadNotices();
+        Toast.makeText(mContext, getString(R.string.notice_need_feedback), Toast.LENGTH_SHORT).show();
     }
 
     private void noticeDelete() {
-        // TODO: Implement notice delete logic
+        if (noticeAdapter == null || filteredNotificationList == null) return;
+        
+        List<FilteredNotificationManager.FilteredNotification> toRemove = new ArrayList<>();
+        FilteredNotificationManager manager = FilteredNotificationManager.getInstance(mContext);
+        
+        for (FilteredNotificationManager.FilteredNotification notification : filteredNotificationList) {
+            if (notification.isChecked) {
+                toRemove.add(notification);
+            }
+        }
+        
+        for (FilteredNotificationManager.FilteredNotification notification : toRemove) {
+            manager.removeNotification(notification);
+        }
+        
+        loadNotices();
     }
 
     private void noticeClearAll() {
-        // TODO: Implement notice clear all logic
+        FilteredNotificationManager.getInstance(mContext).clearAll();
+        loadNotices();
+    }
+    
+    private void loadNotices() {
+        filteredNotificationList = FilteredNotificationManager.getInstance(mContext).getAllNotifications();
+        if (noticeAdapter == null) {
+            noticeAdapter = new FilteredNotificationAdapter(mContext, filteredNotificationList);
+            noticeListView.setAdapter(noticeAdapter);
+        } else {
+            noticeAdapter.updateList(filteredNotificationList);
+        }
     }
     
     private void loadApps() {
