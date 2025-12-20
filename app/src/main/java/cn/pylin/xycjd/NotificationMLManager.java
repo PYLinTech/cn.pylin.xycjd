@@ -26,9 +26,7 @@ public class NotificationMLManager {
 
     private static NotificationMLManager instance;
     private static final String MODEL_FILE_NAME = "ml_weights.json";
-    private static final float DEFAULT_WEIGHT = 8.0f;
-    // 学习率
-    private static final float LEARNING_RATE = 0.12f;
+    private static final float DEFAULT_WEIGHT = 10.00f;
     private final Context context;
     private final Map<String, Float> wordWeights;
     private final ExecutorService executor;
@@ -49,11 +47,25 @@ public class NotificationMLManager {
     }
 
     /**
-     * 预测文本分数 (0-10)
+     * 核心处理方法：模型输入文本和反馈类型；自动读取配置的学习率。
      * @param text 输入文本
-     * @return 分数
+     * @param isPositive 反馈类型 (true: 正向/保留, false: 负向/删除)
+     * @return 新的分数
      */
-    public float predict(String text) {
+    public float process(String text, boolean isPositive) {
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+        float learningDegree = prefs.getFloat("pref_learning_degree", 3.0f);
+        return process(text, isPositive, learningDegree);
+    }
+
+    /**
+     * 核心处理方法：模型输入文本、反馈类型和学习率；模型输出新的分数。
+     * @param text 输入文本
+     * @param isPositive 反馈类型 (true: 正向/保留, false: 负向/删除)
+     * @param learningRate 学习率 (0.0 - 10.0)
+     * @return 新的分数
+     */
+    public float process(String text, boolean isPositive, float learningRate) {
         if (text == null || text.trim().isEmpty()) {
             return DEFAULT_WEIGHT;
         }
@@ -63,6 +75,63 @@ public class NotificationMLManager {
             return DEFAULT_WEIGHT;
         }
 
+        // 正向反馈学习分数为10.0，负向为0.0
+        float targetScore = isPositive ? 10.0f : 0.0f;
+        
+        // 计算当前分数
+        float currentScore = calculateScore(tokens);
+        float error = targetScore - currentScore;
+
+        // 将 0-10 的学习率映射到 0-1
+        // 用户输入的 learningRate 是 0.0-10.0
+        float actualLearningRate = Math.max(0f, Math.min(10f, learningRate)) / 10.0f;
+
+        // 同步更新权重
+        for (String token : tokens) {
+            if (isAscii(token) && token.length() < 2) {
+                continue;
+            }
+
+            float oldWeight = wordWeights.containsKey(token) ? wordWeights.get(token) : DEFAULT_WEIGHT;
+            
+            // 更新公式: w = w + lr * error
+            float newWeight = oldWeight + actualLearningRate * error;
+            
+            // 限制权重范围 [0, 10]
+            newWeight = Math.max(0, Math.min(10, newWeight));
+            
+            wordWeights.put(token, newWeight);
+        }
+
+        isDirty = true;
+        
+        // 异步保存模型
+        executor.execute(this::saveModel);
+
+        // 返回新的分数
+        return calculateScore(tokens);
+    }
+
+    /**
+     * 预测文本分数 (0-10)
+     * @param text 输入文本
+     * @return 分数
+     */
+    public float predict(String text) {
+        if (text == null || text.trim().isEmpty()) {
+            return DEFAULT_WEIGHT;
+        }
+        String[] tokens = tokenize(text);
+        if (tokens.length == 0) {
+            return DEFAULT_WEIGHT;
+        }
+        return calculateScore(tokens);
+    }
+
+    /**
+     * 内部计算分数方法
+     */
+    private float calculateScore(String[] tokens) {
         float totalWeight = 0;
         int count = 0;
 
@@ -82,68 +151,6 @@ public class NotificationMLManager {
 
         float score = totalWeight / count;
         return Math.max(0, Math.min(10.00f, score));
-    }
-
-    /**
-     * 训练模型
-     * @param text 输入文本
-     * @param targetScore 目标分数 (0 或 10)
-     */
-    public void train(String text, float targetScore) {
-        if (text == null || text.trim().isEmpty()) return;
-
-        executor.execute(() -> {
-            String[] tokens = tokenize(text);
-            if (tokens.length == 0) return;
-
-            // 1. 计算当前预测值
-            float currentScore = predict(text);
-            
-            // 2. 计算误差
-            float error = targetScore - currentScore;
-            
-            // 3. 更新权重
-            // 使用简单的梯度下降更新规则: w = w + lr * error
-            for (String token : tokens) {
-                if (isAscii(token) && token.length() < 2) {
-                    continue;
-                }
-
-                float oldWeight = wordWeights.containsKey(token) ? wordWeights.get(token) : DEFAULT_WEIGHT;
-                
-                // 更新公式
-                float newWeight = oldWeight + LEARNING_RATE * error;
-                
-                // 限制权重范围 [0, 10]
-                newWeight = Math.max(0, Math.min(10, newWeight));
-                
-                wordWeights.put(token, newWeight);
-            }
-            
-            isDirty = true;
-            saveModel();
-        });
-    }
-
-    /**
-     * 根据用户操作更新模型
-     * @param text 文本
-     * @param isClick 是否是点击操作（false为删除）
-     */
-    public void updateModel(String text, boolean isClick) {
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
-        float learningDegree = prefs.getFloat("pref_learning_degree", 3.0f);
-        float filteringDegree = prefs.getFloat("pref_filtering_degree", 5.0f);
-
-        float targetScore;
-        if (isClick) {
-            // 点击操作：目标分数 = 过滤程度 + 学习度 / 2.0f，确保不高于10分
-            targetScore = Math.min(10.0f, filteringDegree + learningDegree / 2.0f);
-        } else {
-            // 删除操作：目标分数 = 过滤程度 - 学习度 / 2.0f，确保不低于0分
-            targetScore = Math.max(0.0f, filteringDegree - learningDegree / 2.0f);
-        }
-        train(text, targetScore);
     }
 
     /**

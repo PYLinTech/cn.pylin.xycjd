@@ -700,7 +700,7 @@ public class FloatingWindowService extends Service {
                         // 只使用内容进行训练
                         String trainingText = (removedInfo.content != null ? removedInfo.content : "");
                         if (preferences.getBoolean("pref_local_learning_enabled", false) && isModelFilterEnabled(removedInfo.packageName)) {
-                            NotificationMLManager.getInstance(FloatingWindowService.this).updateModel(trainingText, false);
+                            NotificationMLManager.getInstance(FloatingWindowService.this).process(trainingText, false);
                         }
 
                         notificationAdapter.notifyItemRemoved(position);
@@ -876,7 +876,7 @@ public class FloatingWindowService extends Service {
                 // 只使用内容进行训练
                 String trainingText = (info.content != null ? info.content : "");
                 if (preferences.getBoolean("pref_local_learning_enabled", false) && isModelFilterEnabled(info.packageName)) {
-                    NotificationMLManager.getInstance(FloatingWindowService.this).updateModel(trainingText, true);
+                    NotificationMLManager.getInstance(FloatingWindowService.this).process(trainingText, true);
                 }
                 try {
                     // 优先尝试使用 PendingIntent (响应通知事件)
