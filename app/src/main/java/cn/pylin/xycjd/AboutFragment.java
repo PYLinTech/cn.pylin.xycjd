@@ -30,7 +30,7 @@ public class AboutFragment extends Fragment {
     private ConstraintLayout layoutGithub;
     private ConstraintLayout layoutQqGroup;
 
-    private final long[] mHits = new long[7];
+    private final long[] mHits = new long[5];
 
     @Nullable
     @Override
@@ -121,7 +121,6 @@ public class AboutFragment extends Fragment {
      public boolean joinQQGroup(String key) { 
          Intent intent = new Intent(); 
          intent.setData(Uri.parse(getString(R.string.qq_group_url_prefix) + key)); 
-        // 此Flag可根据具体产品需要自定义，如设置，则在加群界面按返回，返回手Q主界面，不设置，按返回会返回到呼起产品界面    //intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK) 
          try { 
              startActivity(intent); 
              return true; 

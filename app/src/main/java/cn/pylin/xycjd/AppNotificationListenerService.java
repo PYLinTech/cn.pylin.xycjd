@@ -50,10 +50,6 @@ public class AppNotificationListenerService extends NotificationListenerService 
             SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
             String mode = prefs.getString(PREF_NOTIFICATION_MODE, MODE_SUPER_ISLAND_ONLY);
 
-            if (MODE_NOTIFICATION_BAR_ONLY.equals(mode)) {
-                return;
-            }
-
             if (MODE_SUPER_ISLAND_ONLY.equals(mode)) {
                 cancelNotification(sbn.getKey());
             }
@@ -126,29 +122,7 @@ public class AppNotificationListenerService extends NotificationListenerService 
         String title = extras.getString("android.title");
         String text = extras.getString("android.text");
 
-        // 智能过滤：使用本地机器学习模型评分
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-        boolean isLocalLearningEnabled = prefs.getBoolean("pref_local_learning_enabled", false);
-
-        if (isLocalLearningEnabled && isAppModelFilterSelected(packageName)) {
-            String predictionText = (text != null ? text : "");
-            float score = NotificationMLManager.getInstance(this).predict(title, predictionText);
-            
-            // 获取过滤程度设置
-            float filteringDegree = prefs.getFloat("pref_filtering_degree", 5.0f);
-            
-            if (score < filteringDegree) {
-                // 将过滤的通知存入列表
-                FilteredNotificationManager.getInstance(this).addNotification(
-                    sbn.getKey(), 
-                    packageName, 
-                    title, 
-                    text
-                );
-                return;
-            }
-        }
-
+        // 1. 优先展示通知 (乐观展示策略)
         // 检查是否为媒体通知
         String template = extras.getString(android.app.Notification.EXTRA_TEMPLATE);
         android.media.session.MediaSession.Token token = null;
@@ -156,10 +130,73 @@ public class AppNotificationListenerService extends NotificationListenerService 
             token = extras.getParcelable(android.app.Notification.EXTRA_MEDIA_SESSION);
         }
         
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        String mode = prefs.getString(PREF_NOTIFICATION_MODE, MODE_SUPER_ISLAND_ONLY);
+        
+        // 如果不是仅通知栏模式，则在超级岛显示
+        if (!MODE_NOTIFICATION_BAR_ONLY.equals(mode)) {
+            FloatingWindowService service = FloatingWindowService.getInstance();
+            if (service != null) {
+                service.addNotification(sbn.getKey(), packageName, title, text, notification.contentIntent, token);
+            }
+        }
+
+        // 2. 异步进行智能过滤
+        boolean isModelFilteringEnabled = prefs.getBoolean("pref_model_filtering_enabled", false);
+
+        if (isModelFilteringEnabled && isAppModelFilterSelected(packageName)) {
+            String predictionText = (text != null ? text : "");
+            String modelType = prefs.getString("pref_filter_model", SettingsFragment.MODEL_LOCAL);
+            
+            if (SettingsFragment.MODEL_HUNYUAN.equals(modelType)) {
+                // 腾讯混元模型
+                HunyuanModelManager.getInstance(this).checkFilter(title, predictionText, (shouldFilter, score) -> {
+                    // 获取过滤程度用于日志记录
+                    float filteringDegree = prefs.getFloat("pref_online_filtering_degree", 5.0f);
+                    String resultStr = shouldFilter ? getString(R.string.log_result_filtered) : getString(R.string.log_result_allowed);
+                    String logMsg = getString(R.string.log_hunyuan_check, title, score, filteringDegree, resultStr, predictionText);
+                    NotificationLogManager.getInstance().log(logMsg);
+
+                    if (shouldFilter) {
+                        applyFilter(sbn, title, predictionText);
+                    }
+                });
+            } else {
+                // 本地学习模型 (异步执行)
+                new Thread(() -> {
+                    float score = NotificationMLManager.getInstance(this).predict(title, predictionText);
+                    float filteringDegree = prefs.getFloat("pref_filtering_degree", 5.0f);
+                    
+                    boolean shouldFilter = score <= filteringDegree;
+                    String resultStr = shouldFilter ? getString(R.string.log_result_filtered) : getString(R.string.log_result_allowed);
+                    String logMsg = getString(R.string.log_local_check, title, score, filteringDegree, resultStr, predictionText);
+                    NotificationLogManager.getInstance().log(logMsg);
+                    
+                    if (shouldFilter) {
+                        new Handler(Looper.getMainLooper()).post(() -> applyFilter(sbn, title, predictionText));
+                    }
+                }).start();
+            }
+        }
+    }
+    
+    private void applyFilter(StatusBarNotification sbn, String title, String text) {
+        // 将过滤的通知存入列表
+        FilteredNotificationManager.getInstance(this).addNotification(
+            sbn.getKey(), 
+            sbn.getPackageName(), 
+            title, 
+            text
+        );
+        
+        // 从超级岛移除
         FloatingWindowService service = FloatingWindowService.getInstance();
         if (service != null) {
-            service.addNotification(sbn.getKey(), packageName, title, text, notification.contentIntent, token);
+            service.removeNotification(sbn.getKey());
         }
+        
+        // 从系统通知栏移除
+        cancelNotification(sbn.getKey());
     }
     
     /**

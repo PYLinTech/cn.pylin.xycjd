@@ -348,9 +348,16 @@ public class FloatingWindowService extends Service {
 
             // 模型过滤逻辑：如果启用了模型过滤，且预测分数低于阈值(4.0)，则不显示
             if (isModelFilterEnabled(packageName)) {
-                float score = NotificationMLManager.getInstance(this).predict(title, content != null ? content : "");
-                if (score < 4.0f) {
-                    return;
+                // 检查当前选择的模型类型
+                String modelType = preferences.getString("pref_filter_model", SettingsFragment.MODEL_LOCAL);
+                
+                // 仅当选择本地模型时，才进行本地预检查
+                // 如果是混元模型，由 AppNotificationListenerService 负责异步检查和移除，这里不做拦截，确保乐观展示
+                if (SettingsFragment.MODEL_LOCAL.equals(modelType)) {
+                    float score = NotificationMLManager.getInstance(this).predict(title, content != null ? content : "");
+                    if (score < 4.0f) {
+                        return;
+                    }
                 }
             }
 
@@ -699,7 +706,7 @@ public class FloatingWindowService extends Service {
 
                         // 使用标题和内容进行训练
                         String trainingText = (removedInfo.content != null ? removedInfo.content : "");
-                        if (preferences.getBoolean("pref_local_learning_enabled", false) && isModelFilterEnabled(removedInfo.packageName)) {
+                        if (preferences.getBoolean("pref_model_filtering_enabled", false) && isModelFilterEnabled(removedInfo.packageName)) {
                             NotificationMLManager.getInstance(FloatingWindowService.this).process(removedInfo.title, trainingText, false);
                         }
 
@@ -875,7 +882,7 @@ public class FloatingWindowService extends Service {
             holder.container.setOnClickListener(v -> {
                 // 使用标题和内容进行训练
                 String trainingText = (info.content != null ? info.content : "");
-                if (preferences.getBoolean("pref_local_learning_enabled", false) && isModelFilterEnabled(info.packageName)) {
+                if (preferences.getBoolean("pref_model_filtering_enabled", false) && isModelFilterEnabled(info.packageName)) {
                     NotificationMLManager.getInstance(FloatingWindowService.this).process(info.title, trainingText, true);
                 }
                 try {
