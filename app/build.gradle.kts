@@ -23,7 +23,7 @@ android {
         minSdk = 30
         targetSdk = 36
         versionCode = 251220
-        versionName = "1.3.5"
+        versionName = "1.3.6"
         // 使用函数读取 API Key
         buildConfigField("String", "Hunyuan_KEY", "\"${getLocalProperty("Hunyuan_KEY")}\"")
     }

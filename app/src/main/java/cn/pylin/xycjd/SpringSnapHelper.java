@@ -42,15 +42,9 @@ public class SpringSnapHelper extends LinearSnapHelper {
         if (mRecyclerView == recyclerView) {
             return;
         }
-        
-        // super.attachToRecyclerView sets the listener to 'this' (OnFlingListener)
-        // and adds its own OnScrollListener.
-        // We need to remove its OnScrollListener and add ours.
-        
         mRecyclerView = recyclerView;
         
         if (mRecyclerView != null) {
-            // Remove SnapHelper's scroll listener using reflection
             try {
                 java.lang.reflect.Field scrollListenerField = androidx.recyclerview.widget.SnapHelper.class.getDeclaredField("mScrollListener");
                 scrollListenerField.setAccessible(true);
@@ -101,22 +95,6 @@ public class SpringSnapHelper extends LinearSnapHelper {
                         return true;
                     }
                 } else {
-                    // Target is off-screen. 
-                    // We can either:
-                    // 1. Let default fling happen (return false), then snap on IDLE.
-                    // 2. Scroll to position using smoothScrollToPosition (standard), then spring?
-                    // 3. Just let it be.
-                    
-                    // For a physics feel, letting it fling naturally and then snapping is often best
-                    // unless we want to enforce "one page at a time" strictness.
-                    // LinearSnapHelper is not strict paging.
-                    
-                    // However, if we return false, the default LinearSnapHelper logic (if we called super) would run.
-                    // But we are NOT calling super methods that trigger scroll.
-                    // So we must handle it.
-                    
-                    // Let's try to just smooth scroll to the position using RecyclerView's default, 
-                    // which is decent for long distances.
                     mRecyclerView.smoothScrollToPosition(targetPosition);
                     return true;
                 }
