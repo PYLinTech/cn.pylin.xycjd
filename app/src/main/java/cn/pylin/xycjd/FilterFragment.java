@@ -228,7 +228,7 @@ public class FilterFragment extends Fragment {
                 // 正向反馈到模型 (分数 10)
                 // 使用 10.0f 的强学习率，确保手动标记能立即将分数提升至接近目标值
                 String trainingText = (notification.content != null ? notification.content : "");
-                mlManager.process(trainingText, true, 10.0f);
+                mlManager.process(notification.title, trainingText, true, 10.0f);
                 toRemove.add(notification);
             }
         }

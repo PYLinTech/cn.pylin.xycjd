@@ -348,7 +348,7 @@ public class FloatingWindowService extends Service {
 
             // 模型过滤逻辑：如果启用了模型过滤，且预测分数低于阈值(4.0)，则不显示
             if (isModelFilterEnabled(packageName)) {
-                float score = NotificationMLManager.getInstance(this).predict(content != null ? content : "");
+                float score = NotificationMLManager.getInstance(this).predict(title, content != null ? content : "");
                 if (score < 4.0f) {
                     return;
                 }
@@ -697,10 +697,10 @@ public class FloatingWindowService extends Service {
                 if (position != RecyclerView.NO_POSITION && position < notificationQueue.size()) {
                         NotificationInfo removedInfo = notificationQueue.remove(position);
 
-                        // 只使用内容进行训练
+                        // 使用标题和内容进行训练
                         String trainingText = (removedInfo.content != null ? removedInfo.content : "");
                         if (preferences.getBoolean("pref_local_learning_enabled", false) && isModelFilterEnabled(removedInfo.packageName)) {
-                            NotificationMLManager.getInstance(FloatingWindowService.this).process(trainingText, false);
+                            NotificationMLManager.getInstance(FloatingWindowService.this).process(removedInfo.title, trainingText, false);
                         }
 
                         notificationAdapter.notifyItemRemoved(position);
@@ -873,10 +873,10 @@ public class FloatingWindowService extends Service {
             });
 
             holder.container.setOnClickListener(v -> {
-                // 只使用内容进行训练
+                // 使用标题和内容进行训练
                 String trainingText = (info.content != null ? info.content : "");
                 if (preferences.getBoolean("pref_local_learning_enabled", false) && isModelFilterEnabled(info.packageName)) {
-                    NotificationMLManager.getInstance(FloatingWindowService.this).process(trainingText, true);
+                    NotificationMLManager.getInstance(FloatingWindowService.this).process(info.title, trainingText, true);
                 }
                 try {
                     // 优先尝试使用 PendingIntent (响应通知事件)
