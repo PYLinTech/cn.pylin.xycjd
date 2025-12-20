@@ -26,7 +26,7 @@ public class FilterFragment extends Fragment {
     
     private Context mContext;
     private ListView listView;
-    private ImageButton menuButton;
+    private ImageButton menuButtonApps, menuButtonNotice;
     private View headerApps, headerNotice;
     private View contentApps, contentNotice;
     private View cardApps, cardNotice;
@@ -60,7 +60,8 @@ public class FilterFragment extends Fragment {
     
     private void initViews(View view) {
         listView = view.findViewById(R.id.apps_list);
-        menuButton = view.findViewById(R.id.menu_button);
+        menuButtonApps = view.findViewById(R.id.menu_button_apps);
+        menuButtonNotice = view.findViewById(R.id.menu_button_notice);
         
         cardApps = view.findViewById(R.id.card_apps);
         cardNotice = view.findViewById(R.id.card_notice);
@@ -86,10 +87,17 @@ public class FilterFragment extends Fragment {
         });
         
         // 设置菜单按钮点击事件
-        menuButton.setOnClickListener(new View.OnClickListener() {
+        menuButtonApps.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                showPopupMenu(v);
+                showPopupMenuApps(v);
+            }
+        });
+        
+        menuButtonNotice.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showPopupMenuNotice(v);
             }
         });
     }
@@ -116,7 +124,8 @@ public class FilterFragment extends Fragment {
         // 更新应用列表板块状态
         contentApps.setVisibility(isAppsExpanded ? View.VISIBLE : View.GONE);
         arrowApps.setRotation(isAppsExpanded ? 180 : 0);
-        menuButton.setVisibility(isAppsExpanded ? View.VISIBLE : View.GONE);
+        menuButtonApps.setVisibility(isAppsExpanded ? View.VISIBLE : View.GONE);
+        menuButtonNotice.setVisibility(isNoticeExpanded ? View.VISIBLE : View.GONE);
         
         LinearLayout.LayoutParams paramsApps = (LinearLayout.LayoutParams) cardApps.getLayoutParams();
         if (isAppsExpanded) {
@@ -143,7 +152,7 @@ public class FilterFragment extends Fragment {
         cardNotice.setLayoutParams(paramsNotice);
     }
     
-    private void showPopupMenu(View anchorView) {
+    private void showPopupMenuApps(View anchorView) {
         PopupMenu popup = new PopupMenu(mContext, anchorView);
         popup.getMenuInflater().inflate(R.menu.apps_menu, popup.getMenu());
         
@@ -175,6 +184,43 @@ public class FilterFragment extends Fragment {
         });
         
         popup.show();
+    }
+    
+    private void showPopupMenuNotice(View anchorView) {
+        PopupMenu popup = new PopupMenu(mContext, anchorView);
+        popup.getMenuInflater().inflate(R.menu.notice_menu, popup.getMenu());
+        
+        popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem item) {
+                int id = item.getItemId();
+                if (id == R.id.notice_need) {
+                    noticeNeed();
+                    return true;
+                } else if (id == R.id.notice_delete) {
+                    noticeDelete();
+                    return true;
+                } else if (id == R.id.notice_clear_all) {
+                    noticeClearAll();
+                    return true;
+                }
+                return false;
+            }
+        });
+        
+        popup.show();
+    }
+
+    private void noticeNeed() {
+        // TODO: Implement notice need logic
+    }
+
+    private void noticeDelete() {
+        // TODO: Implement notice delete logic
+    }
+
+    private void noticeClearAll() {
+        // TODO: Implement notice clear all logic
     }
     
     private void loadApps() {

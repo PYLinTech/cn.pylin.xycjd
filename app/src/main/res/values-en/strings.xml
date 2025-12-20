@@ -78,6 +78,11 @@
     <string name="deselect_all">Deselect All</string>
     <string name="menu">Menu</string>
     
+    <!-- Notification related strings -->
+    <string name="notice_need">Need</string>
+    <string name="notice_delete">Delete</string>
+    <string name="notice_clear_all">Clear All</string>
+
     <!-- Notification listener related strings -->
     <string name="notification_listener_service_label">Xiaoyu Super Island Notification Listener</string>
     
@@ -97,6 +102,15 @@
     <string name="service_stopped">Service stopped</string>
     <string name="start_service">Start Service</string>
     <string name="stop_service">Stop Service</string>
+
+    <!-- Local learning related strings -->
+    <string name="local_learning_title">Local Learning</string>
+    <string name="local_learning_desc">Manage local learning service status</string>
+    <string name="local_learning_stopped">Stopped</string>
+    <string name="local_learning_running">Running, filtered %d notifications</string>
+    <string name="start_learning">Start</string>
+    <string name="stop_learning">Stop</string>
+
     <string name="permission_all_granted">All permissions granted</string>
     <string name="permission_some_denied">%d permissions denied</string>
     <string name="go_to_permission">Go to Settings</string>
