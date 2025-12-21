@@ -283,16 +283,16 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onUserLeaveHint() {
         super.onUserLeaveHint();
-        // 当用户离开应用（如按下Home键或切换任务）时，从最近任务列表中隐藏
+        // 当用户离开应用（如按下Home键或切换任务）时，释放资源并从最近任务列表中隐藏
         hideFromRecents();
     }
 
     @Override
     public void onBackPressed() {
         long currentTime = System.currentTimeMillis();
-        // 如果两次按返回键的时间间隔小于2秒，则隐藏到后台并从最近任务列表中排除
+        // 如果两次按返回键的时间间隔小于2秒，则释放资源并从最近任务列表中排除
         if (currentTime - lastBackPressTime < DOUBLE_BACK_PRESS_INTERVAL) {
-            // 从最近任务列表中排除应用
+            // 从最近任务列表中排除应用并释放资源
             hideFromRecents();
             // 移动到后台
             moveTaskToBack(true);
@@ -305,7 +305,7 @@ public class MainActivity extends AppCompatActivity {
     }
     
     /**
-     * 从最近任务列表中隐藏应用
+     * 从最近任务列表中隐藏应用并释放Activity资源
      */
     private void hideFromRecents() {
         try {
@@ -315,6 +315,8 @@ public class MainActivity extends AppCompatActivity {
                 for (ActivityManager.AppTask task : activityManager.getAppTasks()) {
                     // 设置从最近任务中排除
                     task.setExcludeFromRecents(true);
+                    // 完成任务并移除，释放Activity资源
+                    task.finishAndRemoveTask();
                 }
             }
         } catch (Exception e) {

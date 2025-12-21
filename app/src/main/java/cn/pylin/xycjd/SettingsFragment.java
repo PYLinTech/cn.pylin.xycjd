@@ -828,6 +828,9 @@ public class SettingsFragment extends Fragment {
             
             cardLearningConfig.setVisibility(View.GONE);
             cardOnlineModelConfig.setVisibility(View.VISIBLE);
+            
+            // 释放本地模型内存
+            NotificationMLManager.getInstance(requireContext()).releaseMemory();
         });
         
         dialog.setCancelable(false);

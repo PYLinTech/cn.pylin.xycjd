@@ -31,6 +31,7 @@ public class NotificationMLManager {
     private final Map<String, Float> wordWeights;
     private final ExecutorService executor;
     private boolean isDirty = false;
+    private volatile boolean isLoaded = false;
 
     private NotificationMLManager(Context context) {
         this.context = context.getApplicationContext();
@@ -68,6 +69,7 @@ public class NotificationMLManager {
      * @return 新的分数
      */
     public float process(String title, String text, boolean isPositive, float learningRate) {
+        ensureLoaded();
         String combinedText = (title == null ? "" : title) + " " + (text == null ? "" : text);
         if (combinedText.trim().isEmpty()) {
             return DEFAULT_WEIGHT;
@@ -122,6 +124,7 @@ public class NotificationMLManager {
      * @return 分数
      */
     public float predict(String title, String text) {
+        ensureLoaded();
         String combinedText = (title == null ? "" : title) + " " + (text == null ? "" : text);
         if (combinedText.trim().isEmpty()) {
             return DEFAULT_WEIGHT;
@@ -234,7 +237,7 @@ public class NotificationMLManager {
         executor.execute(() -> {
             wordWeights.clear();
             isDirty = false;
-            
+            isLoaded = true;
             File file = new File(context.getFilesDir(), MODEL_FILE_NAME);
             if (file.exists()) {
                 file.delete();
@@ -242,9 +245,37 @@ public class NotificationMLManager {
         });
     }
 
-    private void loadModel() {
+    /**
+     * 释放内存
+     * 保存模型并清空内存中的权重
+     */
+    public void releaseMemory() {
+        executor.execute(() -> {
+            synchronized (this) {
+                saveModel();
+                wordWeights.clear();
+                isLoaded = false;
+            }
+        });
+    }
+
+    private void ensureLoaded() {
+        if (!isLoaded) {
+            synchronized (this) {
+                if (!isLoaded) {
+                    loadModel();
+                }
+            }
+        }
+    }
+
+    private synchronized void loadModel() {
+        if (isLoaded) return;
         File file = new File(context.getFilesDir(), MODEL_FILE_NAME);
-        if (!file.exists()) return;
+        if (!file.exists()) {
+            isLoaded = true;
+            return;
+        }
 
         try (FileInputStream fis = new FileInputStream(file);
              BufferedReader reader = new BufferedReader(new InputStreamReader(fis))) {
@@ -266,6 +297,7 @@ public class NotificationMLManager {
         } catch (Exception e) {
             e.printStackTrace();
         }
+        isLoaded = true;
     }
 
     private void saveModel() {

@@ -22,8 +22,8 @@ android {
         applicationId = "cn.pylin.xycjd"
         minSdk = 30
         targetSdk = 36
-        versionCode = 251220
-        versionName = "1.3.6"
+        versionCode = 251221
+        versionName = "1.4.1"
         // 使用函数读取 API Key
         buildConfigField("String", "Hunyuan_KEY", "\"${getLocalProperty("Hunyuan_KEY")}\"")
     }
