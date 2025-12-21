@@ -17,6 +17,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.RadioButton;
@@ -102,6 +103,7 @@ public class SettingsFragment extends Fragment {
     private TextView tvOnlineFilteringDegreeValue;
     private SeekBar seekBarOnlineFilteringDegree;
     private Button btnResetOnlineConfig;
+    private Button btnCustomPrompt;
 
     // 测试通知相关控件
     private CardView cardTestNotification;
@@ -122,6 +124,7 @@ public class SettingsFragment extends Fragment {
     private static final String PREF_FILTERING_DEGREE = "pref_filtering_degree";
     private static final String PREF_LEARNING_DEGREE = "pref_learning_degree";
     private static final String PREF_ONLINE_FILTERING_DEGREE = "pref_online_filtering_degree";
+    private static final String PREF_ONLINE_MODEL_PROMPT = "pref_online_model_prompt";
     private static final String PREF_NOTIFICATION_MODE = "pref_notification_mode";
     public static final String MODE_SUPER_ISLAND_ONLY = "mode_super_island_only";
     public static final String MODE_NOTIFICATION_BAR_ONLY = "mode_notification_bar_only";
@@ -252,6 +255,7 @@ public class SettingsFragment extends Fragment {
         tvOnlineFilteringDegreeValue = view.findViewById(R.id.tv_online_filtering_degree_value);
         seekBarOnlineFilteringDegree = view.findViewById(R.id.seekbar_online_filtering_degree);
         btnResetOnlineConfig = view.findViewById(R.id.btn_reset_online_config);
+        btnCustomPrompt = view.findViewById(R.id.btn_custom_prompt);
 
         // 初始化测试通知相关控件
         cardTestNotification = view.findViewById(R.id.card_test_notification);
@@ -877,6 +881,55 @@ public class SettingsFragment extends Fragment {
             seekBarOnlineFilteringDegree.setProgress((int) (defaultFilteringDegree * 10));
             tvOnlineFilteringDegreeValue.setText(String.format("%.1f", defaultFilteringDegree));
         });
+
+        // 自定义提示词按钮点击事件
+        btnCustomPrompt.setOnClickListener(v -> showCustomPromptDialog());
+    }
+
+    private void showCustomPromptDialog() {
+        android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(requireContext());
+        View view = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_custom_prompt, null);
+        builder.setView(view);
+        android.app.AlertDialog dialog = builder.create();
+        
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT));
+        }
+
+        EditText etPrompt = view.findViewById(R.id.et_prompt);
+        Button btnResetPrompt = view.findViewById(R.id.btn_reset_prompt);
+        Button btnCancel = view.findViewById(R.id.btn_cancel);
+        Button btnSave = view.findViewById(R.id.btn_save);
+
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(requireContext());
+        String defaultPrompt = getString(R.string.default_prompt_content);
+        String currentPrompt = preferences.getString(PREF_ONLINE_MODEL_PROMPT, defaultPrompt);
+
+        etPrompt.setText(currentPrompt);
+        
+        // 还原默认提示词
+        btnResetPrompt.setOnClickListener(v -> {
+            etPrompt.setText(defaultPrompt);
+        });
+
+        // 取消
+        btnCancel.setOnClickListener(v -> dialog.dismiss());
+
+        // 保存
+        btnSave.setOnClickListener(v -> {
+            String newPrompt = etPrompt.getText().toString();
+            if (newPrompt.length() > 150) {
+                // 虽然EditText限制了长度，但这里再做一个防御性检查
+                newPrompt = newPrompt.substring(0, 150);
+            }
+            
+            SharedPreferences.Editor editor = preferences.edit();
+            editor.putString(PREF_ONLINE_MODEL_PROMPT, newPrompt);
+            editor.apply();
+            dialog.dismiss();
+        });
+
+        dialog.show();
     }
 
     private void setupLearningConfigControls() {

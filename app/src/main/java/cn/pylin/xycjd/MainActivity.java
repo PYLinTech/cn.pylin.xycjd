@@ -73,6 +73,13 @@ public class MainActivity extends AppCompatActivity {
         // 初始化指示器位置
         updateIndicatorLayout();
 
+        // 检查更新
+        getWindow().getDecorView().post(() -> {
+            if (!isFinishing() && !isDestroyed()) { //确保活动未被销毁或完成销毁后再执行检查更新操作
+                new UpdateManager(this).checkForUpdates(false);
+            }
+        });
+
         // 设置按钮点击事件
         btnSettings.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -293,7 +300,7 @@ public class MainActivity extends AppCompatActivity {
             // 第一次按返回键，提示用户再次按返回键隐藏到后台
             lastBackPressTime = currentTime;
             // 显示提示信息
-            android.widget.Toast.makeText(this, R.string.double_back_to_exit, android.widget.Toast.LENGTH_SHORT).show();
+            android.widget.Toast.makeText(this, getString(R.string.double_back_to_exit), android.widget.Toast.LENGTH_SHORT).show();
         }
     }
     

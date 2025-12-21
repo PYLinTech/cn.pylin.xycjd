@@ -166,13 +166,31 @@ public class FilterFragment extends Fragment {
             @Override
             public boolean onMenuItemClick(MenuItem item) {
                 int id = item.getItemId();
-                if (id == R.id.action_select_all) {
-                    selectAllApps();
+                
+                // 全选操作
+                if (id == R.id.action_select_all_enable) {
+                    batchUpdateApps(true, 0);
                     return true;
-                } else if (id == R.id.action_deselect_all) {
-                    deselectAllApps();
+                } else if (id == R.id.action_select_all_model_filter) {
+                    batchUpdateApps(true, 1);
                     return true;
-                } else if (id == R.id.action_filter_all) {
+                } else if (id == R.id.action_select_all_auto_expand) {
+                    batchUpdateApps(true, 2);
+                    return true;
+                } 
+                // 全不选操作
+                else if (id == R.id.action_deselect_all_enable) {
+                    batchUpdateApps(false, 0);
+                    return true;
+                } else if (id == R.id.action_deselect_all_model_filter) {
+                    batchUpdateApps(false, 1);
+                    return true;
+                } else if (id == R.id.action_deselect_all_auto_expand) {
+                    batchUpdateApps(false, 2);
+                    return true;
+                }
+                // 过滤操作
+                else if (id == R.id.action_filter_all) {
                     currentFilterType = 0;
                     filterApps(currentFilterType);
                     return true;
@@ -321,28 +339,30 @@ public class FilterFragment extends Fragment {
         }
     }
     
-    private void selectAllApps() {
+    private void batchUpdateApps(boolean isChecked, int type) {
         if (adapter != null && filteredAppsList != null) {
-            SharedPreferences prefs = mContext.getSharedPreferences("app_checkboxes", Context.MODE_PRIVATE);
-            SharedPreferences.Editor editor = prefs.edit();
-            
-            for (AppInfo app : filteredAppsList) {
-                app.setChecked(true);
-                editor.putBoolean(app.getPackageName(), true);
+            SharedPreferences prefs = null;
+            if (type == 0) {
+                prefs = mContext.getSharedPreferences("app_checkboxes", Context.MODE_PRIVATE);
+            } else if (type == 1) {
+                prefs = mContext.getSharedPreferences("app_model_filter", Context.MODE_PRIVATE);
+            } else if (type == 2) {
+                prefs = mContext.getSharedPreferences("app_auto_expand", Context.MODE_PRIVATE);
             }
-            editor.apply();
-            adapter.notifyDataSetChanged();
-        }
-    }
-    
-    private void deselectAllApps() {
-        if (adapter != null && filteredAppsList != null) {
-            SharedPreferences prefs = mContext.getSharedPreferences("app_checkboxes", Context.MODE_PRIVATE);
+            
+            if (prefs == null) return;
+            
             SharedPreferences.Editor editor = prefs.edit();
             
             for (AppInfo app : filteredAppsList) {
-                app.setChecked(false);
-                editor.putBoolean(app.getPackageName(), false);
+                if (type == 0) {
+                    app.setChecked(isChecked);
+                } else if (type == 1) {
+                    app.setModelFilterChecked(isChecked);
+                } else if (type == 2) {
+                    app.setAutoExpandChecked(isChecked);
+                }
+                editor.putBoolean(app.getPackageName(), isChecked);
             }
             editor.apply();
             adapter.notifyDataSetChanged();

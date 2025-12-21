@@ -34,4 +34,8 @@
     <color name="colorWebsiteText">#EC4899</color>
     <color name="colorGithubText">#15803D</color>
     <color name="colorQQGroupText">#D97706</color>
+    
+    <color name="colorVersionBackground">#DBEAFE</color>
+    <color name="colorVersionText">#1E40AF</color>
+    <color name="edit_background_color">#F2F4F8</color>
 </resources>

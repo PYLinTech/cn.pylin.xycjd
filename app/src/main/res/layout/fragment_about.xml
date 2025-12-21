@@ -60,20 +60,6 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/iv_app_icon" />
 
-            <!-- 版本号 -->
-            <TextView
-                android:id="@+id/tv_version"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:text="@string/app_version"
-                android:textSize="16sp"
-                android:textColor="@color/colorOnSurfaceSecondary"
-                android:gravity="center"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/tv_app_name" />
-
             <!-- 分割线 -->
             <View
                 android:id="@+id/divider"
@@ -83,15 +69,15 @@
                 android:background="@color/colorDivider"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/tv_version" />
+                app:layout_constraintTop_toBottomOf="@+id/tv_app_name" />
 
-            <!-- 官网地址 -->
+            <!-- 当前版本 -->
             <androidx.constraintlayout.widget.ConstraintLayout
-                android:id="@+id/layout_website"
+                android:id="@+id/layout_version"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="24dp"
-                android:background="@drawable/bg_website_rounded"
+                android:background="@drawable/bg_version_rounded"
                 android:padding="12dp"
                 android:clickable="true"
                 android:focusable="true"
@@ -99,6 +85,45 @@
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/divider">
+
+                <TextView
+                    android:id="@+id/tv_version_label"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/version_label"
+                    android:textSize="16sp"
+                    android:textColor="@color/colorOnSurface"
+                    android:fontFamily="sans-serif-medium"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <TextView
+                    android:id="@+id/tv_version_value"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="@string/app_version"
+                    android:textSize="14sp"
+                    android:textColor="@color/colorVersionText"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/tv_version_label" />
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <!-- 官网地址 -->
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/layout_website"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:background="@drawable/bg_website_rounded"
+                android:padding="12dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?attr/selectableItemBackground"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/layout_version">
 
                 <TextView
                     android:id="@+id/tv_website_label"

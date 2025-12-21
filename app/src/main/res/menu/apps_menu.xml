@@ -3,11 +3,35 @@
 
     <item
         android:id="@+id/action_select_all"
-        android:title="@string/select_all" />
+        android:title="@string/select_all">
+        <menu>
+            <item
+                android:id="@+id/action_select_all_enable"
+                android:title="@string/enable_header" />
+            <item
+                android:id="@+id/action_select_all_model_filter"
+                android:title="@string/model_filter_menu_header" />
+            <item
+                android:id="@+id/action_select_all_auto_expand"
+                android:title="@string/auto_expand_menu_header" />
+        </menu>
+    </item>
 
     <item
         android:id="@+id/action_deselect_all"
-        android:title="@string/deselect_all" />
+        android:title="@string/deselect_all">
+        <menu>
+            <item
+                android:id="@+id/action_deselect_all_enable"
+                android:title="@string/enable_header" />
+            <item
+                android:id="@+id/action_deselect_all_model_filter"
+                android:title="@string/model_filter_menu_header" />
+            <item
+                android:id="@+id/action_deselect_all_auto_expand"
+                android:title="@string/auto_expand_menu_header" />
+        </menu>
+    </item>
 
     <item android:title="@string/app_filter_label">
         <menu>

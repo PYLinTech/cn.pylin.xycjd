@@ -21,6 +21,6 @@ public class FloatingWindowPermissionManager {
     }
 
     public static void showPermissionDeniedMessage(Context context) {
-        Toast.makeText(context, R.string.floating_window_permission_denied, Toast.LENGTH_SHORT).show();
+        Toast.makeText(context, context.getString(R.string.floating_window_permission_denied), Toast.LENGTH_SHORT).show(); //显示权限被拒绝的提示信息
     }
 }
