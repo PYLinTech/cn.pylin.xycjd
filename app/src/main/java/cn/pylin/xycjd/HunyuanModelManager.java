@@ -15,7 +15,6 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.Locale;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -62,12 +61,12 @@ public class HunyuanModelManager {
      */
     public void checkFilter(String title, String content, FilterCallback callback) {
         executor.execute(() -> {
+            float score = callHunyuanApi(title, content);
+
             // 获取在线过滤程度配置
             SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
             float filteringDegree = prefs.getFloat("pref_online_filtering_degree", 5.0f);
 
-            float score = callHunyuanApi(title, content, filteringDegree);
-            
             boolean shouldFilter = score <= filteringDegree;
             
             mainHandler.post(() -> {
@@ -78,7 +77,7 @@ public class HunyuanModelManager {
         });
     }
 
-    private float callHunyuanApi(String title, String content, float filteringDegree) {
+    private float callHunyuanApi(String title, String content) {
 
         try {
             URL url = new URL(API_URL);
@@ -109,23 +108,16 @@ public class HunyuanModelManager {
             
             JSONArray messages = new JSONArray();
 
-            // 计算动态阈值
-            float spamEnd = filteringDegree * 0.4f;
-            float lowEnd = filteringDegree;
-            float normalEnd = filteringDegree + (10f - filteringDegree) * 0.4f;
-            float importantEnd = filteringDegree + (10f - filteringDegree) * 0.8f;
-
-            String systemPrompt = String.format(Locale.US, "你是智能通知评分系统，每次评估通知时仅输出一个0.0到10.0之间的数字，0.0–%.1f表示骚扰或垃圾内容(如广告、诱导点击、虚假信息)，%.1f–%.1f为低价值通知，即可能没用，%.1f–%.1f为普通有用通知，%.1f–%.1f为重要通知(如支付信息等)，%.1f–10.0为关键通知(如聊天等)",
-                    spamEnd,
-                    spamEnd + 0.1f, lowEnd,
-                    lowEnd + 0.1f, normalEnd,
-                    normalEnd + 0.1f, importantEnd,
-                    importantEnd + 0.1f);
-
             // 系统提示词
             JSONObject systemMessage = new JSONObject();
             systemMessage.put("role", "system");
-            systemMessage.put("content", systemPrompt);
+            
+            // 获取自定义提示词
+            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+            String defaultPrompt = context.getString(R.string.default_prompt_content);
+            String systemContent = prefs.getString("pref_online_model_prompt", defaultPrompt);
+            
+            systemMessage.put("content", systemContent);
             messages.put(systemMessage);
             
             JSONObject userMessage = new JSONObject();

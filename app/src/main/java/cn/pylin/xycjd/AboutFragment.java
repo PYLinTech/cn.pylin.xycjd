@@ -20,12 +20,14 @@ import androidx.fragment.app.Fragment;
 public class AboutFragment extends Fragment {
 
     private NestedScrollView scrollView;
-    private TextView tvVersion;
+    private TextView tvAppName;
+    private TextView tvVersionValue;
     private TextView tvWebsite;
     private TextView tvGithub;
     private TextView tvQqGroup;
     
     // 布局容器
+    private ConstraintLayout layoutVersion;
     private ConstraintLayout layoutWebsite;
     private ConstraintLayout layoutGithub;
     private ConstraintLayout layoutQqGroup;
@@ -51,12 +53,14 @@ public class AboutFragment extends Fragment {
 
     private void initViews(View view) {
         scrollView = view.findViewById(R.id.nested_scroll_view);
-        tvVersion = view.findViewById(R.id.tv_version);
+        tvAppName = view.findViewById(R.id.tv_app_name);
+        tvVersionValue = view.findViewById(R.id.tv_version_value);
         tvWebsite = view.findViewById(R.id.tv_website);
         tvGithub = view.findViewById(R.id.tv_github);
         tvQqGroup = view.findViewById(R.id.tv_qq_group);
         
         // 初始化布局容器
+        layoutVersion = view.findViewById(R.id.layout_version);
         layoutWebsite = view.findViewById(R.id.layout_website);
         layoutGithub = view.findViewById(R.id.layout_github);
         layoutQqGroup = view.findViewById(R.id.layout_qq_group);
@@ -70,15 +74,15 @@ public class AboutFragment extends Fragment {
             int versionCode = packageInfo.versionCode;
             
             String versionText = getString(R.string.app_version, versionName, versionCode);
-            tvVersion.setText(versionText);
+            tvVersionValue.setText(versionText);
         } catch (PackageManager.NameNotFoundException e) {
             e.printStackTrace();
-            tvVersion.setText(getString(R.string.app_version_error));
+            tvVersionValue.setText(getString(R.string.app_version_error));
         }
     }
 
     private void setClickListeners() {
-        tvVersion.setOnClickListener(v -> {
+        tvAppName.setOnClickListener(v -> {
             System.arraycopy(mHits, 1, mHits, 0, mHits.length - 1);
             mHits[mHits.length - 1] = android.os.SystemClock.uptimeMillis();
             if (mHits[0] >= (android.os.SystemClock.uptimeMillis() - 10000)) {
@@ -86,6 +90,11 @@ public class AboutFragment extends Fragment {
                 startActivity(intent);
                 java.util.Arrays.fill(mHits, 0);
             }
+        });
+
+        // 检查更新
+        layoutVersion.setOnClickListener(v -> {
+            new UpdateManager(requireContext()).checkForUpdates(true);
         });
 
         // 官网地址点击事件

@@ -8,13 +8,13 @@
     <string name="enable_header">Enable</string>
     <string name="model_filter_header">Model\nFilter</string>
     <string name="auto_expand_header">Auto\nExpand</string>
+    <string name="model_filter_menu_header">Model Filter</string>
+    <string name="auto_expand_menu_header">Auto Expand</string>
     <string name="nav_about">About</string>
 
     <!-- Language settings -->
     <string name="language_setting">Language</string>
-    <string name="chinese">中文</string>
-    <string name="english">English</string>
-    
+
     <!-- Notification mode settings -->
     <string name="notification_mode_setting">Notification Mode</string>
     <string name="notification_mode_super_island_only">Super Island Only</string>
@@ -32,18 +32,12 @@
     <string name="permission_setting_desc">Manage app permission configuration</string>
 
     <!-- About page strings -->
-    <string name="app_version">Version %1$s (%2$d)</string>
     <string name="app_version_error">Failed to get version</string>
-    <string name="website_url">https://www.pylin.cn</string>
     <string name="website_label">Official Website</string>
-    <string name="github_url">https://github.com/PYLinTech/cn.pylin.xycjd</string>
     <string name="github_label">GitHub</string>
     <string name="qq_group_label">QQ Group</string>
-    <string name="qq_group_number">264467629</string>
     <string name="qq_join_failed">Failed to open QQ, QQ group number copied</string>
     <string name="open_url_failed">Failed to open URL</string>
-    <string name="qq_group_key">7cvKsjmJIYIuL2vcJmh2uKxmHZLgxYxr</string>
-    <string name="qq_group_url_prefix">mqqopensdkapi://bizAgent/qm/qr?url=http%3A%2F%2Fqm.qq.com%2Fcgi-bin%2Fqm%2Fqr%3Ffrom%3Dapp%26p%3Dandroid%26jump_from%3Dwebapi%26k%3D</string>
     <string name="clipboard_label">Xiaoyu Super Island QQ Group Number</string>
 
     <!-- Intro page strings -->
@@ -143,7 +137,6 @@
     <string name="animation_speed_desc">Used to adjust the animation speed of the super island</string>
     <string name="current_speed">Current Speed</string>
     <string name="reset_speed">Reset to Default Speed</string>
-    <string name="value_speed">%.1fx</string>
 
     <!-- Test notification related strings -->
     <string name="test_notification">Test Notification</string>
@@ -176,6 +169,11 @@
     <string name="model_hunyuan">Tencent Hunyuan Model</string>
     <string name="online_model_config_title">Online Model Config</string>
     <string name="online_model_config_desc">Filtering degree higher means stricter judgment on irrelevant notifications</string>
+    <string name="custom_prompt_btn">Set Custom Prompt</string>
+    <string name="custom_prompt_title">Custom Prompt</string>
+    <string name="custom_prompt_hint">Enter custom prompt (max 150 characters)</string>
+    <string name="save">Save</string>
+    <string name="reset_to_default_prompt">Reset to Default Prompt</string>
     <string name="reset_to_default_online_config">Reset to Default Config</string>
     
     <!-- Log activity related strings -->
@@ -193,11 +191,16 @@
     <string name="confirm">Confirm</string>
     
     <!-- Default values for floating window -->
-    <string name="value_dp">%d dp</string>
-    <string name="default_size">100dp</string>
-    <string name="default_x">0dp</string>
-    <string name="default_y">-100dp</string>
-    <string name="default_filtering_degree">5.0</string>
-    <string name="default_learning_degree">3.0</string>
-    <string name="text_9_plus">9+</string>
+    <!-- Update Strings -->
+    <string name="update_title">New Version Available</string>
+    <string name="update_now">Update Now</string>
+    <string name="update_later">Later</string>
+    <string name="update_ignore">Skip</string>
+    <string name="update_downloading">Downloading...</string>
+    <string name="update_download_failed">Download failed, check network</string>
+    <string name="update_installing">Ready to install...</string>
+    <string name="update_no_update">No updates available!</string>
+    <string name="update_check_failed">Check failed</string>
+    <string name="update_parse_failed">Parse failed</string>
+    <string name="version_label">Current Version</string>
 </resources>

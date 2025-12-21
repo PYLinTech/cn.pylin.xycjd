@@ -377,6 +377,21 @@
                         android:progressBackgroundTint="?android:attr/textColorSecondary" />
                 </LinearLayout>
 
+                <!-- 自定义提示词按钮 -->
+                <Button
+                    android:id="@+id/btn_custom_prompt"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="@string/custom_prompt_btn"
+                    android:textSize="14sp"
+                    android:textColor="@color/colorPrimary"
+                    android:background="?attr/selectableItemBackground"
+                    android:paddingStart="16dp"
+                    android:paddingEnd="16dp"
+                    android:paddingTop="8dp"
+                    android:paddingBottom="8dp" />
+
                 <!-- 还原默认配置按钮 -->
                 <Button
                     android:id="@+id/btn_reset_online_config"
