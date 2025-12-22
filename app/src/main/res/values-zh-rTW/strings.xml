@@ -130,7 +130,7 @@
     <string name="model_local">本地學習模型</string>
     <string name="model_online">在線模型</string>
     <string name="online_model_config_title">在線模型配置</string>
-    <string name="online_model_config_desc">過濾程度越高，越嚴格地過濾無關通知</string>
+    <string name="online_model_config_desc">過濾程度越高，越嚴格地過濾無關通知；溫度越高，模型輸齣越隨機；溫度越低，輸齣越確定。</string>
     <string name="custom_prompt_btn">設置自定義提示詞</string>
     <string name="custom_prompt_title">自定義提示詞</string>
     <string name="custom_prompt_hint">請輸入自定義提示詞</string>
@@ -170,5 +170,4 @@
     <string name="update_parse_failed">解析響應失敗</string>
     <string name="version_label">當前版本</string>
     <string name="temperature">溫度</string>
-    <string name="temperature_desc">溫度越高，模型輸齣越隨機；溫度越低，輸齣越確定。</string>
 </resources>

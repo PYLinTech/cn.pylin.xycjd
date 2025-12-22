@@ -166,7 +166,7 @@
     <string name="model_local">Local Learning Model</string>
     <string name="model_online">Online Model</string>
     <string name="online_model_config_title">Online Model Configuration</string>
-    <string name="online_model_config_desc">Higher filtering degree means stricter filtering of irrelevant notifications</string>
+    <string name="online_model_config_desc">Higher filtering degree means stricter filtering of irrelevant notifications. The higher the temperature, the more random the model output becomes; the lower the temperature, the more deterministic the output becomes.</string>
     <string name="custom_prompt_btn">Set Custom Prompt</string>
     <string name="custom_prompt_title">Custom Prompt</string>
     <string name="custom_prompt_hint">Enter custom prompt</string>
@@ -212,5 +212,4 @@
     <string name="update_parse_failed">Failed to parse response</string>
     <string name="version_label">Current Version</string>
     <string name="temperature">Temperature</string>
-    <string name="temperature_desc">The higher the temperature, the more random the model output becomes; the lower the temperature, the more deterministic the output becomes.</string>
 </resources>
