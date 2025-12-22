@@ -34,6 +34,7 @@ public class OnlineModelManager {
     private static final String PREF_API_KEY = "pref_online_api_key";
     private static final String PREF_MODEL_NAME = "pref_online_model_name";
     private static final String PREF_SYSTEM_PROMPT = "pref_online_model_prompt";
+    private static final String PREF_TEMPERATURE = "pref_temperature";
 
     public interface FilterCallback {
         void onResult(boolean shouldFilter, float score);
@@ -133,8 +134,11 @@ public class OnlineModelManager {
             userMessage.put("role", "user");
             userMessage.put("content", prompt);
             messages.put(userMessage);
-
             jsonBody.put("messages", messages);
+
+            // 从配置中读取温度值，默认为0.5
+            float temperature = prefs.getFloat(PREF_TEMPERATURE, 0.5f);
+            jsonBody.put("temperature", temperature);
             jsonBody.put("temperature", 0.5);
 
             // 发送请求

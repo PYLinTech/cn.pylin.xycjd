@@ -103,6 +103,8 @@ public class SettingsFragment extends Fragment {
     private CardView cardOnlineModelConfig;
     private TextView tvOnlineFilteringDegreeValue;
     private SeekBar seekBarOnlineFilteringDegree;
+    private TextView tvTemperatureValue;
+    private SeekBar seekBarTemperature;
     private Button btnResetOnlineFilteringDegreeConfig;
     private Button btnApiConfig;
 
@@ -126,6 +128,7 @@ public class SettingsFragment extends Fragment {
     private static final String PREF_LEARNING_DEGREE = "pref_learning_degree";
     private static final String PREF_ONLINE_FILTERING_DEGREE = "pref_online_filtering_degree";
     private static final String PREF_ONLINE_MODEL_PROMPT = "pref_online_model_prompt";
+    private static final String PREF_TEMPERATURE = "pref_temperature";
     private static final String PREF_NOTIFICATION_MODE = "pref_notification_mode";
     public static final String MODE_SUPER_ISLAND_ONLY = "mode_super_island_only";
     public static final String MODE_NOTIFICATION_BAR_ONLY = "mode_notification_bar_only";
@@ -256,6 +259,8 @@ public class SettingsFragment extends Fragment {
         cardOnlineModelConfig = view.findViewById(R.id.card_online_model_config);
         tvOnlineFilteringDegreeValue = view.findViewById(R.id.tv_online_filtering_degree_value);
         seekBarOnlineFilteringDegree = view.findViewById(R.id.seekbar_online_filtering_degree);
+        tvTemperatureValue = view.findViewById(R.id.tv_temperature_value);
+        seekBarTemperature = view.findViewById(R.id.seekbar_temperature);
         btnResetOnlineFilteringDegreeConfig = view.findViewById(R.id.btn_reset_online_filtering_degree_config);
         btnApiConfig = view.findViewById(R.id.btn_api_config);
 
@@ -849,13 +854,18 @@ public class SettingsFragment extends Fragment {
         
         // 获取保存的值，如果不存在则使用默认值
         float filteringDegree = preferences.getFloat(PREF_ONLINE_FILTERING_DEGREE, 5.0f);
+        float temperature = preferences.getFloat(PREF_TEMPERATURE, 0.5f);
         
         // 设置初始值
         // SeekBar范围是0-100，对应0.0-10.0
         seekBarOnlineFilteringDegree.setProgress((int) (filteringDegree * 10));
         tvOnlineFilteringDegreeValue.setText(String.format("%.1f", filteringDegree));
         
-        // 设置监听器
+        // 温度滑块范围是0-10，对应0.0-1.0
+        seekBarTemperature.setProgress((int) (temperature * 10));
+        tvTemperatureValue.setText(String.format("%.1f", temperature));
+        
+        // 设置过滤程度监听器
         seekBarOnlineFilteringDegree.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
@@ -877,14 +887,38 @@ public class SettingsFragment extends Fragment {
             public void onStopTrackingTouch(SeekBar seekBar) {}
         });
 
+        // 设置温度监听器
+        seekBarTemperature.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                float value = progress / 10.0f;
+                tvTemperatureValue.setText(String.format("%.1f", value));
+                
+                if (fromUser) {
+                    // 保存设置
+                    SharedPreferences.Editor editor = preferences.edit();
+                    editor.putFloat(PREF_TEMPERATURE, value);
+                    editor.apply();
+                }
+            }
+            
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {}
+            
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {}
+        });
+
         // 重置按钮点击事件
         btnResetOnlineFilteringDegreeConfig.setOnClickListener(v -> {
-            // 恢复默认过滤程度
+            // 恢复默认值
             float defaultFilteringDegree = 5.0f;
+            float defaultTemperature = 0.5f;
 
             // 重置API配置
             SharedPreferences.Editor editor = preferences.edit();
             editor.putFloat(PREF_ONLINE_FILTERING_DEGREE, defaultFilteringDegree);
+            editor.putFloat(PREF_TEMPERATURE, defaultTemperature);
             editor.remove("pref_online_api_url");
             editor.remove("pref_online_api_key");
             editor.remove("pref_online_model_name");
@@ -894,6 +928,8 @@ public class SettingsFragment extends Fragment {
             // 更新 UI
             seekBarOnlineFilteringDegree.setProgress((int) (defaultFilteringDegree * 10));
             tvOnlineFilteringDegreeValue.setText(String.format("%.1f", defaultFilteringDegree));
+            seekBarTemperature.setProgress((int) (defaultTemperature * 10));
+            tvTemperatureValue.setText(String.format("%.1f", defaultTemperature));
         });
 
         // API配置按钮点击事件
@@ -914,6 +950,8 @@ public class SettingsFragment extends Fragment {
         EditText etApiKey = view.findViewById(R.id.et_api_key);
         EditText etModelName = view.findViewById(R.id.et_model_name);
         EditText etSystemPrompt = view.findViewById(R.id.et_system_prompt);
+        SeekBar seekBarTemperature = view.findViewById(R.id.et_temperature);
+        TextView tvTemperatureValue = view.findViewById(R.id.tv_temperature_value);
         Button btnCancel = view.findViewById(R.id.btn_cancel);
         Button btnSave = view.findViewById(R.id.btn_save);
 
@@ -923,14 +961,34 @@ public class SettingsFragment extends Fragment {
         String currentApiUrl = preferences.getString("pref_online_api_url", "");
         String currentApiKey = preferences.getString("pref_online_api_key", "");
         String currentModelName = preferences.getString("pref_online_model_name", "");
-        String currentSystemPrompt = preferences.getString("pref_online_model_prompt", 
+        String currentSystemPrompt = preferences.getString("pref_online_model_prompt",
                 getString(R.string.default_prompt_content));
+        float currentTemperature = preferences.getFloat(PREF_TEMPERATURE, 0.5f);
 
         // 设置当前值到输入框
         etApiUrl.setText(currentApiUrl);
         etApiKey.setText(currentApiKey);
         etModelName.setText(currentModelName);
         etSystemPrompt.setText(currentSystemPrompt);
+        
+        // 设置温度滑块
+        seekBarTemperature.setProgress((int) (currentTemperature * 10));
+        tvTemperatureValue.setText(String.format("%.1f", currentTemperature));
+        
+        // 设置温度滑块监听器
+        seekBarTemperature.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                float value = progress / 10.0f;
+                tvTemperatureValue.setText(String.format("%.1f", value));
+            }
+            
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {}
+            
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {}
+        });
         
         // 取消
         btnCancel.setOnClickListener(v -> dialog.dismiss());
@@ -941,6 +999,7 @@ public class SettingsFragment extends Fragment {
             String apiKey = etApiKey.getText().toString().trim();
             String modelName = etModelName.getText().toString().trim();
             String systemPrompt = etSystemPrompt.getText().toString().trim();
+            float temperature = seekBarTemperature.getProgress() / 10.0f;
             
             // 验证输入
             if (apiUrl.isEmpty() || apiKey.isEmpty() || modelName.isEmpty()) {
@@ -953,7 +1012,17 @@ public class SettingsFragment extends Fragment {
             editor.putString("pref_online_api_key", apiKey);
             editor.putString("pref_online_model_name", modelName);
             editor.putString("pref_online_model_prompt", systemPrompt);
+            editor.putFloat(PREF_TEMPERATURE, temperature);
             editor.apply();
+            
+            // 更新主页面的温度显示
+            if (tvTemperatureValue != null) {
+                tvTemperatureValue.setText(String.format("%.1f", temperature));
+            }
+            if (seekBarTemperature != null) {
+                seekBarTemperature.setProgress((int) (temperature * 10));
+            }
+            
             dialog.dismiss();
         });
 

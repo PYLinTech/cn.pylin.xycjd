@@ -88,7 +88,7 @@
         android:id="@+id/et_system_prompt"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="16dp"
+        android:layout_marginBottom="12dp"
         android:background="@drawable/edit_text_background"
         android:hint="@string/system_prompt_hint"
         android:padding="8dp"
@@ -97,6 +97,42 @@
         android:maxLength="150"
         android:gravity="top"
         android:minLines="3" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/temperature"
+        android:textSize="14sp"
+        android:textColor="?android:attr/textColorSecondary"
+        android:layout_marginBottom="4dp" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="16dp">
+
+        <SeekBar
+            android:id="@+id/et_temperature"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:max="10"
+            android:progress="5"
+            android:progressTint="@color/colorPrimary"
+            android:thumbTint="@color/colorPrimary"
+            android:progressBackgroundTint="?android:attr/textColorSecondary"
+            android:layout_marginEnd="8dp" />
+
+        <TextView
+            android:id="@+id/tv_temperature_value"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/default_temperature"
+            android:textSize="14sp"
+            android:textColor="?android:attr/textColorPrimary" />
+    </LinearLayout>
 
     <LinearLayout
         android:layout_width="match_parent"

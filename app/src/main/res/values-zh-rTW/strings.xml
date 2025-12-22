@@ -133,7 +133,7 @@
     <string name="online_model_config_desc">過濾程度越高，越嚴格地過濾無關通知</string>
     <string name="custom_prompt_btn">設置自定義提示詞</string>
     <string name="custom_prompt_title">自定義提示詞</string>
-    <string name="custom_prompt_hint">請輸入自定義提示詞（最多150字符）</string>
+    <string name="custom_prompt_hint">請輸入自定義提示詞</string>
     <string name="save">保存</string>
     <string name="reset_to_default_prompt">還原默認提示詞</string>
     <string name="default_prompt_content">你是智能通知評分繫統，僅輸齣0.0到10.0的數字，0.0–3.0錶示騷擾/垃圾內容（如廣告誘導虛假），3.1–5.0爲低價值無用通知，5.1–7.0爲普通可能有用通知，7.1–9.0爲重要通知（如快遞支付生活場景），9.1–10.0爲關鍵通知（QQ微信驗証碼）</string>
@@ -169,4 +169,6 @@
     <string name="update_check_failed">檢查更新失敗</string>
     <string name="update_parse_failed">解析響應失敗</string>
     <string name="version_label">當前版本</string>
+    <string name="temperature">溫度</string>
+    <string name="temperature_desc">溫度越高，模型輸齣越隨機；溫度越低，輸齣越確定。</string>
 </resources>
