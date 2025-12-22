@@ -91,7 +91,19 @@ public class OnlineModelManager {
         }
 
         try {
-            URL url = new URL(apiUrl);
+            // 自动补全API路径
+            String finalUrl = apiUrl;
+            // 移除末尾的斜杠，防止双斜杠问题
+            while (finalUrl.endsWith("/")) {
+                finalUrl = finalUrl.substring(0, finalUrl.length() - 1);
+            }
+            
+            // 如果路径不以 /chat/completions 结尾，则自动追加
+            if (!finalUrl.endsWith("/chat/completions")) {
+                finalUrl += "/chat/completions";
+            }
+
+            URL url = new URL(finalUrl);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setRequestMethod("POST");
             conn.setRequestProperty("Content-Type", "application/json");
@@ -100,12 +112,12 @@ public class OnlineModelManager {
 
             // 截断标题和内容
             String safeTitle = title != null ? title : "";
-            if (safeTitle.length() > 10) {
-                safeTitle = safeTitle.substring(0, 10);
+            if (safeTitle.length() > 50) {
+                safeTitle = safeTitle.substring(0, 50);
             }
             String safeContent = content != null ? content : "";
-            if (safeContent.length() > 20) {
-                safeContent = safeContent.substring(0, 20);
+            if (safeContent.length() > 200) {
+                safeContent = safeContent.substring(0, 200);
             }
 
             // 构建提示词
@@ -139,7 +151,6 @@ public class OnlineModelManager {
             // 从配置中读取温度值，默认为0.5
             float temperature = prefs.getFloat(PREF_TEMPERATURE, 0.5f);
             jsonBody.put("temperature", temperature);
-            jsonBody.put("temperature", 0.5);
 
             // 发送请求
             try (OutputStream os = conn.getOutputStream()) {
