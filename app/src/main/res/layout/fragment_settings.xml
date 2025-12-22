@@ -283,10 +283,10 @@
                         android:gravity="center_vertical"/>
 
                     <RadioButton
-                        android:id="@+id/radio_btn_model_hunyuan"
+                        android:id="@+id/radio_btn_model_online"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="@string/model_hunyuan"
+                        android:text="@string/model_online"
                         android:textSize="14sp"
                         android:textColor="?android:attr/textColorSecondary"
                         android:buttonTint="@color/colorPrimary"

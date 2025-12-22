@@ -143,7 +143,7 @@ public class AppNotificationListenerService extends NotificationListenerService 
         
         // 定义具体的策略标志
         boolean useLocalModel = isModelFilteringEnabled && isSelectedApp && !isMediaNotification && SettingsFragment.MODEL_LOCAL.equals(modelType);
-        boolean useHunyuanModel = isModelFilteringEnabled && isSelectedApp && !isMediaNotification && SettingsFragment.MODEL_HUNYUAN.equals(modelType);
+        boolean useOnlineModel = isModelFilteringEnabled && isSelectedApp && !isMediaNotification && SettingsFragment.MODEL_ONLINE.equals(modelType);
 
         // 3. 执行分流策略
         if (useLocalModel) {
@@ -166,19 +166,19 @@ public class AppNotificationListenerService extends NotificationListenerService 
                 }
             }).start();
 
-        } else if (useHunyuanModel) {
-            // 策略 B: 混元模型 -> 乐观展示 + 异步检查 (Show then Check)
+        } else if (useOnlineModel) {
+            // 策略 B: 在线模型 -> 乐观展示 + 异步检查 (Show then Check)
             // 网络请求较慢，为了体验先显示，后续如果判断为垃圾则移除
             
             // 先显示
             showNotificationInIsland(sbn, packageName, title, text, notification.contentIntent, finalToken, mode);
 
             // 后检查
-            HunyuanModelManager.getInstance(this).checkFilter(title, predictionText, (shouldFilter, score) -> {
+            OnlineModelManager.getInstance(this).checkFilter(title, predictionText, (shouldFilter, score) -> {
                 // 获取过滤程度用于日志记录
                 float filteringDegree = prefs.getFloat("pref_online_filtering_degree", 5.0f);
                 String resultStr = shouldFilter ? getString(R.string.log_result_filtered) : getString(R.string.log_result_allowed);
-                String logMsg = getString(R.string.log_hunyuan_check, title, score, filteringDegree, resultStr, predictionText);
+                String logMsg = getString(R.string.log_online_check, title, score, filteringDegree, resultStr, predictionText);
                 NotificationLogManager.getInstance().log(logMsg);
 
                 if (shouldFilter) {

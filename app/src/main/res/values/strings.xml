@@ -175,7 +175,7 @@
     <!-- 过滤模型设置 -->
     <string name="filter_model_setting">过滤模型</string>
     <string name="model_local">本地学习模型</string>
-    <string name="model_hunyuan">腾讯混元模型</string>
+    <string name="model_online">在线模型</string>
     <string name="online_model_config_title">在线模型配置</string>
     <string name="online_model_config_desc">过滤程度越高，越严格地过滤无关通知</string>
     <string name="custom_prompt_btn">设置自定义提示词</string>
@@ -189,14 +189,14 @@
     <!-- 日志页面相关字符串 -->
     <string name="log_return">返回</string>
     <string name="log_exit">退出</string>
-    <string name="log_hunyuan_check">混元模型检测: %1$s | 分数: %2$.1f (阈值: %3$.1f) | 结果: %4$s | 原文: %5$s</string>
+    <string name="log_online_check">在线模型检测: %1$s | 分数: %2$.1f (阈值: %3$.1f) | 结果: %4$s | 原文: %5$s</string>
     <string name="log_local_check">本地模型检测: %1$s | 分数: %2$.2f (阈值: %3$.1f) | 结果: %4$s | 原文: %5$s</string>
     <string name="log_result_filtered">过滤</string>
     <string name="log_result_allowed">放行</string>
 
     <!-- 在线模型警告对话框相关字符串 -->
     <string name="warning_title">警告</string>
-    <string name="hunyuan_warning_content">切换到在线模型会将通知标题及内容上传到云端模型。\n如果您点击确定并使用模型即代表您已经了解并接受潜在的隐私风险。</string>
+    <string name="online_warning_content">切换到在线模型会将通知标题及内容上传到云端模型。\n如果您点击确定并使用模型即代表您已经了解并接受潜在的隐私风险。</string>
     <string name="cancel">取消</string>
     <string name="confirm">确定</string>
 

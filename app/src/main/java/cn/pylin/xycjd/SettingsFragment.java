@@ -87,7 +87,7 @@ public class SettingsFragment extends Fragment {
     // 过滤模型控件
     private RadioGroup radioGroupFilterModel;
     private RadioButton radioBtnModelLocal;
-    private RadioButton radioBtnModelHunyuan;
+    private RadioButton radioBtnModelOnline;
 
     // 学习配置相关控件
     private CardView cardLearningConfig;
@@ -132,7 +132,7 @@ public class SettingsFragment extends Fragment {
     
     private static final String PREF_FILTER_MODEL = "pref_filter_model";
     public static final String MODEL_LOCAL = "model_local";
-    public static final String MODEL_HUNYUAN = "model_hunyuan";
+    public static final String MODEL_ONLINE = "model_online";
 
     private static final String PREF_SETTINGS_SCROLL_Y = "pref_settings_scroll_y";
     private static final String PREF_ANIMATION_SPEED = "pref_animation_speed";
@@ -239,7 +239,7 @@ public class SettingsFragment extends Fragment {
         // 初始化过滤模型控件
         radioGroupFilterModel = view.findViewById(R.id.radio_group_filter_model);
         radioBtnModelLocal = view.findViewById(R.id.radio_btn_model_local);
-        radioBtnModelHunyuan = view.findViewById(R.id.radio_btn_model_hunyuan);
+        radioBtnModelOnline = view.findViewById(R.id.radio_btn_model_online);
 
         // 初始化学习配置相关控件
         cardLearningConfig = view.findViewById(R.id.card_learning_config);
@@ -748,8 +748,8 @@ public class SettingsFragment extends Fragment {
         String model = preferences.getString(PREF_FILTER_MODEL, MODEL_LOCAL);
         
         // 设置选中状态
-        if (MODEL_HUNYUAN.equals(model)) {
-            radioBtnModelHunyuan.setChecked(true);
+        if (MODEL_ONLINE.equals(model)) {
+            radioBtnModelOnline.setChecked(true);
             cardLearningConfig.setVisibility(View.GONE);
             cardOnlineModelConfig.setVisibility(View.VISIBLE);
         } else {
@@ -766,14 +766,14 @@ public class SettingsFragment extends Fragment {
                 editor.apply();
                 cardLearningConfig.setVisibility(View.VISIBLE);
                 cardOnlineModelConfig.setVisibility(View.GONE);
-            } else if (checkedId == R.id.radio_btn_model_hunyuan) {
+            } else if (checkedId == R.id.radio_btn_model_online) {
                 // 显示警告弹窗，暂不保存设置
-                showHunyuanWarningDialog();
+                showOnlineWarningDialog();
             }
         });
     }
 
-    private void showHunyuanWarningDialog() {
+    private void showOnlineWarningDialog() {
         android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(requireContext());
         View view = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_warning, null);
         builder.setView(view);
@@ -820,10 +820,10 @@ public class SettingsFragment extends Fragment {
 
         btnConfirm.setOnClickListener(v -> {
             dialog.dismiss();
-            // 确认切换到混元模型
+            // 确认切换到在线模型
             SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(requireContext());
             SharedPreferences.Editor editor = preferences.edit();
-            editor.putString(PREF_FILTER_MODEL, MODEL_HUNYUAN);
+            editor.putString(PREF_FILTER_MODEL, MODEL_ONLINE);
             editor.apply();
             
             cardLearningConfig.setVisibility(View.GONE);

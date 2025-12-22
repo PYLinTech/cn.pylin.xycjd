@@ -19,36 +19,36 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /**
- * 腾讯混元模型管理器
+ * 在线模型管理器
  * 实现OpenAI接口规范的调用
  */
-public class HunyuanModelManager {
+public class OnlineModelManager {
     
     // 从 BuildConfig 获取 API Key
-    private static final String API_KEY = BuildConfig.Hunyuan_KEY;
-    private static HunyuanModelManager instance;
+    private static final String API_KEY = BuildConfig.Online_KEY;
+    private static OnlineModelManager instance;
     private final ExecutorService executor;
     private final Handler mainHandler;
     private final Context context;
 
-    // 腾讯混元 API Endpoint (OpenAI 兼容接口)
-    private static final String API_URL = "https://api.hunyuan.cloud.tencent.com/v1/chat/completions"; 
+    // 在线 API Endpoint (OpenAI 兼容接口)
+    private static final String API_URL = "https://api.online.cloud.tencent.com/v1/chat/completions"; 
     // 模型名称
-    private static final String MODEL_NAME = "hunyuan-lite"; 
+    private static final String MODEL_NAME = "online-lite"; 
 
     public interface FilterCallback {
         void onResult(boolean shouldFilter, float score);
     }
 
-    private HunyuanModelManager(Context context) {
+    private OnlineModelManager(Context context) {
         this.context = context.getApplicationContext();
         this.executor = Executors.newSingleThreadExecutor();
         this.mainHandler = new Handler(Looper.getMainLooper());
     }
 
-    public static synchronized HunyuanModelManager getInstance(Context context) {
+    public static synchronized OnlineModelManager getInstance(Context context) {
         if (instance == null) {
-            instance = new HunyuanModelManager(context);
+            instance = new OnlineModelManager(context);
         }
         return instance;
     }
@@ -61,7 +61,7 @@ public class HunyuanModelManager {
      */
     public void checkFilter(String title, String content, FilterCallback callback) {
         executor.execute(() -> {
-            float score = callHunyuanApi(title, content);
+            float score = callOnlineApi(title, content);
 
             // 获取在线过滤程度配置
             SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
@@ -77,7 +77,7 @@ public class HunyuanModelManager {
         });
     }
 
-    private float callHunyuanApi(String title, String content) {
+    private float callOnlineApi(String title, String content) {
 
         try {
             URL url = new URL(API_URL);
@@ -162,7 +162,7 @@ public class HunyuanModelManager {
                                 return Math.max(0f, Math.min(10f, score));
                             }
                         } catch (NumberFormatException e) {
-                            Log.e("HunyuanModelManager", "Failed to parse score: " + contentResult);
+                            Log.e("OnlineModelManager", "Failed to parse score: " + contentResult);
                         }
                     }
                 }

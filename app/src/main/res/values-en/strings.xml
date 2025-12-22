@@ -166,7 +166,7 @@
     <!-- Filter model setting strings -->
     <string name="filter_model_setting">Filter Model</string>
     <string name="model_local">Local Learning Model</string>
-    <string name="model_hunyuan">Tencent Hunyuan Model</string>
+    <string name="model_online">Tencent Online Model</string>
     <string name="online_model_config_title">Online Model Config</string>
     <string name="online_model_config_desc">Filtering degree higher means stricter judgment on irrelevant notifications</string>
     <string name="custom_prompt_btn">Set Custom Prompt</string>
@@ -179,14 +179,14 @@
     <!-- Log activity related strings -->
     <string name="log_return">Return</string>
     <string name="log_exit">Exit</string>
-    <string name="log_hunyuan_check">Hunyuan Model Check: %1$s | Score: %2$.1f (Threshold: %3$.1f) | Result: %4$s | Original: %5$s</string>
+    <string name="log_online_check">Online Model Check: %1$s | Score: %2$.1f (Threshold: %3$.1f) | Result: %4$s | Original: %5$s</string>
     <string name="log_local_check">Local Model Check: %1$s | Score: %2$.2f (Threshold: %3$.1f) | Result: %4$s | Original: %5$s</string>
     <string name="log_result_filtered">Filtered</string>
     <string name="log_result_allowed">Allowed</string>
 
     <!-- Online model warning dialog related strings -->
     <string name="warning_title">Warning</string>
-    <string name="hunyuan_warning_content">Switching to the online model will upload the notification title and content to the cloud model.\nIf you click confirm and use the model, you confirm that you have read and accepted the potential privacy risks.</string>
+    <string name="online_warning_content">Switching to the online model will upload the notification title and content to the cloud model.\nIf you click confirm and use the model, you confirm that you have read and accepted the potential privacy risks.</string>
     <string name="cancel">Cancel</string>
     <string name="confirm">Confirm</string>
     
