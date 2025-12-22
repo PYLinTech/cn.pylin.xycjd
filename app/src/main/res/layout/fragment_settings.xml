@@ -379,6 +379,58 @@
                         android:progressBackgroundTint="?android:attr/textColorSecondary" />
                 </LinearLayout>
 
+                <!-- 温度设置 -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginTop="12dp"
+                    android:layout_marginBottom="12dp">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/temperature_desc"
+                        android:textSize="14sp"
+                        android:textColor="?android:attr/textColorSecondary"
+                        android:layout_marginTop="24dp"
+                        android:layout_marginBottom="16dp" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginBottom="8dp">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/temperature"
+                            android:textSize="14sp"
+                            android:textColor="?android:attr/textColorSecondary" />
+
+                        <TextView
+                            android:id="@+id/tv_temperature_value"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/default_temperature"
+                            android:textSize="14sp"
+                            android:textColor="?android:attr/textColorPrimary" />
+                    </LinearLayout>
+
+                    <SeekBar
+                        android:id="@+id/seekbar_temperature"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:max="10"
+                        android:progress="5"
+                        android:progressTint="@color/colorPrimary"
+                        android:thumbTint="@color/colorPrimary"
+                        android:progressBackgroundTint="?android:attr/textColorSecondary" />
+                </LinearLayout>
+
                 <!-- API配置按钮 -->
                 <Button
                     android:id="@+id/btn_api_config"

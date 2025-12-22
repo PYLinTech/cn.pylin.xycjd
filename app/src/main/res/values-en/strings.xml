@@ -169,7 +169,7 @@
     <string name="online_model_config_desc">Higher filtering degree means stricter filtering of irrelevant notifications</string>
     <string name="custom_prompt_btn">Set Custom Prompt</string>
     <string name="custom_prompt_title">Custom Prompt</string>
-    <string name="custom_prompt_hint">Enter custom prompt (max 150 characters)</string>
+    <string name="custom_prompt_hint">Enter custom prompt</string>
     <string name="save">Save</string>
     <string name="reset_to_default_prompt">Reset Default Prompt</string>
     <string name="default_prompt_content">You are an intelligent notification scoring system, only output numbers from 0.0 to 10.0, 0.0-3.0 indicates harassment/spam content (such as deceptive ads), 3.1-5.0 is low-value useless notifications, 5.1-7.0 is ordinary possibly useful notifications, 7.1-9.0 is important notifications (such as courier payment life scenarios), 9.1-10.0 is key notifications (QQ WeChat verification codes)</string>
@@ -211,4 +211,6 @@
     <string name="update_check_failed">Failed to check update</string>
     <string name="update_parse_failed">Failed to parse response</string>
     <string name="version_label">Current Version</string>
+    <string name="temperature">Temperature</string>
+    <string name="temperature_desc">The higher the temperature, the more random the model output becomes; the lower the temperature, the more deterministic the output becomes.</string>
 </resources>
