@@ -240,7 +240,13 @@ public class MainActivity extends AppCompatActivity {
         String language = preferences.getString("language", "zh");
         
         // 更新应用语言设置
-        Locale locale = new Locale(language);
+        Locale locale;
+        if (language.equals("zh-rTW")) {
+            // 繁体中文使用台湾地区
+            locale = new Locale("zh", "TW");
+        } else {
+            locale = new Locale(language);
+        }
         Locale.setDefault(locale);
         
         Resources resources = getResources();

@@ -178,11 +178,16 @@ public class IntroActivity extends AppCompatActivity {
     private void setAppLanguage() {
         // 获取系统语言
         String systemLanguage = Locale.getDefault().getLanguage();
+        String systemCountry = Locale.getDefault().getCountry();
         
         // 检查支持的语言
         String appLanguage = systemLanguage;
-        if (!"zh".equals(systemLanguage) && !"en".equals(systemLanguage)) {
-            // 默认使用中文
+        
+        // 检查是否为繁体中文（台湾地区）
+        if ("zh".equals(systemLanguage) && "TW".equals(systemCountry)) {
+            appLanguage = "zh-rTW";
+        } else if (!"zh".equals(systemLanguage) && !"en".equals(systemLanguage)) {
+            // 默认使用简体中文
             appLanguage = "zh";
         }
         
@@ -193,7 +198,13 @@ public class IntroActivity extends AppCompatActivity {
         editor.apply();
         
         // 更新应用语言设置
-        Locale locale = new Locale(appLanguage);
+        Locale locale;
+        if (appLanguage.equals("zh-rTW")) {
+            // 繁体中文使用台湾地区
+            locale = new Locale("zh", "TW");
+        } else {
+            locale = new Locale(appLanguage);
+        }
         Locale.setDefault(locale);
         
         Resources resources = getResources();

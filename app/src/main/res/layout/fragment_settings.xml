@@ -280,6 +280,7 @@
                         android:textColor="?android:attr/textColorSecondary"
                         android:buttonTint="@color/colorPrimary"
                         android:padding="16dp"
+                        android:layout_marginHorizontal="8dp"
                         android:gravity="center_vertical"/>
 
                     <RadioButton
@@ -291,6 +292,7 @@
                         android:textColor="?android:attr/textColorSecondary"
                         android:buttonTint="@color/colorPrimary"
                         android:padding="16dp"
+                        android:layout_marginHorizontal="8dp"
                         android:gravity="center_vertical"/>
                 </RadioGroup>
             </LinearLayout>
@@ -377,13 +379,13 @@
                         android:progressBackgroundTint="?android:attr/textColorSecondary" />
                 </LinearLayout>
 
-                <!-- 自定义提示词按钮 -->
+                <!-- API配置按钮 -->
                 <Button
-                    android:id="@+id/btn_custom_prompt"
+                    android:id="@+id/btn_api_config"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
-                    android:text="@string/custom_prompt_btn"
+                    android:text="@string/api_config_title"
                     android:textSize="14sp"
                     android:textColor="@color/colorPrimary"
                     android:background="?attr/selectableItemBackground"
@@ -394,11 +396,11 @@
 
                 <!-- 还原默认配置按钮 -->
                 <Button
-                    android:id="@+id/btn_reset_online_config"
+                    android:id="@+id/btn_reset_online_filtering_degree_config"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
-                    android:text="@string/reset_to_default_online_config"
+                    android:text="@string/reset_to_default_online_filtering_degree_config"
                     android:textSize="14sp"
                     android:textColor="@color/colorPrimary"
                     android:background="?attr/selectableItemBackground"
@@ -1258,6 +1260,19 @@
                         android:layout_height="wrap_content"
                         android:layout_marginHorizontal="8dp"
                         android:text="@string/english"
+                        android:textSize="14sp"
+                        android:textColor="?android:attr/textColorSecondary"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:buttonTint="@color/colorPrimary"
+                        android:gravity="center_vertical"
+                        android:padding="16dp" />
+
+                    <RadioButton
+                        android:id="@+id/radio_btn_zh_tw"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginHorizontal="8dp"
+                        android:text="@string/zh_tw"
                         android:textSize="14sp"
                         android:textColor="?android:attr/textColorSecondary"
                         android:background="?attr/selectableItemBackgroundBorderless"
