@@ -1045,14 +1045,14 @@ public class SettingsFragment extends Fragment {
             tvPermissionStatus.setText(getString(R.string.permission_all_granted));
             btnPermissionAction.setText(getString(R.string.configure_permission));
             btnPermissionAction.setBackgroundResource(R.drawable.btn_secondary_background);
-            btnPermissionAction.setTextColor(getResources().getColor(android.R.color.white, null));
+            btnPermissionAction.setTextColor(getResources().getColor(R.color.colorOnSurfaceSecondary, null));
             btnPermissionAction.setVisibility(View.VISIBLE);
         } else {
             // 有权限未开启
             tvPermissionStatus.setText(String.format(getString(R.string.permission_some_denied), status.deniedCount));
             btnPermissionAction.setText(getString(R.string.go_to_permission));
             btnPermissionAction.setBackgroundResource(R.drawable.btn_primary_background);
-            btnPermissionAction.setTextColor(getResources().getColor(android.R.color.white, null));
+            btnPermissionAction.setTextColor(getResources().getColor(R.color.white, null));
             btnPermissionAction.setVisibility(View.VISIBLE);
         }
     }

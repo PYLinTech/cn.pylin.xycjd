@@ -1,6 +1,4 @@
 package cn.pylin.xycjd;
-import android.app.Activity;
-import android.app.ActivityManager;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
@@ -34,11 +32,6 @@ public class MainActivity extends AppCompatActivity {
     private Button btnAbout;
     private View navigationIndicator;
     private SpringAnimation indicatorSpringAnimation;
-    
-    // 上次按返回键的时间
-    private long lastBackPressTime = 0;
-    // 双击返回键的时间间隔（毫秒）
-    private static final long DOUBLE_BACK_PRESS_INTERVAL = 2000;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -75,9 +68,7 @@ public class MainActivity extends AppCompatActivity {
 
         // 检查更新
         getWindow().getDecorView().post(() -> {
-            if (!isFinishing() && !isDestroyed()) { //确保活动未被销毁或完成销毁后再执行检查更新操作
-                new UpdateManager(this).checkForUpdates(false);
-            }
+            new UpdateManager(this).checkForUpdates(false);
         });
 
         // 设置按钮点击事件
@@ -278,50 +269,5 @@ public class MainActivity extends AppCompatActivity {
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
         int savedVersion = preferences.getInt("intro_version", 0);
         return savedVersion < IntroActivity.INTRO_VERSION;
-    }
-    
-    @Override
-    protected void onUserLeaveHint() {
-        super.onUserLeaveHint();
-        // 当用户离开应用（如按下Home键或切换任务）时，释放资源并从最近任务列表中隐藏
-        hideFromRecents();
-    }
-
-    @Override
-    public void onBackPressed() {
-        long currentTime = System.currentTimeMillis();
-        // 如果两次按返回键的时间间隔小于2秒，则释放资源并从最近任务列表中排除
-        if (currentTime - lastBackPressTime < DOUBLE_BACK_PRESS_INTERVAL) {
-            // 从最近任务列表中排除应用并释放资源
-            hideFromRecents();
-            // 移动到后台
-            moveTaskToBack(true);
-        } else {
-            // 第一次按返回键，提示用户再次按返回键隐藏到后台
-            lastBackPressTime = currentTime;
-            // 显示提示信息
-            android.widget.Toast.makeText(this, getString(R.string.double_back_to_exit), android.widget.Toast.LENGTH_SHORT).show();
-        }
-    }
-    
-    /**
-     * 从最近任务列表中隐藏应用并释放Activity资源
-     */
-    private void hideFromRecents() {
-        try {
-            ActivityManager activityManager = (ActivityManager) getSystemService(Activity.ACTIVITY_SERVICE);
-            if (activityManager != null) {
-                // 获取当前应用的任务列表
-                for (ActivityManager.AppTask task : activityManager.getAppTasks()) {
-                    // 设置从最近任务中排除
-                    task.setExcludeFromRecents(true);
-                    // 完成任务并移除，释放Activity资源
-                    task.finishAndRemoveTask();
-                }
-            }
-        } catch (Exception e) {
-            // 处理异常
-            e.printStackTrace();
-        }
     }
 }
