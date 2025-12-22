@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingHorizontal="48dp"
+    android:paddingVertical="24dp"
+    android:background="@drawable/dialog_background"
+    android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/tv_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:text="@string/api_config_title"
+        android:textColor="?android:attr/textColorPrimary"
+        android:textSize="18sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/api_url_label"
+        android:textSize="14sp"
+        android:textColor="?android:attr/textColorSecondary"
+        android:layout_marginBottom="4dp" />
+
+    <EditText
+        android:id="@+id/et_api_url"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="12dp"
+        android:background="@drawable/edit_text_background"
+        android:hint="@string/api_url_hint"
+        android:padding="8dp"
+        android:textColor="?android:attr/textColorPrimary"
+        android:textSize="14sp"
+        android:inputType="textUri" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/api_key_label"
+        android:textSize="14sp"
+        android:textColor="?android:attr/textColorSecondary"
+        android:layout_marginBottom="4dp" />
+
+    <EditText
+        android:id="@+id/et_api_key"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="12dp"
+        android:background="@drawable/edit_text_background"
+        android:hint="@string/api_key_hint"
+        android:padding="8dp"
+        android:textColor="?android:attr/textColorPrimary"
+        android:textSize="14sp"
+        android:inputType="textPassword" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/model_name_label"
+        android:textSize="14sp"
+        android:textColor="?android:attr/textColorSecondary"
+        android:layout_marginBottom="4dp" />
+
+    <EditText
+        android:id="@+id/et_model_name"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="12dp"
+        android:background="@drawable/edit_text_background"
+        android:hint="@string/model_name_hint"
+        android:padding="8dp"
+        android:textColor="?android:attr/textColorPrimary"
+        android:textSize="14sp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/system_prompt_label"
+        android:textSize="14sp"
+        android:textColor="?android:attr/textColorSecondary"
+        android:layout_marginBottom="4dp" />
+
+    <EditText
+        android:id="@+id/et_system_prompt"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:background="@drawable/edit_text_background"
+        android:hint="@string/system_prompt_hint"
+        android:padding="8dp"
+        android:textColor="?android:attr/textColorPrimary"
+        android:textSize="14sp"
+        android:maxLength="150"
+        android:gravity="top"
+        android:minLines="3" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="end"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/btn_cancel"
+            style="?android:attr/borderlessButtonStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/cancel"
+            android:textColor="?android:attr/textColorSecondary" />
+
+        <Button
+            android:id="@+id/btn_save"
+            android:layout_width="wrap_content"
+            android:layout_height="36dp"
+            android:text="@string/save"
+            android:textColor="@android:color/white"
+            android:background="@drawable/btn_primary_background"/>
+    </LinearLayout>
+
+</LinearLayout>

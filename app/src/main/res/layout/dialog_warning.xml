@@ -22,7 +22,7 @@
         android:id="@+id/tv_dialog_message"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/hunyuan_warning_content"
+        android:text="@string/online_warning_content"
         android:textSize="14sp"
         android:textColor="@color/colorOnSurfaceSecondary"
         android:lineSpacingExtra="4dp"

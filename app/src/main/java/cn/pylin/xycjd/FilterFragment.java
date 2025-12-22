@@ -218,8 +218,8 @@ public class FilterFragment extends Fragment {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(mContext);
         String modelType = prefs.getString("pref_filter_model", SettingsFragment.MODEL_LOCAL);
         
-        // 如果是混元模型，隐藏"需要"选项，因为混元模型不支持用户反馈学习
-        if (SettingsFragment.MODEL_HUNYUAN.equals(modelType)) {
+        // 如果是在线模型，隐藏"需要"选项，因为在线模型不支持用户反馈学习
+        if (SettingsFragment.MODEL_ONLINE.equals(modelType)) {
             popup.getMenu().findItem(R.id.notice_need).setVisible(false);
         }
         

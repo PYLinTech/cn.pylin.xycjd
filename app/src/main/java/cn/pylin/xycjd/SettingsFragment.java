@@ -44,6 +44,7 @@ public class SettingsFragment extends Fragment {
     private RadioGroup radioGroupLanguage;
     private RadioButton radioBtnChinese;
     private RadioButton radioBtnEnglish;
+    private RadioButton radioBtnZhTw;
     
     private RadioGroup radioGroupTheme;
     private RadioButton radioBtnLight;
@@ -87,7 +88,7 @@ public class SettingsFragment extends Fragment {
     // 过滤模型控件
     private RadioGroup radioGroupFilterModel;
     private RadioButton radioBtnModelLocal;
-    private RadioButton radioBtnModelHunyuan;
+    private RadioButton radioBtnModelOnline;
 
     // 学习配置相关控件
     private CardView cardLearningConfig;
@@ -102,8 +103,8 @@ public class SettingsFragment extends Fragment {
     private CardView cardOnlineModelConfig;
     private TextView tvOnlineFilteringDegreeValue;
     private SeekBar seekBarOnlineFilteringDegree;
-    private Button btnResetOnlineConfig;
-    private Button btnCustomPrompt;
+    private Button btnResetOnlineFilteringDegreeConfig;
+    private Button btnApiConfig;
 
     // 测试通知相关控件
     private CardView cardTestNotification;
@@ -132,7 +133,7 @@ public class SettingsFragment extends Fragment {
     
     private static final String PREF_FILTER_MODEL = "pref_filter_model";
     public static final String MODEL_LOCAL = "model_local";
-    public static final String MODEL_HUNYUAN = "model_hunyuan";
+    public static final String MODEL_ONLINE = "model_online";
 
     private static final String PREF_SETTINGS_SCROLL_Y = "pref_settings_scroll_y";
     private static final String PREF_ANIMATION_SPEED = "pref_animation_speed";
@@ -196,6 +197,7 @@ public class SettingsFragment extends Fragment {
         radioGroupLanguage = view.findViewById(R.id.radio_group_language);
         radioBtnChinese = view.findViewById(R.id.radio_btn_chinese);
         radioBtnEnglish = view.findViewById(R.id.radio_btn_english);
+        radioBtnZhTw = view.findViewById(R.id.radio_btn_zh_tw);
         
         radioGroupTheme = view.findViewById(R.id.radio_group_theme);
         radioBtnLight = view.findViewById(R.id.radio_btn_light);
@@ -239,7 +241,7 @@ public class SettingsFragment extends Fragment {
         // 初始化过滤模型控件
         radioGroupFilterModel = view.findViewById(R.id.radio_group_filter_model);
         radioBtnModelLocal = view.findViewById(R.id.radio_btn_model_local);
-        radioBtnModelHunyuan = view.findViewById(R.id.radio_btn_model_hunyuan);
+        radioBtnModelOnline = view.findViewById(R.id.radio_btn_model_online);
 
         // 初始化学习配置相关控件
         cardLearningConfig = view.findViewById(R.id.card_learning_config);
@@ -254,8 +256,8 @@ public class SettingsFragment extends Fragment {
         cardOnlineModelConfig = view.findViewById(R.id.card_online_model_config);
         tvOnlineFilteringDegreeValue = view.findViewById(R.id.tv_online_filtering_degree_value);
         seekBarOnlineFilteringDegree = view.findViewById(R.id.seekbar_online_filtering_degree);
-        btnResetOnlineConfig = view.findViewById(R.id.btn_reset_online_config);
-        btnCustomPrompt = view.findViewById(R.id.btn_custom_prompt);
+        btnResetOnlineFilteringDegreeConfig = view.findViewById(R.id.btn_reset_online_filtering_degree_config);
+        btnApiConfig = view.findViewById(R.id.btn_api_config);
 
         // 初始化测试通知相关控件
         cardTestNotification = view.findViewById(R.id.card_test_notification);
@@ -278,6 +280,8 @@ public class SettingsFragment extends Fragment {
         // 设置选中状态
         if (savedLanguage.equals("en")) {
             radioBtnEnglish.setChecked(true);
+        } else if (savedLanguage.equals("zh-rTW")) {
+            radioBtnZhTw.setChecked(true);
         } else {
             radioBtnChinese.setChecked(true);
         }
@@ -342,6 +346,9 @@ public class SettingsFragment extends Fragment {
             } else if (checkedId == R.id.radio_btn_english) {
                 // 切换到英文
                 changeLanguage("en");
+            } else if (checkedId == R.id.radio_btn_zh_tw) {
+                // 切换到繁体中文
+                changeLanguage("zh-rTW");
             }
         });
         
@@ -748,8 +755,8 @@ public class SettingsFragment extends Fragment {
         String model = preferences.getString(PREF_FILTER_MODEL, MODEL_LOCAL);
         
         // 设置选中状态
-        if (MODEL_HUNYUAN.equals(model)) {
-            radioBtnModelHunyuan.setChecked(true);
+        if (MODEL_ONLINE.equals(model)) {
+            radioBtnModelOnline.setChecked(true);
             cardLearningConfig.setVisibility(View.GONE);
             cardOnlineModelConfig.setVisibility(View.VISIBLE);
         } else {
@@ -766,14 +773,14 @@ public class SettingsFragment extends Fragment {
                 editor.apply();
                 cardLearningConfig.setVisibility(View.VISIBLE);
                 cardOnlineModelConfig.setVisibility(View.GONE);
-            } else if (checkedId == R.id.radio_btn_model_hunyuan) {
+            } else if (checkedId == R.id.radio_btn_model_online) {
                 // 显示警告弹窗，暂不保存设置
-                showHunyuanWarningDialog();
+                showOnlineWarningDialog();
             }
         });
     }
 
-    private void showHunyuanWarningDialog() {
+    private void showOnlineWarningDialog() {
         android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(requireContext());
         View view = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_warning, null);
         builder.setView(view);
@@ -820,10 +827,10 @@ public class SettingsFragment extends Fragment {
 
         btnConfirm.setOnClickListener(v -> {
             dialog.dismiss();
-            // 确认切换到混元模型
+            // 确认切换到在线模型
             SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(requireContext());
             SharedPreferences.Editor editor = preferences.edit();
-            editor.putString(PREF_FILTER_MODEL, MODEL_HUNYUAN);
+            editor.putString(PREF_FILTER_MODEL, MODEL_ONLINE);
             editor.apply();
             
             cardLearningConfig.setVisibility(View.GONE);
@@ -871,13 +878,17 @@ public class SettingsFragment extends Fragment {
         });
 
         // 重置按钮点击事件
-        btnResetOnlineConfig.setOnClickListener(v -> {
-            // 恢复默认值
+        btnResetOnlineFilteringDegreeConfig.setOnClickListener(v -> {
+            // 恢复默认过滤程度
             float defaultFilteringDegree = 5.0f;
 
-            // 更新 SharedPreferences
+            // 重置API配置
             SharedPreferences.Editor editor = preferences.edit();
             editor.putFloat(PREF_ONLINE_FILTERING_DEGREE, defaultFilteringDegree);
+            editor.remove("pref_online_api_url");
+            editor.remove("pref_online_api_key");
+            editor.remove("pref_online_model_name");
+            editor.remove("pref_online_model_prompt");
             editor.apply();
 
             // 更新 UI
@@ -885,13 +896,13 @@ public class SettingsFragment extends Fragment {
             tvOnlineFilteringDegreeValue.setText(String.format("%.1f", defaultFilteringDegree));
         });
 
-        // 自定义提示词按钮点击事件
-        btnCustomPrompt.setOnClickListener(v -> showCustomPromptDialog());
+        // API配置按钮点击事件
+        btnApiConfig.setOnClickListener(v -> showApiConfigDialog());
     }
-
-    private void showCustomPromptDialog() {
+    
+    private void showApiConfigDialog() {
         android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(requireContext());
-        View view = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_custom_prompt, null);
+        View view = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_api_config, null);
         builder.setView(view);
         android.app.AlertDialog dialog = builder.create();
         
@@ -899,35 +910,49 @@ public class SettingsFragment extends Fragment {
             dialog.getWindow().setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT));
         }
 
-        EditText etPrompt = view.findViewById(R.id.et_prompt);
-        Button btnResetPrompt = view.findViewById(R.id.btn_reset_prompt);
+        EditText etApiUrl = view.findViewById(R.id.et_api_url);
+        EditText etApiKey = view.findViewById(R.id.et_api_key);
+        EditText etModelName = view.findViewById(R.id.et_model_name);
+        EditText etSystemPrompt = view.findViewById(R.id.et_system_prompt);
         Button btnCancel = view.findViewById(R.id.btn_cancel);
         Button btnSave = view.findViewById(R.id.btn_save);
 
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(requireContext());
-        String defaultPrompt = getString(R.string.default_prompt_content);
-        String currentPrompt = preferences.getString(PREF_ONLINE_MODEL_PROMPT, defaultPrompt);
-
-        etPrompt.setText(currentPrompt);
         
-        // 还原默认提示词
-        btnResetPrompt.setOnClickListener(v -> {
-            etPrompt.setText(defaultPrompt);
-        });
+        // 读取当前保存的配置
+        String currentApiUrl = preferences.getString("pref_online_api_url", "");
+        String currentApiKey = preferences.getString("pref_online_api_key", "");
+        String currentModelName = preferences.getString("pref_online_model_name", "");
+        String currentSystemPrompt = preferences.getString("pref_online_model_prompt", 
+                getString(R.string.default_prompt_content));
 
+        // 设置当前值到输入框
+        etApiUrl.setText(currentApiUrl);
+        etApiKey.setText(currentApiKey);
+        etModelName.setText(currentModelName);
+        etSystemPrompt.setText(currentSystemPrompt);
+        
         // 取消
         btnCancel.setOnClickListener(v -> dialog.dismiss());
 
         // 保存
         btnSave.setOnClickListener(v -> {
-            String newPrompt = etPrompt.getText().toString();
-            if (newPrompt.length() > 150) {
-                // 虽然EditText限制了长度，但这里再做一个防御性检查
-                newPrompt = newPrompt.substring(0, 150);
-            }
+            String apiUrl = etApiUrl.getText().toString().trim();
+            String apiKey = etApiKey.getText().toString().trim();
+            String modelName = etModelName.getText().toString().trim();
+            String systemPrompt = etSystemPrompt.getText().toString().trim();
             
+            // 验证输入
+            if (apiUrl.isEmpty() || apiKey.isEmpty() || modelName.isEmpty()) {
+                Toast.makeText(requireContext(), R.string.api_config_required, Toast.LENGTH_SHORT).show();
+                return;
+            }
+
             SharedPreferences.Editor editor = preferences.edit();
-            editor.putString(PREF_ONLINE_MODEL_PROMPT, newPrompt);
+            editor.putString("pref_online_api_url", apiUrl);
+            editor.putString("pref_online_api_key", apiKey);
+            editor.putString("pref_online_model_name", modelName);
+            editor.putString("pref_online_model_prompt", systemPrompt);
             editor.apply();
             dialog.dismiss();
         });

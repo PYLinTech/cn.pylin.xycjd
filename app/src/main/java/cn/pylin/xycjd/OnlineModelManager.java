@@ -19,36 +19,35 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /**
- * 腾讯混元模型管理器
+ * 在线模型管理器
  * 实现OpenAI接口规范的调用
  */
-public class HunyuanModelManager {
+public class OnlineModelManager {
     
-    // 从 BuildConfig 获取 API Key
-    private static final String API_KEY = BuildConfig.Hunyuan_KEY;
-    private static HunyuanModelManager instance;
+    private static OnlineModelManager instance;
     private final ExecutorService executor;
     private final Handler mainHandler;
     private final Context context;
 
-    // 腾讯混元 API Endpoint (OpenAI 兼容接口)
-    private static final String API_URL = "https://api.hunyuan.cloud.tencent.com/v1/chat/completions"; 
-    // 模型名称
-    private static final String MODEL_NAME = "hunyuan-lite"; 
+    // 配置键名
+    private static final String PREF_API_URL = "pref_online_api_url";
+    private static final String PREF_API_KEY = "pref_online_api_key";
+    private static final String PREF_MODEL_NAME = "pref_online_model_name";
+    private static final String PREF_SYSTEM_PROMPT = "pref_online_model_prompt";
 
     public interface FilterCallback {
         void onResult(boolean shouldFilter, float score);
     }
 
-    private HunyuanModelManager(Context context) {
+    private OnlineModelManager(Context context) {
         this.context = context.getApplicationContext();
         this.executor = Executors.newSingleThreadExecutor();
         this.mainHandler = new Handler(Looper.getMainLooper());
     }
 
-    public static synchronized HunyuanModelManager getInstance(Context context) {
+    public static synchronized OnlineModelManager getInstance(Context context) {
         if (instance == null) {
-            instance = new HunyuanModelManager(context);
+            instance = new OnlineModelManager(context);
         }
         return instance;
     }
@@ -61,7 +60,7 @@ public class HunyuanModelManager {
      */
     public void checkFilter(String title, String content, FilterCallback callback) {
         executor.execute(() -> {
-            float score = callHunyuanApi(title, content);
+            float score = callOnlineApi(title, content);
 
             // 获取在线过滤程度配置
             SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
@@ -77,14 +76,25 @@ public class HunyuanModelManager {
         });
     }
 
-    private float callHunyuanApi(String title, String content) {
+    private float callOnlineApi(String title, String content) {
+        // 从配置中读取API参数
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+        String apiUrl = prefs.getString(PREF_API_URL, "");
+        String apiKey = prefs.getString(PREF_API_KEY, "");
+        String modelName = prefs.getString(PREF_MODEL_NAME, "");
+        
+        // 如果没有配置API参数，返回默认值
+        if (apiUrl.isEmpty() || apiKey.isEmpty() || modelName.isEmpty()) {
+            Log.e("OnlineModelManager", "API configuration is missing");
+            return 10.0f;
+        }
 
         try {
-            URL url = new URL(API_URL);
+            URL url = new URL(apiUrl);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setRequestMethod("POST");
             conn.setRequestProperty("Content-Type", "application/json");
-            conn.setRequestProperty("Authorization", "Bearer " + API_KEY);
+            conn.setRequestProperty("Authorization", "Bearer " + apiKey);
             conn.setDoOutput(true);
 
             // 截断标题和内容
@@ -104,7 +114,7 @@ public class HunyuanModelManager {
 
             // 构建请求体 (OpenAI 格式)
             JSONObject jsonBody = new JSONObject();
-            jsonBody.put("model", MODEL_NAME);
+            jsonBody.put("model", modelName);
             
             JSONArray messages = new JSONArray();
 
@@ -113,9 +123,8 @@ public class HunyuanModelManager {
             systemMessage.put("role", "system");
             
             // 获取自定义提示词
-            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
             String defaultPrompt = context.getString(R.string.default_prompt_content);
-            String systemContent = prefs.getString("pref_online_model_prompt", defaultPrompt);
+            String systemContent = prefs.getString(PREF_SYSTEM_PROMPT, defaultPrompt);
             
             systemMessage.put("content", systemContent);
             messages.put(systemMessage);
@@ -162,7 +171,7 @@ public class HunyuanModelManager {
                                 return Math.max(0f, Math.min(10f, score));
                             }
                         } catch (NumberFormatException e) {
-                            Log.e("HunyuanModelManager", "Failed to parse score: " + contentResult);
+                            Log.e("OnlineModelManager", "Failed to parse score: " + contentResult);
                         }
                     }
                 }

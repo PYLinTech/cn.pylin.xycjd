@@ -1,17 +1,5 @@
-import java.util.Properties
-
 plugins {
     alias(libs.plugins.android.application)
-}
-
-// 定义读取 local.properties 的函数
-fun getLocalProperty(key: String): String {
-    val properties = Properties()
-    val localPropertiesFile = rootProject.file("local.properties")
-    if (localPropertiesFile.exists()) {
-        localPropertiesFile.inputStream().use { properties.load(it) }
-    }
-    return properties.getProperty(key, "")
 }
 
 android {
@@ -24,8 +12,6 @@ android {
         targetSdk = 36
         versionCode = 251221
         versionName = "1.4.1"
-        // 使用函数读取 API Key
-        buildConfigField("String", "Hunyuan_KEY", "\"${getLocalProperty("Hunyuan_KEY")}\"")
     }
 
     buildTypes {
@@ -42,7 +28,6 @@ android {
     }
     buildFeatures {
         viewBinding = false
-        buildConfig = true // 必须启用 buildConfig 功能
     }
     dependenciesInfo {
         includeInBundle = false
