@@ -149,8 +149,6 @@
     <string name="system_prompt_hint">請輸入繫統提示詞</string>
     <string name="log_return">返迴</string>
     <string name="log_exit">退齣</string>
-    <string name="log_result_filtered">過濾</string>
-    <string name="log_result_allowed">放行</string>
     <string name="warning_title">警告</string>
     <string name="online_warning_content">切換到在線模型會將通知標題及內容上傳到雲端模型。 如果您點擊確定併使用模型即代錶您已經了解併接受潛在的隱俬風險。</string>
     <string name="cancel">取消</string>

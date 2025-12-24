@@ -187,8 +187,6 @@
     <!-- Log Page -->
     <string name="log_return">Return</string>
     <string name="log_exit">Exit</string>
-    <string name="log_result_filtered">Filtered</string>
-    <string name="log_result_allowed">Allowed</string>
 
     <!-- Online Model Warning -->
     <string name="warning_title">Warning</string>
