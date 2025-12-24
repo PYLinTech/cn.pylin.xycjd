@@ -70,6 +70,9 @@ public class MainActivity extends AppCompatActivity {
         getWindow().getDecorView().post(() -> {
             new UpdateManager(this).checkForUpdates(false);
         });
+        
+        // 启动悬浮窗服务并恢复通知
+        startFloatingWindowServiceWithNotifications();
 
         // 设置按钮点击事件
         btnSettings.setOnClickListener(new View.OnClickListener() {
@@ -275,5 +278,30 @@ public class MainActivity extends AppCompatActivity {
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
         int savedVersion = preferences.getInt("intro_version", 0);
         return savedVersion < IntroActivity.INTRO_VERSION;
+    }
+    
+    /**
+     * 启动悬浮窗服务并恢复通知
+     */
+    private void startFloatingWindowServiceWithNotifications() {
+        // 检查悬浮窗权限并启动服务
+        if (FloatingWindowPermissionManager.hasPermission(this)) {
+            // 启动悬浮窗服务
+            Intent serviceIntent = new Intent(this, FloatingWindowService.class);
+            startService(serviceIntent);
+            
+            // 延迟检查是否有恢复的通知需要显示
+            new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> {
+                FloatingWindowService service = FloatingWindowService.getInstance();
+                if (service != null) {
+                    // 检查是否有恢复的通知
+                    java.util.LinkedList<FloatingWindowService.NotificationInfo> queue = service.getNotificationQueue();
+                    if (queue != null && !queue.isEmpty()) {
+                        // 显示三圆悬浮窗来提示有恢复的通知
+                        service.showThreeCircleIsland();
+                    }
+                }
+            }, 1000); // 延迟1秒，确保服务完全启动
+        }
     }
 }

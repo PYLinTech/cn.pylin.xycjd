@@ -6,10 +6,9 @@
     <string name="section_notice">Notification Filter</string>
     <string name="app_name_header">App Name</string>
     <string name="enable_header">Enable</string>
-    <string name="model_filter_header">Model\nFilter</string>
-    <string name="auto_expand_header">Auto\nExpand</string>
     <string name="model_filter_menu_header">Model Filter</string>
     <string name="auto_expand_menu_header">Auto Expand</string>
+    <string name="app_info_section">Application Message</string>
     <string name="nav_about">About</string>
 
     <!-- Notification Mode Settings -->
@@ -119,8 +118,6 @@
     <string name="permission_some_denied">%d Permissions Denied</string>
     <string name="go_to_permission">Go to Grant</string>
     <string name="configure_permission">Configure Permissions</string>
-    <string name="service_abnormal_permission_missing">Service Abnormal, Key Permission Not Granted</string>
-    <string name="grant_permission">Grant Permission</string>
     <string name="increase">Increase</string>
     <string name="decrease">Decrease</string>
     <string name="permission_tag_critical">Critical</string>
@@ -212,4 +209,7 @@
     <string name="update_parse_failed">Failed to parse response</string>
     <string name="version_label">Current Version</string>
     <string name="temperature">Temperature</string>
+    <string name="notification_vibration_menu_header">Notification Vibration</string>
+    <string name="notification_sound_menu_header">Notification Sound</string>
+    <string name="app_settings_title">Application Settings</string>
 </resources>

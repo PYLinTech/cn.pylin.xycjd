@@ -78,34 +78,12 @@ public class FilterFragment extends Fragment {
         arrowApps = view.findViewById(R.id.arrow_apps);
         arrowNotice = view.findViewById(R.id.arrow_notice);
         
-        headerApps.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                toggleAppsSection();
-            }
-        });
-        
-        headerNotice.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                toggleNoticeSection();
-            }
-        });
+        headerApps.setOnClickListener(v -> toggleAppsSection());
+        headerNotice.setOnClickListener(v -> toggleNoticeSection());
         
         // 设置菜单按钮点击事件
-        menuButtonApps.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                showPopupMenuApps(v);
-            }
-        });
-        
-        menuButtonNotice.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                showPopupMenuNotice(v);
-            }
-        });
+        menuButtonApps.setOnClickListener(v -> showPopupMenuApps(v));
+        menuButtonNotice.setOnClickListener(v -> showPopupMenuNotice(v));
     }
     
     private void toggleAppsSection() {
@@ -162,49 +140,58 @@ public class FilterFragment extends Fragment {
         PopupMenu popup = new PopupMenu(mContext, anchorView);
         popup.getMenuInflater().inflate(R.menu.apps_menu, popup.getMenu());
         
-        popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
-            @Override
-            public boolean onMenuItemClick(MenuItem item) {
-                int id = item.getItemId();
-                
-                // 全选操作
-                if (id == R.id.action_select_all_enable) {
-                    batchUpdateApps(true, 0);
-                    return true;
-                } else if (id == R.id.action_select_all_model_filter) {
-                    batchUpdateApps(true, 1);
-                    return true;
-                } else if (id == R.id.action_select_all_auto_expand) {
-                    batchUpdateApps(true, 2);
-                    return true;
-                } 
-                // 全不选操作
-                else if (id == R.id.action_deselect_all_enable) {
-                    batchUpdateApps(false, 0);
-                    return true;
-                } else if (id == R.id.action_deselect_all_model_filter) {
-                    batchUpdateApps(false, 1);
-                    return true;
-                } else if (id == R.id.action_deselect_all_auto_expand) {
-                    batchUpdateApps(false, 2);
-                    return true;
-                }
-                // 过滤操作
-                else if (id == R.id.action_filter_all) {
-                    currentFilterType = 0;
-                    filterApps(currentFilterType);
-                    return true;
-                } else if (id == R.id.action_filter_user) {
-                    currentFilterType = 1;
-                    filterApps(currentFilterType);
-                    return true;
-                } else if (id == R.id.action_filter_system) {
-                    currentFilterType = 2;
-                    filterApps(currentFilterType);
-                    return true;
-                }
-                return false;
+        popup.setOnMenuItemClickListener(item -> {
+            int id = item.getItemId();
+            
+            // 全选操作
+            if (id == R.id.action_select_all_enable) {
+                batchUpdateApps(true, 0);
+                return true;
+            } else if (id == R.id.action_select_all_model_filter) {
+                batchUpdateApps(true, 1);
+                return true;
+            } else if (id == R.id.action_select_all_auto_expand) {
+                batchUpdateApps(true, 2);
+                return true;
+            } else if (id == R.id.action_select_all_notification_vibration) {
+                batchUpdateApps(true, 3);
+                return true;
+            } else if (id == R.id.action_select_all_notification_sound) {
+                batchUpdateApps(true, 4);
+                return true;
+            } 
+            // 全不选操作
+            else if (id == R.id.action_deselect_all_enable) {
+                batchUpdateApps(false, 0);
+                return true;
+            } else if (id == R.id.action_deselect_all_model_filter) {
+                batchUpdateApps(false, 1);
+                return true;
+            } else if (id == R.id.action_deselect_all_auto_expand) {
+                batchUpdateApps(false, 2);
+                return true;
+            } else if (id == R.id.action_deselect_all_notification_vibration) {
+                batchUpdateApps(false, 3);
+                return true;
+            } else if (id == R.id.action_deselect_all_notification_sound) {
+                batchUpdateApps(false, 4);
+                return true;
             }
+            // 过滤操作
+            else if (id == R.id.action_filter_all) {
+                currentFilterType = 0;
+                filterApps(currentFilterType);
+                return true;
+            } else if (id == R.id.action_filter_user) {
+                currentFilterType = 1;
+                filterApps(currentFilterType);
+                return true;
+            } else if (id == R.id.action_filter_system) {
+                currentFilterType = 2;
+                filterApps(currentFilterType);
+                return true;
+            }
+            return false;
         });
         
         popup.show();
@@ -223,22 +210,19 @@ public class FilterFragment extends Fragment {
             popup.getMenu().findItem(R.id.notice_need).setVisible(false);
         }
         
-        popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
-            @Override
-            public boolean onMenuItemClick(MenuItem item) {
-                int id = item.getItemId();
-                if (id == R.id.notice_need) {
-                    noticeNeed();
-                    return true;
-                } else if (id == R.id.notice_delete) {
-                    noticeDelete();
-                    return true;
-                } else if (id == R.id.notice_clear_all) {
-                    noticeClearAll();
-                    return true;
-                }
-                return false;
+        popup.setOnMenuItemClickListener(item -> {
+            int id = item.getItemId();
+            if (id == R.id.notice_need) {
+                noticeNeed();
+                return true;
+            } else if (id == R.id.notice_delete) {
+                noticeDelete();
+                return true;
+            } else if (id == R.id.notice_clear_all) {
+                noticeClearAll();
+                return true;
             }
+            return false;
         });
         
         popup.show();
@@ -340,31 +324,46 @@ public class FilterFragment extends Fragment {
     }
     
     private void batchUpdateApps(boolean isChecked, int type) {
-        if (adapter != null && filteredAppsList != null) {
-            SharedPreferences prefs = null;
+        if (filteredAppsList == null) return;
+        
+        SharedPreferences prefs = null;
+        if (type == 0) {
+            prefs = mContext.getSharedPreferences("app_checkboxes", Context.MODE_PRIVATE);
+        } else if (type == 1) {
+            prefs = mContext.getSharedPreferences("app_model_filter", Context.MODE_PRIVATE);
+        } else if (type == 2) {
+            prefs = mContext.getSharedPreferences("app_auto_expand", Context.MODE_PRIVATE);
+        } else if (type == 3) {
+            prefs = mContext.getSharedPreferences("app_notification_vibration", Context.MODE_PRIVATE);
+        } else if (type == 4) {
+            prefs = mContext.getSharedPreferences("app_notification_sound", Context.MODE_PRIVATE);
+        }
+        
+        if (prefs == null) return;
+        
+        SharedPreferences.Editor editor = prefs.edit();
+        
+        // 直接从列表中读取应用信息并保存到SharedPreferences
+        for (AppInfo app : filteredAppsList) {
+            editor.putBoolean(app.getPackageName(), isChecked);
+            
+            // 更新AppInfo对象状态
             if (type == 0) {
-                prefs = mContext.getSharedPreferences("app_checkboxes", Context.MODE_PRIVATE);
+                app.setChecked(isChecked);
             } else if (type == 1) {
-                prefs = mContext.getSharedPreferences("app_model_filter", Context.MODE_PRIVATE);
+                app.setModelFilterChecked(isChecked);
             } else if (type == 2) {
-                prefs = mContext.getSharedPreferences("app_auto_expand", Context.MODE_PRIVATE);
+                app.setAutoExpandChecked(isChecked);
+            } else if (type == 3) {
+                app.setNotificationVibrationEnabled(isChecked);
+            } else if (type == 4) {
+                app.setNotificationSoundEnabled(isChecked);
             }
-            
-            if (prefs == null) return;
-            
-            SharedPreferences.Editor editor = prefs.edit();
-            
-            for (AppInfo app : filteredAppsList) {
-                if (type == 0) {
-                    app.setChecked(isChecked);
-                } else if (type == 1) {
-                    app.setModelFilterChecked(isChecked);
-                } else if (type == 2) {
-                    app.setAutoExpandChecked(isChecked);
-                }
-                editor.putBoolean(app.getPackageName(), isChecked);
-            }
-            editor.apply();
+        }
+        editor.apply();
+        
+        // 通知适配器更新
+        if (adapter != null) {
             adapter.notifyDataSetChanged();
         }
     }

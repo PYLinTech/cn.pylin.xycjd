@@ -13,11 +13,16 @@ public class AppNotificationListenerService extends NotificationListenerService 
     private static final String PREFS_NAME = "app_checkboxes";
     private static final String PREFS_MODEL_FILTER_NAME = "app_model_filter";
     private static final String PREFS_AUTO_EXPAND_NAME = "app_auto_expand";
+    private static final String PREFS_NOTIFICATION_VIBRATION_NAME = "app_notification_vibration";
+    private static final String PREFS_NOTIFICATION_SOUND_NAME = "app_notification_sound";
     
     private static final String PREF_NOTIFICATION_MODE = "pref_notification_mode";
     private static final String MODE_SUPER_ISLAND_ONLY = "mode_super_island_only";
     private static final String MODE_NOTIFICATION_BAR_ONLY = "mode_notification_bar_only";
     private static final String MODE_BOTH = "mode_both";
+    
+    // 用于跟踪已提醒过的通知key
+    private static java.util.Set<String> remindedKeys = new java.util.HashSet<>();
 
     private static AppNotificationListenerService instance;
 
@@ -136,7 +141,10 @@ public class AppNotificationListenerService extends NotificationListenerService 
         }
         final android.media.session.MediaSession.Token finalToken = token;
 
-        // 2. 确定模型策略 (根据模型类型优先判断)
+        // 2. 处理震动和声音（不再限制仅超级岛模式）
+        handleVibrationAndSound(sbn);
+
+        // 3. 确定模型策略 (根据模型类型优先判断)
         boolean isModelFilteringEnabled = prefs.getBoolean("pref_model_filtering_enabled", false);
         boolean isSelectedApp = isAppModelFilterSelected(packageName);
         String modelType = prefs.getString("pref_filter_model", SettingsFragment.MODEL_LOCAL);
@@ -145,7 +153,7 @@ public class AppNotificationListenerService extends NotificationListenerService 
         boolean useLocalModel = isModelFilteringEnabled && isSelectedApp && !isMediaNotification && SettingsFragment.MODEL_LOCAL.equals(modelType);
         boolean useOnlineModel = isModelFilteringEnabled && isSelectedApp && !isMediaNotification && SettingsFragment.MODEL_ONLINE.equals(modelType);
 
-        // 3. 执行分流策略
+        // 4. 执行分流策略
         if (useLocalModel) {
             // 策略 A: 本地模型 -> 阻断式检查 (Check then Show)
             // 防止闪烁，只有检查通过后才显示
@@ -190,6 +198,77 @@ public class AppNotificationListenerService extends NotificationListenerService 
             // 策略 C: 无模型/媒体/未启用 -> 直接显示 (Direct Show)
             showNotificationInIsland(sbn, packageName, title, text, notification.contentIntent, finalToken, mode);
         }
+    }
+
+    /**
+     * 处理震动和声音
+     * 对于同一key只提醒第一次
+     * 只使用应用级别的设置
+     */
+    private void handleVibrationAndSound(StatusBarNotification sbn) {
+        String key = sbn.getKey();
+        String packageName = sbn.getPackageName();
+        
+        // 检查是否已经提醒过
+        if (remindedKeys.contains(key)) {
+            return;
+        }
+        
+        // 获取应用级别的震动和声音设置
+        boolean appVibration = isAppVibrationEnabled(packageName);
+        boolean appSound = isAppSoundEnabled(packageName);
+        
+        // 检查是否有任何需要执行的提醒
+        if (appVibration || appSound) {
+            // 标记为已提醒
+            remindedKeys.add(key);
+            
+            // 在主线程执行震动和声音
+            new Handler(Looper.getMainLooper()).post(() -> {
+                android.media.AudioManager audioManager = (android.media.AudioManager) getSystemService(Context.AUDIO_SERVICE);
+                
+                if (appVibration) {
+                    // 震动
+                    android.os.Vibrator vibrator = (android.os.Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+                    if (vibrator != null && vibrator.hasVibrator()) {
+                        vibrator.vibrate(200); // 震动200毫秒
+                    }
+                }
+                
+                if (appSound) {
+                    // 播放默认通知声音
+                    if (audioManager != null && audioManager.getRingerMode() == android.media.AudioManager.RINGER_MODE_NORMAL) {
+                        try {
+                            android.media.Ringtone ringtone = android.media.RingtoneManager.getRingtone(
+                                this, 
+                                android.media.RingtoneManager.getDefaultUri(android.media.RingtoneManager.TYPE_NOTIFICATION)
+                            );
+                            if (ringtone != null) {
+                                ringtone.play();
+                            }
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+    /**
+     * 检查应用是否启用了震动
+     */
+    private boolean isAppVibrationEnabled(String packageName) {
+        SharedPreferences prefs = getSharedPreferences(PREFS_NOTIFICATION_VIBRATION_NAME, Context.MODE_PRIVATE);
+        return prefs.getBoolean(packageName, false);
+    }
+
+    /**
+     * 检查应用是否启用了声音
+     */
+    private boolean isAppSoundEnabled(String packageName) {
+        SharedPreferences prefs = getSharedPreferences(PREFS_NOTIFICATION_SOUND_NAME, Context.MODE_PRIVATE);
+        return prefs.getBoolean(packageName, false);
     }
 
     /**

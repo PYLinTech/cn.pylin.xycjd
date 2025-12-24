@@ -7,10 +7,9 @@
     <string name="section_notice">通知過濾</string>
     <string name="app_name_header">應用名稱</string>
     <string name="enable_header">啟用</string>
-    <string name="auto_expand_header">自動\n展開</string>
-    <string name="model_filter_header">模型\n過濾</string>
     <string name="model_filter_menu_header">模型過濾</string>
     <string name="auto_expand_menu_header">自動展開</string>
+    <string name="app_info_section">應用信息</string>
     <string name="nav_about">關於</string>
     <string name="notification_mode_setting">通知處理模式</string>
     <string name="notification_mode_super_island_only">僅超級島顯示</string>
@@ -95,8 +94,6 @@
     <string name="permission_some_denied">%d項權限未開啟</string>
     <string name="go_to_permission">前往開啟</string>
     <string name="configure_permission">配置權限</string>
-    <string name="service_abnormal_permission_missing">服務異常，關鍵權限未授予</string>
-    <string name="grant_permission">授予權限</string>
     <string name="increase">增加</string>
     <string name="decrease">減少</string>
     <string name="permission_tag_critical">關鍵</string>
@@ -170,4 +167,7 @@
     <string name="update_parse_failed">解析響應失敗</string>
     <string name="version_label">當前版本</string>
     <string name="temperature">溫度</string>
+    <string name="notification_vibration_menu_header">通知震動</string>
+    <string name="notification_sound_menu_header">通知聲音</string>
+    <string name="app_settings_title">應用設置</string>
 </resources>
