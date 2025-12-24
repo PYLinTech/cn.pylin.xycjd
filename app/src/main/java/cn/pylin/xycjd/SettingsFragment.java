@@ -275,6 +275,7 @@ public class SettingsFragment extends Fragment {
         btnSpeedDecrease = view.findViewById(R.id.btn_speed_decrease);
         btnSpeedIncrease = view.findViewById(R.id.btn_speed_increase);
         btnResetSpeed = view.findViewById(R.id.btn_reset_speed);
+        
     }
 
     private void setLanguageSelection() {
@@ -645,17 +646,8 @@ public class SettingsFragment extends Fragment {
         // 设置服务切换按钮点击事件
         btnServiceToggle.setOnClickListener(v -> {
             if (isFloatingWindowEnabled) {
-                // 检查权限状态
-                PermissionChecker.PermissionStatus status = PermissionChecker.checkAllPermissions(requireContext());
-                if (!status.hasOverlayPermission || !status.hasAccessibilityPermission) {
-                    // 跳转到权限设置页面
-                    Intent intent = new Intent(requireContext(), IntroActivity.class);
-                    intent.putExtra("direct_to_permission", true);
-                    startActivity(intent);
-                } else {
-                    // 当前服务已开启且权限正常，执行关闭操作
-                    stopFloatingWindowService();
-                }
+                // 当前服务已开启，执行关闭操作
+                stopFloatingWindowService();
             } else {
                 // 当前服务未开启，执行开启操作
                 // 检查悬浮窗权限
@@ -676,23 +668,13 @@ public class SettingsFragment extends Fragment {
         isFloatingWindowEnabled = FloatingWindowService.isServiceRunning(requireContext());
         
         if (isFloatingWindowEnabled) {
-            // 服务已开启，检查权限
-            PermissionChecker.PermissionStatus status = PermissionChecker.checkAllPermissions(requireContext());
-            if (!status.hasOverlayPermission || !status.hasAccessibilityPermission) {
-                // 服务异常，关键权限未授予
-                tvServiceStatus.setText(getString(R.string.service_abnormal_permission_missing));
-                tvServiceStatus.setTextColor(getResources().getColor(R.color.colorWarning, null));
-                btnServiceToggle.setText(getString(R.string.grant_permission));
-                btnServiceToggle.setBackgroundResource(R.drawable.btn_warning_background);
-            } else {
-                // 服务正常运行
-                tvServiceStatus.setText(getString(R.string.service_running));
-                tvServiceStatus.setTextColor(getResources().getColor(R.color.colorSuccess, null));
-                btnServiceToggle.setText(getString(R.string.stop_service));
-                btnServiceToggle.setBackgroundResource(R.drawable.btn_error_background);
-            }
+            // 服务正在运行
+            tvServiceStatus.setText(getString(R.string.service_running));
+            tvServiceStatus.setTextColor(getResources().getColor(R.color.colorSuccess, null));
+            btnServiceToggle.setText(getString(R.string.stop_service));
+            btnServiceToggle.setBackgroundResource(R.drawable.btn_error_background);
         } else {
-            // 服务未开启
+            // 服务已停止
             tvServiceStatus.setText(getString(R.string.service_stopped));
             tvServiceStatus.setTextColor(getResources().getColor(R.color.colorError, null));
             btnServiceToggle.setText(getString(R.string.start_service));
@@ -1137,15 +1119,17 @@ public class SettingsFragment extends Fragment {
         if (status.deniedCount == 0) {
             // 全部权限已开启
             tvPermissionStatus.setText(getString(R.string.permission_all_granted));
+            tvPermissionStatus.setTextColor(getResources().getColor(R.color.colorSuccess, null));
             btnPermissionAction.setText(getString(R.string.configure_permission));
             btnPermissionAction.setBackgroundResource(R.drawable.btn_secondary_background);
             btnPermissionAction.setTextColor(getResources().getColor(R.color.colorOnSurfaceSecondary, null));
             btnPermissionAction.setVisibility(View.VISIBLE);
         } else {
-            // 有权限未开启
+            // 有权限未开启 - 设置黄色
             tvPermissionStatus.setText(String.format(getString(R.string.permission_some_denied), status.deniedCount));
+            tvPermissionStatus.setTextColor(getResources().getColor(R.color.colorWarning, null));
             btnPermissionAction.setText(getString(R.string.go_to_permission));
-            btnPermissionAction.setBackgroundResource(R.drawable.btn_primary_background);
+            btnPermissionAction.setBackgroundResource(R.drawable.btn_warning_background);
             btnPermissionAction.setTextColor(getResources().getColor(R.color.white, null));
             btnPermissionAction.setVisibility(View.VISIBLE);
         }
@@ -1279,4 +1263,5 @@ public class SettingsFragment extends Fragment {
             preferences.edit().remove(PREF_SETTINGS_SCROLL_Y).apply();
         }
     }
+    
 }

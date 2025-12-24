@@ -8,7 +8,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.CheckBox;
-import android.widget.CompoundButton;
+
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -20,16 +20,12 @@ public class AppInfoAdapter extends BaseAdapter {
     private List<AppInfo> mAppInfoList;
     private LayoutInflater mInflater;
     private SharedPreferences mPrefs;
-    private SharedPreferences mModelFilterPrefs;
-    private SharedPreferences mAutoExpandPrefs;
     
     public AppInfoAdapter(Context context, List<AppInfo> appInfoList) {
         mContext = context;
         mAppInfoList = appInfoList;
         mInflater = LayoutInflater.from(context);
         mPrefs = context.getSharedPreferences("app_checkboxes", Context.MODE_PRIVATE);
-        mModelFilterPrefs = context.getSharedPreferences("app_model_filter", Context.MODE_PRIVATE);
-        mAutoExpandPrefs = context.getSharedPreferences("app_auto_expand", Context.MODE_PRIVATE);
     }
     
     @Override
@@ -59,8 +55,6 @@ public class AppInfoAdapter extends BaseAdapter {
             holder.packageName = convertView.findViewById(R.id.package_name);
             holder.systemApp = convertView.findViewById(R.id.system_app);
             holder.appCheckbox = convertView.findViewById(R.id.app_checkbox);
-            holder.appModelFilterCheckbox = convertView.findViewById(R.id.app_model_filter_checkbox);
-            holder.appAutoExpandCheckbox = convertView.findViewById(R.id.app_auto_expand_checkbox);
             convertView.setTag(holder);
         } else {
             holder = (ViewHolder) convertView.getTag();
@@ -87,49 +81,32 @@ public class AppInfoAdapter extends BaseAdapter {
         
         // 设置勾选框状态
         String packageName = appInfo.getPackageName();
-        boolean isChecked = mPrefs.getBoolean(packageName, false);
-        appInfo.setChecked(isChecked);
-
-        boolean isModelFilterChecked = mModelFilterPrefs.getBoolean(packageName, false);
-        appInfo.setModelFilterChecked(isModelFilterChecked);
-
-        boolean isAutoExpandChecked = mAutoExpandPrefs.getBoolean(packageName, false);
-        appInfo.setAutoExpandChecked(isAutoExpandChecked);
+        boolean currentChecked = mPrefs.getBoolean(packageName, false);
+        appInfo.setChecked(currentChecked);
         
         // 先移除之前的监听器，避免在设置状态时触发
         holder.appCheckbox.setOnCheckedChangeListener(null);
         // 设置勾选框状态
-        holder.appCheckbox.setChecked(isChecked);
+        holder.appCheckbox.setChecked(currentChecked);
         
         // 设置勾选框点击事件
-        holder.appCheckbox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                // 保存状态到SharedPreferences
-                mPrefs.edit().putBoolean(packageName, isChecked).apply();
-                // 更新AppInfo对象状态
-                appInfo.setChecked(isChecked);
-            }
+        holder.appCheckbox.setOnCheckedChangeListener((buttonView, newChecked) -> {
+            // 保存状态到SharedPreferences
+            mPrefs.edit().putBoolean(packageName, newChecked).apply();
+            // 更新AppInfo对象状态
+            appInfo.setChecked(newChecked);
         });
-
-        holder.appModelFilterCheckbox.setOnCheckedChangeListener(null);
-        holder.appModelFilterCheckbox.setChecked(isModelFilterChecked);
-        holder.appModelFilterCheckbox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                mModelFilterPrefs.edit().putBoolean(packageName, isChecked).apply();
-                appInfo.setModelFilterChecked(isChecked);
-            }
-        });
-
-        holder.appAutoExpandCheckbox.setOnCheckedChangeListener(null);
-        holder.appAutoExpandCheckbox.setChecked(isAutoExpandChecked);
-        holder.appAutoExpandCheckbox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                mAutoExpandPrefs.edit().putBoolean(packageName, isChecked).apply();
-                appInfo.setAutoExpandChecked(isChecked);
-            }
+        
+        // 设置整个item的点击事件，弹出Dialog
+        convertView.setOnClickListener(v -> {
+            // 弹出设置Dialog
+            AppSettingsDialog dialog = new AppSettingsDialog(
+                mContext,
+                appInfo.getPackageName(),
+                appInfo.getAppName(),
+                appInfo.isChecked()
+            );
+            dialog.show();
         });
         
         // 异步加载应用图标
@@ -156,8 +133,6 @@ public class AppInfoAdapter extends BaseAdapter {
         TextView packageName;
         TextView systemApp;
         CheckBox appCheckbox;
-        CheckBox appModelFilterCheckbox;
-        CheckBox appAutoExpandCheckbox;
     }
     
     /**

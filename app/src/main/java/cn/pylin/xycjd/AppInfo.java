@@ -12,6 +12,8 @@ public class AppInfo {
     private boolean isChecked;
     private boolean isModelFilterChecked;
     private boolean isAutoExpandChecked;
+    private boolean isNotificationVibrationEnabled;
+    private boolean isNotificationSoundEnabled;
 
     public AppInfo(String packageName, String appName, Drawable appIcon, boolean isSystemApp, int versionCode, String versionName) {
         this.packageName = packageName;
@@ -23,6 +25,8 @@ public class AppInfo {
         this.isChecked = false;
         this.isModelFilterChecked = false;
         this.isAutoExpandChecked = false;
+        this.isNotificationVibrationEnabled = false;
+        this.isNotificationSoundEnabled = false;
     }
 
     public String getPackageName() {
@@ -81,19 +85,19 @@ public class AppInfo {
         isChecked = checked;
     }
 
-    public boolean isModelFilterChecked() {
-        return isModelFilterChecked;
-    }
-
     public void setModelFilterChecked(boolean modelFilterChecked) {
         isModelFilterChecked = modelFilterChecked;
     }
 
-    public boolean isAutoExpandChecked() {
-        return isAutoExpandChecked;
-    }
-
     public void setAutoExpandChecked(boolean autoExpandChecked) {
         isAutoExpandChecked = autoExpandChecked;
+    }
+
+    public void setNotificationVibrationEnabled(boolean notificationVibrationEnabled) {
+        isNotificationVibrationEnabled = notificationVibrationEnabled;
+    }
+
+    public void setNotificationSoundEnabled(boolean notificationSoundEnabled) {
+        isNotificationSoundEnabled = notificationSoundEnabled;
     }
 }

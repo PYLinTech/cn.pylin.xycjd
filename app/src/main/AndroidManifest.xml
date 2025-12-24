@@ -15,6 +15,8 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <!-- 请求安装未知应用权限 (Android 11+) -->
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+    <!-- 振动权限 -->
+    <uses-permission android:name="android.permission.VIBRATE" />
 
     <application
         android:allowBackup="true"

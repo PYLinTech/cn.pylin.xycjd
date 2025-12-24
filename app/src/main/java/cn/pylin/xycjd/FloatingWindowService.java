@@ -101,6 +101,8 @@ public class FloatingWindowService extends Service {
     
     // 第二个悬浮窗与第一个悬浮窗的垂直间距（dp）
     private static final int ISLAND_MARGIN_TOP = 20;
+    
+    private static final String PREF_NOTIFICATION_QUEUE = "notification_queue";
 
     @Override
     public void onCreate() {
@@ -108,6 +110,9 @@ public class FloatingWindowService extends Service {
         instance = this;
         preferences = PreferenceManager.getDefaultSharedPreferences(this);
         modelFilterPrefs = getSharedPreferences("app_model_filter", Context.MODE_PRIVATE);
+        
+        // APP启动时恢复之前的通知
+        restoreNotificationsFromStorage();
     }
     
     @Override
@@ -129,6 +134,13 @@ public class FloatingWindowService extends Service {
     
     public static FloatingWindowService getInstance() {
         return instance;
+    }
+    
+    /**
+     * 获取通知队列（用于恢复通知显示）
+     */
+    public java.util.LinkedList<NotificationInfo> getNotificationQueue() {
+        return notificationQueue;
     }
     
     @Override
@@ -429,6 +441,9 @@ public class FloatingWindowService extends Service {
 
             // 显示或更新三圆悬浮窗
             showThreeCircleIsland();
+            
+            // 保存通知队列到存储
+            onNotificationQueueChanged();
         });
     }
 
@@ -453,6 +468,9 @@ public class FloatingWindowService extends Service {
                     updateNotificationContent(latest.packageName, latest.title, latest.content);
                 }
             }
+            
+            // 保存通知队列到存储
+            onNotificationQueueChanged();
         });
     }
 
@@ -1388,5 +1406,77 @@ public class FloatingWindowService extends Service {
     @Override
     public IBinder onBind(Intent intent) {
         return null;
+    }
+    
+    /**
+     * 将通知队列保存到SharedPreferences
+     */
+    private void saveNotificationsToStorage() {
+        if (notificationQueue.isEmpty()) {
+            // 如果队列为空，清除存储
+            preferences.edit().remove(PREF_NOTIFICATION_QUEUE).apply();
+            return;
+        }
+        
+        try {
+            org.json.JSONArray jsonArray = new org.json.JSONArray();
+            for (NotificationInfo info : notificationQueue) {
+                org.json.JSONObject obj = new org.json.JSONObject();
+                obj.put("key", info.key);
+                obj.put("packageName", info.packageName);
+                obj.put("title", info.title);
+                obj.put("content", info.content);
+                // 注意：PendingIntent和MediaSession.Token无法序列化，这里只保存基本信息
+                // 当APP重启时，这些会变为null，但基本的显示信息会保留
+                jsonArray.put(obj);
+            }
+            
+            preferences.edit().putString(PREF_NOTIFICATION_QUEUE, jsonArray.toString()).apply();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    
+    /**
+     * 从SharedPreferences恢复通知队列
+     */
+    private void restoreNotificationsFromStorage() {
+        String savedQueue = preferences.getString(PREF_NOTIFICATION_QUEUE, null);
+        if (savedQueue == null || savedQueue.isEmpty()) {
+            return;
+        }
+        
+        try {
+            org.json.JSONArray jsonArray = new org.json.JSONArray(savedQueue);
+            for (int i = 0; i < jsonArray.length(); i++) {
+                org.json.JSONObject obj = jsonArray.getJSONObject(i);
+                String key = obj.getString("key");
+                String packageName = obj.getString("packageName");
+                String title = obj.getString("title");
+                String content = obj.getString("content");
+                
+                // 创建通知信息（PendingIntent为null，因为无法序列化）
+                NotificationInfo info = new NotificationInfo(key, packageName, title, content, null);
+                notificationQueue.add(info);
+            }
+            
+            // 如果有恢复的通知，更新最近通知变量
+            if (!notificationQueue.isEmpty()) {
+                NotificationInfo latest = notificationQueue.getFirst();
+                lastNotificationPackageName = latest.packageName;
+                lastNotificationTitle = latest.title;
+                lastNotificationContent = latest.content;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    
+    /**
+     * 在通知队列发生变化时自动保存
+     */
+    private void onNotificationQueueChanged() {
+        // 延迟保存，避免频繁写入
+        new Handler(Looper.getMainLooper()).postDelayed(this::saveNotificationsToStorage, 100);
     }
 }

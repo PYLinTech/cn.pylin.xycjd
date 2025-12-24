@@ -6,10 +6,12 @@
     <string name="section_notice">通知过滤</string>
     <string name="app_name_header">应用名称</string>
     <string name="enable_header">启用</string>
-    <string name="model_filter_header">模型\n过滤</string>
-    <string name="auto_expand_header">自动\n展开</string>
     <string name="model_filter_menu_header">模型过滤</string>
     <string name="auto_expand_menu_header">自动展开</string>
+    <string name="notification_vibration_menu_header">通知震动</string>
+    <string name="notification_sound_menu_header">通知声音</string>
+    <string name="app_settings_title">应用设置</string>
+    <string name="app_info_section">应用信息</string>
     <string name="nav_about">关于</string>
 
     <!-- 通知模式设置 -->
@@ -130,8 +132,6 @@
     <string name="permission_some_denied">%d项权限未开启</string>
     <string name="go_to_permission">前往开启</string>
     <string name="configure_permission">配置权限</string>
-    <string name="service_abnormal_permission_missing">服务异常，关键权限未授予</string>
-    <string name="grant_permission">授予权限</string>
     <string name="increase">增加</string>
     <string name="decrease">减少</string>
     <string name="permission_tag_critical">关键</string>

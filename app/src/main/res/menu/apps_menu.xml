@@ -14,6 +14,12 @@
             <item
                 android:id="@+id/action_select_all_auto_expand"
                 android:title="@string/auto_expand_menu_header" />
+            <item
+                android:id="@+id/action_select_all_notification_vibration"
+                android:title="@string/notification_vibration_menu_header" />
+            <item
+                android:id="@+id/action_select_all_notification_sound"
+                android:title="@string/notification_sound_menu_header" />
         </menu>
     </item>
 
@@ -30,6 +36,12 @@
             <item
                 android:id="@+id/action_deselect_all_auto_expand"
                 android:title="@string/auto_expand_menu_header" />
+            <item
+                android:id="@+id/action_deselect_all_notification_vibration"
+                android:title="@string/notification_vibration_menu_header" />
+            <item
+                android:id="@+id/action_deselect_all_notification_sound"
+                android:title="@string/notification_sound_menu_header" />
         </menu>
     </item>
 
