@@ -237,4 +237,6 @@
     <string name="update_check_failed">检查更新失败</string>
     <string name="update_parse_failed">解析响应失败</string>
     <string name="version_label">当前版本</string>
+    <string name="appsettings_app_enabled">状态：已启用</string>
+    <string name="appsettings_app_disabled">状态：未启用</string>
 </resources>

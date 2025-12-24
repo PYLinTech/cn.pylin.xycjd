@@ -78,10 +78,10 @@ public class AppSettingsDialog {
         
         // 设置启用状态显示
         if (isEnabled) {
-            enableStatusTextView.setText("状态：已启用");
+            enableStatusTextView.setText(R.string.appsettings_app_enabled);
             enableStatusTextView.setTextColor(mContext.getResources().getColor(android.R.color.holo_green_dark));
         } else {
-            enableStatusTextView.setText("状态：未启用");
+            enableStatusTextView.setText(R.string.appsettings_app_disabled);
             enableStatusTextView.setTextColor(mContext.getResources().getColor(android.R.color.holo_red_dark));
         }
         

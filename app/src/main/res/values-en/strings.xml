@@ -212,4 +212,6 @@
     <string name="notification_vibration_menu_header">Notification Vibration</string>
     <string name="notification_sound_menu_header">Notification Sound</string>
     <string name="app_settings_title">Application Settings</string>
+    <string name="appsettings_app_enabled">Status: Enabled</string>
+    <string name="appsettings_app_disabled">Status: Disabled</string>
 </resources>
