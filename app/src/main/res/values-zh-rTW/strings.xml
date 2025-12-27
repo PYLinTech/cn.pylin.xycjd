@@ -170,4 +170,5 @@
     <string name="app_settings_title">應用設置</string>
     <string name="appsettings_app_enabled">狀態：已啟用</string>
     <string name="appsettings_app_disabled">狀態：未啟用</string>
+    <string name="log_recording_hint">正在記録日誌，點擊查看</string>
 </resources>

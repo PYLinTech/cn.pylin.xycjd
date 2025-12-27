@@ -191,11 +191,8 @@ public class IntroActivity extends AppCompatActivity {
             appLanguage = "zh";
         }
         
-        // 保存语言设置到SharedPreferences
-        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
-        SharedPreferences.Editor editor = preferences.edit();
-        editor.putString("language", appLanguage);
-        editor.apply();
+        // 使用SharedPreferences管理器保存语言设置
+        SharedPreferencesManager.getInstance(this).setLanguage(appLanguage);
         
         // 更新应用语言设置
         Locale locale;
@@ -218,11 +215,8 @@ public class IntroActivity extends AppCompatActivity {
      * 完成引导
      */
     private void finishIntro() {
-        // 保存引导页面版本号
-        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
-        SharedPreferences.Editor editor = preferences.edit();
-        editor.putInt("intro_version", INTRO_VERSION);
-        editor.commit(); // 使用commit()而不是apply()确保同步保存
+        // 使用SharedPreferences管理器保存引导页面版本号
+        SharedPreferencesManager.getInstance(this).setIntroVersion(INTRO_VERSION);
         
         // 跳转到主页面
         Intent intent = new Intent(this, MainActivity.class);

@@ -1,0 +1,516 @@
+package cn.pylin.xycjd;
+
+import android.content.Context;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
+
+import java.util.HashMap;
+import java.util.Map;
+
+/**
+ * SharedPreferences管理类
+ * 统一管理应用中所有的SharedPreferences读写操作
+ * 
+ * 全局设置：应用启动时一次性读取，保存在内存中
+ * 应用包特定设置：按需读取，实时同步
+ */
+public class SharedPreferencesManager {
+    
+    private static SharedPreferencesManager instance;
+    
+    // 全局SharedPreferences
+    private SharedPreferences globalPrefs;
+    private SharedPreferences.Editor globalEditor;
+    
+    // 应用包特定SharedPreferences
+    private SharedPreferences appEnabledPrefs;      // 应用启用状态
+    private SharedPreferences appModelFilterPrefs;  // 模型过滤设置
+    private SharedPreferences appAutoExpandPrefs;   // 自动展开设置
+    private SharedPreferences appVibrationPrefs;    // 通知震动设置
+    private SharedPreferences appSoundPrefs;        // 通知声音设置
+    
+    // 全局设置缓存（启动时一次性读取）
+    private String language;
+    private int theme;
+    private String notificationMode;
+    private boolean modelFilteringEnabled;
+    private String filterModel;
+    private float filteringDegree;
+    private float learningDegree;
+    private float onlineFilteringDegree;
+    private float temperature;
+    private String onlineApiUrl;
+    private String onlineApiKey;
+    private String onlineModelName;
+    private String onlineModelPrompt;
+    private float animationSpeed;
+    private int floatingSize;
+    private int floatingX;
+    private int floatingY;
+    private int introVersion;
+    
+    // 常量定义
+    private static final String PREF_LANGUAGE = "language";
+    private static final String PREF_THEME = "theme";
+    private static final String PREF_NOTIFICATION_MODE = "pref_notification_mode";
+    private static final String PREF_MODEL_FILTERING_ENABLED = "pref_model_filtering_enabled";
+    private static final String PREF_FILTER_MODEL = "pref_filter_model";
+    private static final String PREF_FILTERING_DEGREE = "pref_filtering_degree";
+    private static final String PREF_LEARNING_DEGREE = "pref_learning_degree";
+    private static final String PREF_ONLINE_FILTERING_DEGREE = "pref_online_filtering_degree";
+    private static final String PREF_TEMPERATURE = "pref_temperature";
+    private static final String PREF_ONLINE_API_URL = "pref_online_api_url";
+    private static final String PREF_ONLINE_API_KEY = "pref_online_api_key";
+    private static final String PREF_ONLINE_MODEL_NAME = "pref_online_model_name";
+    private static final String PREF_ONLINE_MODEL_PROMPT = "pref_online_model_prompt";
+    private static final String PREF_ANIMATION_SPEED = "pref_animation_speed";
+    private static final String PREF_FLOATING_SIZE = "floating_size";
+    private static final String PREF_FLOATING_X = "floating_x";
+    private static final String PREF_FLOATING_Y = "floating_y";
+    private static final String PREF_INTRO_VERSION = "intro_version";
+    
+    // 应用包特定SharedPreferences名称
+    private static final String PREF_APP_ENABLED = "app_checkboxes";
+    private static final String PREF_APP_MODEL_FILTER = "app_model_filter";
+    private static final String PREF_APP_AUTO_EXPAND = "app_auto_expand";
+    private static final String PREF_APP_VIBRATION = "app_notification_vibration";
+    private static final String PREF_APP_SOUND = "app_notification_sound";
+    
+    private SharedPreferencesManager(Context context) {
+        // 初始化全局SharedPreferences
+        globalPrefs = PreferenceManager.getDefaultSharedPreferences(context);
+        globalEditor = globalPrefs.edit();
+        
+        // 初始化应用包特定SharedPreferences
+        appEnabledPrefs = context.getSharedPreferences(PREF_APP_ENABLED, Context.MODE_PRIVATE);
+        appModelFilterPrefs = context.getSharedPreferences(PREF_APP_MODEL_FILTER, Context.MODE_PRIVATE);
+        appAutoExpandPrefs = context.getSharedPreferences(PREF_APP_AUTO_EXPAND, Context.MODE_PRIVATE);
+        appVibrationPrefs = context.getSharedPreferences(PREF_APP_VIBRATION, Context.MODE_PRIVATE);
+        appSoundPrefs = context.getSharedPreferences(PREF_APP_SOUND, Context.MODE_PRIVATE);
+        
+        // 一次性读取所有全局设置到内存
+        loadGlobalSettings();
+    }
+    
+    /**
+     * 获取单例实例
+     */
+    public static synchronized SharedPreferencesManager getInstance(Context context) {
+        if (instance == null) {
+            instance = new SharedPreferencesManager(context.getApplicationContext());
+        }
+        return instance;
+    }
+    
+    /**
+     * 一次性加载所有全局设置到内存
+     */
+    private void loadGlobalSettings() {
+        language = globalPrefs.getString(PREF_LANGUAGE, "zh");
+        theme = globalPrefs.getInt(PREF_THEME, 0); // 0 = UI_MODE_NIGHT_FOLLOW_SYSTEM
+        notificationMode = globalPrefs.getString(PREF_NOTIFICATION_MODE, "mode_super_island_only");
+        modelFilteringEnabled = globalPrefs.getBoolean(PREF_MODEL_FILTERING_ENABLED, false);
+        filterModel = globalPrefs.getString(PREF_FILTER_MODEL, "model_local");
+        filteringDegree = globalPrefs.getFloat(PREF_FILTERING_DEGREE, 5.0f);
+        learningDegree = globalPrefs.getFloat(PREF_LEARNING_DEGREE, 3.0f);
+        onlineFilteringDegree = globalPrefs.getFloat(PREF_ONLINE_FILTERING_DEGREE, 5.0f);
+        temperature = globalPrefs.getFloat(PREF_TEMPERATURE, 0.5f);
+        onlineApiUrl = globalPrefs.getString(PREF_ONLINE_API_URL, "");
+        onlineApiKey = globalPrefs.getString(PREF_ONLINE_API_KEY, "");
+        onlineModelName = globalPrefs.getString(PREF_ONLINE_MODEL_NAME, "");
+        onlineModelPrompt = globalPrefs.getString(PREF_ONLINE_MODEL_PROMPT, "");
+        animationSpeed = globalPrefs.getFloat(PREF_ANIMATION_SPEED, 1.0f);
+        floatingSize = globalPrefs.getInt(PREF_FLOATING_SIZE, 100);
+        floatingX = globalPrefs.getInt(PREF_FLOATING_X, 0);
+        floatingY = globalPrefs.getInt(PREF_FLOATING_Y, -100);
+        introVersion = globalPrefs.getInt(PREF_INTRO_VERSION, 0);
+    }
+    
+    /**
+     * 保存所有全局设置到SharedPreferences（用于需要持久化的场景）
+     */
+    public void saveGlobalSettings() {
+        globalEditor.putString(PREF_LANGUAGE, language);
+        globalEditor.putInt(PREF_THEME, theme);
+        globalEditor.putString(PREF_NOTIFICATION_MODE, notificationMode);
+        globalEditor.putBoolean(PREF_MODEL_FILTERING_ENABLED, modelFilteringEnabled);
+        globalEditor.putString(PREF_FILTER_MODEL, filterModel);
+        globalEditor.putFloat(PREF_FILTERING_DEGREE, filteringDegree);
+        globalEditor.putFloat(PREF_LEARNING_DEGREE, learningDegree);
+        globalEditor.putFloat(PREF_ONLINE_FILTERING_DEGREE, onlineFilteringDegree);
+        globalEditor.putFloat(PREF_TEMPERATURE, temperature);
+        globalEditor.putString(PREF_ONLINE_API_URL, onlineApiUrl);
+        globalEditor.putString(PREF_ONLINE_API_KEY, onlineApiKey);
+        globalEditor.putString(PREF_ONLINE_MODEL_NAME, onlineModelName);
+        globalEditor.putString(PREF_ONLINE_MODEL_PROMPT, onlineModelPrompt);
+        globalEditor.putFloat(PREF_ANIMATION_SPEED, animationSpeed);
+        globalEditor.putInt(PREF_FLOATING_SIZE, floatingSize);
+        globalEditor.putInt(PREF_FLOATING_X, floatingX);
+        globalEditor.putInt(PREF_FLOATING_Y, floatingY);
+        globalEditor.putInt(PREF_INTRO_VERSION, introVersion);
+        globalEditor.apply();
+    }
+    
+    // ==================== 全局设置读写方法 ====================
+    
+    public String getLanguage() {
+        return language;
+    }
+    
+    public void setLanguage(String language) {
+        this.language = language;
+        globalEditor.putString(PREF_LANGUAGE, language).apply();
+    }
+    
+    public int getTheme() {
+        return theme;
+    }
+    
+    public void setTheme(int theme) {
+        this.theme = theme;
+        globalEditor.putInt(PREF_THEME, theme).apply();
+    }
+    
+    public String getNotificationMode() {
+        return notificationMode;
+    }
+    
+    public void setNotificationMode(String notificationMode) {
+        this.notificationMode = notificationMode;
+        globalEditor.putString(PREF_NOTIFICATION_MODE, notificationMode).apply();
+    }
+    
+    public boolean isModelFilteringEnabled() {
+        return modelFilteringEnabled;
+    }
+    
+    public void setModelFilteringEnabled(boolean enabled) {
+        this.modelFilteringEnabled = enabled;
+        globalEditor.putBoolean(PREF_MODEL_FILTERING_ENABLED, enabled).apply();
+    }
+    
+    public String getFilterModel() {
+        return filterModel;
+    }
+    
+    public void setFilterModel(String filterModel) {
+        this.filterModel = filterModel;
+        globalEditor.putString(PREF_FILTER_MODEL, filterModel).apply();
+    }
+    
+    public float getFilteringDegree() {
+        return filteringDegree;
+    }
+    
+    public void setFilteringDegree(float filteringDegree) {
+        this.filteringDegree = filteringDegree;
+        globalEditor.putFloat(PREF_FILTERING_DEGREE, filteringDegree).apply();
+    }
+    
+    public float getLearningDegree() {
+        return learningDegree;
+    }
+    
+    public void setLearningDegree(float learningDegree) {
+        this.learningDegree = learningDegree;
+        globalEditor.putFloat(PREF_LEARNING_DEGREE, learningDegree).apply();
+    }
+    
+    public float getOnlineFilteringDegree() {
+        return onlineFilteringDegree;
+    }
+    
+    public void setOnlineFilteringDegree(float onlineFilteringDegree) {
+        this.onlineFilteringDegree = onlineFilteringDegree;
+        globalEditor.putFloat(PREF_ONLINE_FILTERING_DEGREE, onlineFilteringDegree).apply();
+    }
+    
+    public float getTemperature() {
+        return temperature;
+    }
+    
+    public void setTemperature(float temperature) {
+        this.temperature = temperature;
+        globalEditor.putFloat(PREF_TEMPERATURE, temperature).apply();
+    }
+    
+    public String getOnlineApiUrl() {
+        return onlineApiUrl;
+    }
+    
+    public void setOnlineApiUrl(String onlineApiUrl) {
+        this.onlineApiUrl = onlineApiUrl;
+        globalEditor.putString(PREF_ONLINE_API_URL, onlineApiUrl).apply();
+    }
+    
+    public String getOnlineApiKey() {
+        return onlineApiKey;
+    }
+    
+    public void setOnlineApiKey(String onlineApiKey) {
+        this.onlineApiKey = onlineApiKey;
+        globalEditor.putString(PREF_ONLINE_API_KEY, onlineApiKey).apply();
+    }
+    
+    public String getOnlineModelName() {
+        return onlineModelName;
+    }
+    
+    public void setOnlineModelName(String onlineModelName) {
+        this.onlineModelName = onlineModelName;
+        globalEditor.putString(PREF_ONLINE_MODEL_NAME, onlineModelName).apply();
+    }
+    
+    public String getOnlineModelPrompt() {
+        return onlineModelPrompt;
+    }
+    
+    public void setOnlineModelPrompt(String onlineModelPrompt) {
+        this.onlineModelPrompt = onlineModelPrompt;
+        globalEditor.putString(PREF_ONLINE_MODEL_PROMPT, onlineModelPrompt).apply();
+    }
+    
+    public float getAnimationSpeed() {
+        return animationSpeed;
+    }
+    
+    public void setAnimationSpeed(float animationSpeed) {
+        this.animationSpeed = animationSpeed;
+        globalEditor.putFloat(PREF_ANIMATION_SPEED, animationSpeed).apply();
+    }
+    
+    public int getFloatingSize() {
+        return floatingSize;
+    }
+    
+    public void setFloatingSize(int floatingSize) {
+        this.floatingSize = floatingSize;
+        globalEditor.putInt(PREF_FLOATING_SIZE, floatingSize).apply();
+    }
+    
+    public int getFloatingX() {
+        return floatingX;
+    }
+    
+    public void setFloatingX(int floatingX) {
+        this.floatingX = floatingX;
+        globalEditor.putInt(PREF_FLOATING_X, floatingX).apply();
+    }
+    
+    public int getFloatingY() {
+        return floatingY;
+    }
+    
+    public void setFloatingY(int floatingY) {
+        this.floatingY = floatingY;
+        globalEditor.putInt(PREF_FLOATING_Y, floatingY).apply();
+    }
+    
+    public int getIntroVersion() {
+        return introVersion;
+    }
+    
+    public void setIntroVersion(int introVersion) {
+        this.introVersion = introVersion;
+        globalEditor.putInt(PREF_INTRO_VERSION, introVersion).apply();
+    }
+    
+    // ==================== 应用包特定设置读写方法 ====================
+    
+    /**
+     * 获取应用启用状态
+     */
+    public boolean isAppEnabled(String packageName) {
+        return appEnabledPrefs.getBoolean(packageName, false);
+    }
+    
+    /**
+     * 设置应用启用状态
+     */
+    public void setAppEnabled(String packageName, boolean enabled) {
+        appEnabledPrefs.edit().putBoolean(packageName, enabled).apply();
+    }
+    
+    /**
+     * 获取应用模型过滤状态
+     */
+    public boolean isAppModelFilterEnabled(String packageName) {
+        return appModelFilterPrefs.getBoolean(packageName, false);
+    }
+    
+    /**
+     * 设置应用模型过滤状态
+     */
+    public void setAppModelFilterEnabled(String packageName, boolean enabled) {
+        appModelFilterPrefs.edit().putBoolean(packageName, enabled).apply();
+    }
+    
+    /**
+     * 获取应用自动展开状态
+     */
+    public boolean isAppAutoExpandEnabled(String packageName) {
+        return appAutoExpandPrefs.getBoolean(packageName, false);
+    }
+    
+    /**
+     * 设置应用自动展开状态
+     */
+    public void setAppAutoExpandEnabled(String packageName, boolean enabled) {
+        appAutoExpandPrefs.edit().putBoolean(packageName, enabled).apply();
+    }
+    
+    /**
+     * 获取应用通知震动状态
+     */
+    public boolean isAppNotificationVibrationEnabled(String packageName) {
+        return appVibrationPrefs.getBoolean(packageName, false);
+    }
+    
+    /**
+     * 设置应用通知震动状态
+     */
+    public void setAppNotificationVibrationEnabled(String packageName, boolean enabled) {
+        appVibrationPrefs.edit().putBoolean(packageName, enabled).apply();
+    }
+    
+    /**
+     * 获取应用通知声音状态
+     */
+    public boolean isAppNotificationSoundEnabled(String packageName) {
+        return appSoundPrefs.getBoolean(packageName, false);
+    }
+    
+    /**
+     * 设置应用通知声音状态
+     */
+    public void setAppNotificationSoundEnabled(String packageName, boolean enabled) {
+        appSoundPrefs.edit().putBoolean(packageName, enabled).apply();
+    }
+    
+    /**
+     * 批量更新应用设置
+     */
+    public void batchUpdateAppSettings(String packageName, Boolean enabled, Boolean modelFilter, 
+                                      Boolean autoExpand, Boolean vibration, Boolean sound) {
+        if (enabled != null) {
+            setAppEnabled(packageName, enabled);
+        }
+        if (modelFilter != null) {
+            setAppModelFilterEnabled(packageName, modelFilter);
+        }
+        if (autoExpand != null) {
+            setAppAutoExpandEnabled(packageName, autoExpand);
+        }
+        if (vibration != null) {
+            setAppNotificationVibrationEnabled(packageName, vibration);
+        }
+        if (sound != null) {
+            setAppNotificationSoundEnabled(packageName, sound);
+        }
+    }
+    
+    /**
+     * 批量更新多个应用的同一设置
+     */
+    public void batchUpdateMultipleApps(java.util.List<String> packageNames, int settingType, boolean value) {
+        SharedPreferences prefs;
+        switch (settingType) {
+            case 0: // 启用状态
+                prefs = appEnabledPrefs;
+                break;
+            case 1: // 模型过滤
+                prefs = appModelFilterPrefs;
+                break;
+            case 2: // 自动展开
+                prefs = appAutoExpandPrefs;
+                break;
+            case 3: // 通知震动
+                prefs = appVibrationPrefs;
+                break;
+            case 4: // 通知声音
+                prefs = appSoundPrefs;
+                break;
+            default:
+                return;
+        }
+        
+        SharedPreferences.Editor editor = prefs.edit();
+        for (String packageName : packageNames) {
+            editor.putBoolean(packageName, value);
+        }
+        editor.apply();
+    }
+    
+    /**
+     * 获取所有应用包名及其特定设置
+     * 返回Map<包名, Map<设置类型, 值>>
+     */
+    public Map<String, Map<String, Boolean>> getAllAppSettings() {
+        Map<String, Map<String, Boolean>> allSettings = new HashMap<>();
+        
+        // 获取所有有设置的应用包名
+        java.util.Set<String> allPackages = new java.util.HashSet<>();
+        allPackages.addAll(appEnabledPrefs.getAll().keySet());
+        allPackages.addAll(appModelFilterPrefs.getAll().keySet());
+        allPackages.addAll(appAutoExpandPrefs.getAll().keySet());
+        allPackages.addAll(appVibrationPrefs.getAll().keySet());
+        allPackages.addAll(appSoundPrefs.getAll().keySet());
+        
+        for (String packageName : allPackages) {
+            Map<String, Boolean> settings = new HashMap<>();
+            settings.put("enabled", isAppEnabled(packageName));
+            settings.put("modelFilter", isAppModelFilterEnabled(packageName));
+            settings.put("autoExpand", isAppAutoExpandEnabled(packageName));
+            settings.put("vibration", isAppNotificationVibrationEnabled(packageName));
+            settings.put("sound", isAppNotificationSoundEnabled(packageName));
+            allSettings.put(packageName, settings);
+        }
+        
+        return allSettings;
+    }
+    
+    /**
+     * 清除所有应用特定设置
+     */
+    public void clearAllAppSettings() {
+        appEnabledPrefs.edit().clear().apply();
+        appModelFilterPrefs.edit().clear().apply();
+        appAutoExpandPrefs.edit().clear().apply();
+        appVibrationPrefs.edit().clear().apply();
+        appSoundPrefs.edit().clear().apply();
+    }
+    
+    /**
+     * 导出所有设置（用于备份或调试）
+     */
+    public Map<String, Object> exportAllSettings() {
+        Map<String, Object> allSettings = new HashMap<>();
+        
+        // 全局设置
+        Map<String, Object> globalSettings = new HashMap<>();
+        globalSettings.put(PREF_LANGUAGE, language);
+        globalSettings.put(PREF_THEME, theme);
+        globalSettings.put(PREF_NOTIFICATION_MODE, notificationMode);
+        globalSettings.put(PREF_MODEL_FILTERING_ENABLED, modelFilteringEnabled);
+        globalSettings.put(PREF_FILTER_MODEL, filterModel);
+        globalSettings.put(PREF_FILTERING_DEGREE, filteringDegree);
+        globalSettings.put(PREF_LEARNING_DEGREE, learningDegree);
+        globalSettings.put(PREF_ONLINE_FILTERING_DEGREE, onlineFilteringDegree);
+        globalSettings.put(PREF_TEMPERATURE, temperature);
+        globalSettings.put(PREF_ONLINE_API_URL, onlineApiUrl);
+        globalSettings.put(PREF_ONLINE_API_KEY, onlineApiKey);
+        globalSettings.put(PREF_ONLINE_MODEL_NAME, onlineModelName);
+        globalSettings.put(PREF_ONLINE_MODEL_PROMPT, onlineModelPrompt);
+        globalSettings.put(PREF_ANIMATION_SPEED, animationSpeed);
+        globalSettings.put(PREF_FLOATING_SIZE, floatingSize);
+        globalSettings.put(PREF_FLOATING_X, floatingX);
+        globalSettings.put(PREF_FLOATING_Y, floatingY);
+        globalSettings.put(PREF_INTRO_VERSION, introVersion);
+        
+        allSettings.put("global", globalSettings);
+        allSettings.put("appSettings", getAllAppSettings());
+        
+        return allSettings;
+    }
+    
+}

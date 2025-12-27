@@ -8,6 +8,12 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.PixelFormat;
+import android.graphics.Canvas;
+import android.graphics.LinearGradient;
+import android.graphics.Paint;
+import android.graphics.PorterDuff;
+import android.graphics.PorterDuffXfermode;
+import android.graphics.Shader;
 import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
@@ -26,13 +32,6 @@ import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-
-import android.graphics.Canvas;
-import android.graphics.LinearGradient;
-import android.graphics.Paint;
-import android.graphics.PorterDuff;
-import android.graphics.PorterDuffXfermode;
-import android.graphics.Shader;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -87,13 +86,7 @@ public class FloatingWindowService extends Service {
     private String lastNotificationTitle;
     private String lastNotificationContent;
     
-    private SharedPreferences preferences;
-    private SharedPreferences modelFilterPrefs;
-    
-    private static final String PREF_FLOATING_SIZE = "floating_size";
-    private static final String PREF_FLOATING_X = "floating_x";
-    private static final String PREF_FLOATING_Y = "floating_y";
-    private static final String PREF_ANIMATION_SPEED = "pref_animation_speed";
+    private SharedPreferencesManager manager;
     
     private static final int DEFAULT_SIZE = 100;
     private static final int DEFAULT_X = 0;
@@ -101,18 +94,15 @@ public class FloatingWindowService extends Service {
     
     // 第二个悬浮窗与第一个悬浮窗的垂直间距（dp）
     private static final int ISLAND_MARGIN_TOP = 20;
-    
-    private static final String PREF_NOTIFICATION_QUEUE = "notification_queue";
 
     @Override
     public void onCreate() {
         super.onCreate();
         instance = this;
-        preferences = PreferenceManager.getDefaultSharedPreferences(this);
-        modelFilterPrefs = getSharedPreferences("app_model_filter", Context.MODE_PRIVATE);
+        // 初始化SharedPreferences管理器
+        manager = SharedPreferencesManager.getInstance(this);
         
-        // APP启动时恢复之前的通知
-        restoreNotificationsFromStorage();
+        // 已完全移除本地存储功能，不再恢复通知
     }
     
     @Override
@@ -238,9 +228,10 @@ public class FloatingWindowService extends Service {
         LayoutInflater inflater = LayoutInflater.from(context);
         floatingView = inflater.inflate(R.layout.floating_window_layout, null);
         
-        int size = preferences.getInt(PREF_FLOATING_SIZE, DEFAULT_SIZE);
-        int x = preferences.getInt(PREF_FLOATING_X, DEFAULT_X);
-        int y = preferences.getInt(PREF_FLOATING_Y, DEFAULT_Y);
+        // 使用管理器读取配置
+        int size = manager.getFloatingSize();
+        int x = manager.getFloatingX();
+        int y = manager.getFloatingY();
         
         params = new WindowManager.LayoutParams(
                 size,
@@ -267,11 +258,10 @@ public class FloatingWindowService extends Service {
             params.flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS;
             windowManager.updateViewLayout(floatingView, params);
             
-            SharedPreferences.Editor editor = preferences.edit();
-            editor.putInt(PREF_FLOATING_SIZE, size);
-            editor.putInt(PREF_FLOATING_X, x);
-            editor.putInt(PREF_FLOATING_Y, y);
-            editor.apply();
+            // 使用管理器保存配置
+            manager.setFloatingSize(size);
+            manager.setFloatingX(x);
+            manager.setFloatingY(y);
         }
     }
     
@@ -288,23 +278,19 @@ public class FloatingWindowService extends Service {
     }
     
     public static int getSize(Context context) {
-        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
-        return preferences.getInt(PREF_FLOATING_SIZE, DEFAULT_SIZE);
+        return SharedPreferencesManager.getInstance(context).getFloatingSize();
     }
     
     public static int getX(Context context) {
-        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
-        return preferences.getInt(PREF_FLOATING_X, DEFAULT_X);
+        return SharedPreferencesManager.getInstance(context).getFloatingX();
     }
     
     public static int getY(Context context) {
-        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
-        return preferences.getInt(PREF_FLOATING_Y, DEFAULT_Y);
+        return SharedPreferencesManager.getInstance(context).getFloatingY();
     }
 
     private boolean isModelFilterEnabled(String packageName) {
-        if (modelFilterPrefs == null || packageName == null) return false;
-        return modelFilterPrefs.getBoolean(packageName, false);
+        return SharedPreferencesManager.getInstance(this).isAppModelFilterEnabled(packageName);
     }
 
     public void showNotificationIsland(String packageName, String title, String content) {
@@ -442,8 +428,7 @@ public class FloatingWindowService extends Service {
             // 显示或更新三圆悬浮窗
             showThreeCircleIsland();
             
-            // 保存通知队列到存储
-            onNotificationQueueChanged();
+            // 已完全移除本地存储功能，不再保存通知队列
         });
     }
 
@@ -469,8 +454,7 @@ public class FloatingWindowService extends Service {
                 }
             }
             
-            // 保存通知队列到存储
-            onNotificationQueueChanged();
+            // 已完全移除本地存储功能，不再保存通知队列
         });
     }
 
@@ -627,9 +611,10 @@ public class FloatingWindowService extends Service {
         LayoutInflater inflater = LayoutInflater.from(context);
         floatingIslandView = inflater.inflate(R.layout.floating_window_island, null);
         
-        int x = preferences.getInt(PREF_FLOATING_X, DEFAULT_X);
-        int y = preferences.getInt(PREF_FLOATING_Y, DEFAULT_Y);
-        int size = preferences.getInt(PREF_FLOATING_SIZE, DEFAULT_SIZE);
+        // 使用管理器读取配置
+        int x = manager.getFloatingX();
+        int y = manager.getFloatingY();
+        int size = manager.getFloatingSize();
         
         int islandY = y + size + dpToPx(ISLAND_MARGIN_TOP);
 
@@ -717,7 +702,7 @@ public class FloatingWindowService extends Service {
 
                         // 使用标题和内容进行训练
                         String trainingText = (removedInfo.content != null ? removedInfo.content : "");
-                        if (preferences.getBoolean("pref_model_filtering_enabled", false) && isModelFilterEnabled(removedInfo.packageName)) {
+                        if (manager.isModelFilteringEnabled() && isModelFilterEnabled(removedInfo.packageName)) {
                             NotificationMLManager.getInstance(FloatingWindowService.this).process(removedInfo.title, trainingText, false);
                         }
 
@@ -893,7 +878,7 @@ public class FloatingWindowService extends Service {
             holder.container.setOnClickListener(v -> {
                 // 使用标题和内容进行训练
                 String trainingText = (info.content != null ? info.content : "");
-                if (preferences.getBoolean("pref_model_filtering_enabled", false) && isModelFilterEnabled(info.packageName)) {
+                if (manager.isModelFilteringEnabled() && isModelFilterEnabled(info.packageName)) {
                     NotificationMLManager.getInstance(FloatingWindowService.this).process(info.title, trainingText, true);
                 }
                 try {
@@ -1052,7 +1037,7 @@ public class FloatingWindowService extends Service {
     }
 
     private long getScaledDuration(long baseDuration) {
-        float speed = preferences.getFloat(PREF_ANIMATION_SPEED, 1.0f);
+        float speed = manager.getAnimationSpeed();
         if (speed <= 0) speed = 0.1f;
         return (long) (baseDuration / speed);
     }
@@ -1181,7 +1166,7 @@ public class FloatingWindowService extends Service {
             return;
         }
 
-        int size = preferences.getInt(PREF_FLOATING_SIZE, DEFAULT_SIZE);
+        int size = manager.getFloatingSize();
         int circleSize = size - dpToPx(4);
         int targetSpacerWidth = dpToPx(10);
         int targetMargin = dpToPx(2);
@@ -1244,9 +1229,9 @@ public class FloatingWindowService extends Service {
         floatingThreeCircleView = inflater.inflate(R.layout.floating_window_island_three, null);
         
         // 获取第一个悬浮窗的位置和大小
-        int x = preferences.getInt(PREF_FLOATING_X, DEFAULT_X);
-        int y = preferences.getInt(PREF_FLOATING_Y, DEFAULT_Y);
-        int size = preferences.getInt(PREF_FLOATING_SIZE, DEFAULT_SIZE);
+        int x = manager.getFloatingX();
+        int y = manager.getFloatingY();
+        int size = manager.getFloatingSize();
         
         // 计算第三个小岛的圆形大小，比第一个悬浮窗小4dp
         int circleSize = size - dpToPx(4); // 减去4dp，使圆形小一点
@@ -1314,7 +1299,7 @@ public class FloatingWindowService extends Service {
     private void prepareThreeCircleAnimation() {
         if (floatingThreeCircleView == null) return;
 
-        int size = preferences.getInt(PREF_FLOATING_SIZE, DEFAULT_SIZE);
+        int size = manager.getFloatingSize();
         int circleSize = size - dpToPx(4);
 
         final View background = floatingThreeCircleView.findViewById(R.id.island_background);
@@ -1340,7 +1325,7 @@ public class FloatingWindowService extends Service {
     private void startThreeCircleAnimation() {
         if (floatingThreeCircleView == null) return;
 
-        int size = preferences.getInt(PREF_FLOATING_SIZE, DEFAULT_SIZE);
+        int size = manager.getFloatingSize();
         int circleSize = size - dpToPx(4);
         int targetSpacerWidth = dpToPx(10);
         int targetMargin = dpToPx(2);
@@ -1409,74 +1394,10 @@ public class FloatingWindowService extends Service {
     }
     
     /**
-     * 将通知队列保存到SharedPreferences
+     * 在通知队列发生变化时自动保存 - 已废弃
      */
-    private void saveNotificationsToStorage() {
-        if (notificationQueue.isEmpty()) {
-            // 如果队列为空，清除存储
-            preferences.edit().remove(PREF_NOTIFICATION_QUEUE).apply();
-            return;
-        }
-        
-        try {
-            org.json.JSONArray jsonArray = new org.json.JSONArray();
-            for (NotificationInfo info : notificationQueue) {
-                org.json.JSONObject obj = new org.json.JSONObject();
-                obj.put("key", info.key);
-                obj.put("packageName", info.packageName);
-                obj.put("title", info.title);
-                obj.put("content", info.content);
-                // 注意：PendingIntent和MediaSession.Token无法序列化，这里只保存基本信息
-                // 当APP重启时，这些会变为null，但基本的显示信息会保留
-                jsonArray.put(obj);
-            }
-            
-            preferences.edit().putString(PREF_NOTIFICATION_QUEUE, jsonArray.toString()).apply();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-    
-    /**
-     * 从SharedPreferences恢复通知队列
-     */
-    private void restoreNotificationsFromStorage() {
-        String savedQueue = preferences.getString(PREF_NOTIFICATION_QUEUE, null);
-        if (savedQueue == null || savedQueue.isEmpty()) {
-            return;
-        }
-        
-        try {
-            org.json.JSONArray jsonArray = new org.json.JSONArray(savedQueue);
-            for (int i = 0; i < jsonArray.length(); i++) {
-                org.json.JSONObject obj = jsonArray.getJSONObject(i);
-                String key = obj.getString("key");
-                String packageName = obj.getString("packageName");
-                String title = obj.getString("title");
-                String content = obj.getString("content");
-                
-                // 创建通知信息（PendingIntent为null，因为无法序列化）
-                NotificationInfo info = new NotificationInfo(key, packageName, title, content, null);
-                notificationQueue.add(info);
-            }
-            
-            // 如果有恢复的通知，更新最近通知变量
-            if (!notificationQueue.isEmpty()) {
-                NotificationInfo latest = notificationQueue.getFirst();
-                lastNotificationPackageName = latest.packageName;
-                lastNotificationTitle = latest.title;
-                lastNotificationContent = latest.content;
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-    
-    /**
-     * 在通知队列发生变化时自动保存
-     */
+    @Deprecated
     private void onNotificationQueueChanged() {
-        // 延迟保存，避免频繁写入
-        new Handler(Looper.getMainLooper()).postDelayed(this::saveNotificationsToStorage, 100);
+        // 已完全移除本地存储功能，不再保存通知队列
     }
 }

@@ -2,7 +2,6 @@ package cn.pylin.xycjd;
 
 import android.app.AlertDialog;
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
@@ -31,10 +30,7 @@ public class AppSettingsDialog {
     private String appName;
     private boolean isEnabled;
     
-    private SharedPreferences modelFilterPrefs;
-    private SharedPreferences autoExpandPrefs;
-    private SharedPreferences notificationVibrationPrefs;
-    private SharedPreferences notificationSoundPrefs;
+    private SharedPreferencesManager manager;
     
     public AppSettingsDialog(@NonNull Context context, String packageName, String appName, boolean isEnabled) {
         mContext = context;
@@ -42,11 +38,8 @@ public class AppSettingsDialog {
         this.appName = appName;
         this.isEnabled = isEnabled;
         
-        // 初始化SharedPreferences
-        modelFilterPrefs = mContext.getSharedPreferences("app_model_filter", Context.MODE_PRIVATE);
-        autoExpandPrefs = mContext.getSharedPreferences("app_auto_expand", Context.MODE_PRIVATE);
-        notificationVibrationPrefs = mContext.getSharedPreferences("app_notification_vibration", Context.MODE_PRIVATE);
-        notificationSoundPrefs = mContext.getSharedPreferences("app_notification_sound", Context.MODE_PRIVATE);
+        // 初始化SharedPreferences管理器
+        manager = SharedPreferencesManager.getInstance(context);
         
         initDialog();
     }
@@ -85,11 +78,11 @@ public class AppSettingsDialog {
             enableStatusTextView.setTextColor(mContext.getResources().getColor(android.R.color.holo_red_dark));
         }
         
-        // 加载当前设置状态
-        boolean isModelFilterChecked = modelFilterPrefs.getBoolean(packageName, false);
-        boolean isAutoExpandChecked = autoExpandPrefs.getBoolean(packageName, false);
-        boolean isNotificationVibrationChecked = notificationVibrationPrefs.getBoolean(packageName, false);
-        boolean isNotificationSoundChecked = notificationSoundPrefs.getBoolean(packageName, false);
+        // 从SharedPreferences管理器加载当前设置状态
+        boolean isModelFilterChecked = manager.isAppModelFilterEnabled(packageName);
+        boolean isAutoExpandChecked = manager.isAppAutoExpandEnabled(packageName);
+        boolean isNotificationVibrationChecked = manager.isAppNotificationVibrationEnabled(packageName);
+        boolean isNotificationSoundChecked = manager.isAppNotificationSoundEnabled(packageName);
         
         modelFilterSwitch.setChecked(isModelFilterChecked);
         autoExpandSwitch.setChecked(isAutoExpandChecked);
@@ -105,21 +98,15 @@ public class AppSettingsDialog {
     }
     
     private void saveSettings() {
-        // 保存模型过滤设置
-        boolean isModelFilterChecked = modelFilterSwitch.isChecked();
-        modelFilterPrefs.edit().putBoolean(packageName, isModelFilterChecked).apply();
-        
-        // 保存自动展开设置
-        boolean isAutoExpandChecked = autoExpandSwitch.isChecked();
-        autoExpandPrefs.edit().putBoolean(packageName, isAutoExpandChecked).apply();
-        
-        // 保存通知震动设置
-        boolean isNotificationVibrationChecked = notificationVibrationSwitch.isChecked();
-        notificationVibrationPrefs.edit().putBoolean(packageName, isNotificationVibrationChecked).apply();
-        
-        // 保存通知声音设置
-        boolean isNotificationSoundChecked = notificationSoundSwitch.isChecked();
-        notificationSoundPrefs.edit().putBoolean(packageName, isNotificationSoundChecked).apply();
+        // 使用SharedPreferences管理器保存所有设置
+        manager.batchUpdateAppSettings(
+            packageName,
+            null,  // 启用状态不通过此对话框修改
+            modelFilterSwitch.isChecked(),
+            autoExpandSwitch.isChecked(),
+            notificationVibrationSwitch.isChecked(),
+            notificationSoundSwitch.isChecked()
+        );
         
         Toast.makeText(mContext, R.string.save, Toast.LENGTH_SHORT).show();
         mDialog.dismiss();

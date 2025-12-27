@@ -11,6 +11,7 @@ public class NotificationLogManager {
     private final List<String> logs = new ArrayList<>();
     private final List<LogListener> listeners = new ArrayList<>();
     private final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+    private boolean isRecording = false;
 
     public interface LogListener {
         void onLogAdded(String log);
@@ -24,9 +25,9 @@ public class NotificationLogManager {
     }
 
     public void log(String message) {
-        // 如果没有监听器，则不记录日志
+        // 如果没有开启记录，则不记录日志
         synchronized (listeners) {
-            if (listeners.isEmpty()) {
+            if (!isRecording) {
                 return;
             }
         }
@@ -36,12 +37,36 @@ public class NotificationLogManager {
         synchronized (logs) {
             logs.add(logEntry);
         }
-        notifyListeners(logEntry);
+        
+        // 只有在有监听器时才通知更新UI
+        synchronized (listeners) {
+            if (!listeners.isEmpty()) {
+                notifyListeners(logEntry);
+            }
+        }
     }
 
     public void clearLogs() {
         synchronized (logs) {
             logs.clear();
+        }
+    }
+
+    public void startRecording() {
+        synchronized (listeners) {
+            isRecording = true;
+        }
+    }
+
+    public void stopRecording() {
+        synchronized (listeners) {
+            isRecording = false;
+        }
+    }
+
+    public boolean isRecording() {
+        synchronized (listeners) {
+            return isRecording;
         }
     }
 

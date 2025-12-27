@@ -201,9 +201,8 @@ public class FilterFragment extends Fragment {
         PopupMenu popup = new PopupMenu(mContext, anchorView);
         popup.getMenuInflater().inflate(R.menu.notice_menu, popup.getMenu());
         
-        // 检查当前使用的模型
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(mContext);
-        String modelType = prefs.getString("pref_filter_model", SettingsFragment.MODEL_LOCAL);
+        // 从SharedPreferences管理器检查当前使用的模型
+        String modelType = SharedPreferencesManager.getInstance(mContext).getFilterModel();
         
         // 如果是在线模型，隐藏"需要"选项，因为在线模型不支持用户反馈学习
         if (SettingsFragment.MODEL_ONLINE.equals(modelType)) {
@@ -235,12 +234,19 @@ public class FilterFragment extends Fragment {
         FilteredNotificationManager manager = FilteredNotificationManager.getInstance(mContext);
         NotificationMLManager mlManager = NotificationMLManager.getInstance(mContext);
         
+        // 检查是否启用了模型过滤
+        boolean modelFilteringEnabled = SharedPreferencesManager.getInstance(mContext).isModelFilteringEnabled();
+        String filterModel = SharedPreferencesManager.getInstance(mContext).getFilterModel();
+        
         for (FilteredNotificationManager.FilteredNotification notification : filteredNotificationList) {
             if (notification.isChecked) {
-                // 正向反馈到模型 (分数 10)
-                // 使用 10.0f 的强学习率，确保手动标记能立即将分数提升至接近目标值
-                String trainingText = (notification.content != null ? notification.content : "");
-                mlManager.process(notification.title, trainingText, true, 10.0f);
+                // 只有在启用模型过滤且使用本地模型时才进行训练
+                if (modelFilteringEnabled && SettingsFragment.MODEL_LOCAL.equals(filterModel)) {
+                    // 正向反馈到模型 (分数 10)
+                    // 使用 10.0f 的强学习率，确保手动标记能立即将分数提升至接近目标值
+                    String trainingText = (notification.content != null ? notification.content : "");
+                    mlManager.process(notification.title, trainingText, true, 10.0f);
+                }
                 toRemove.add(notification);
             }
         }
@@ -326,28 +332,18 @@ public class FilterFragment extends Fragment {
     private void batchUpdateApps(boolean isChecked, int type) {
         if (filteredAppsList == null) return;
         
-        SharedPreferences prefs = null;
-        if (type == 0) {
-            prefs = mContext.getSharedPreferences("app_checkboxes", Context.MODE_PRIVATE);
-        } else if (type == 1) {
-            prefs = mContext.getSharedPreferences("app_model_filter", Context.MODE_PRIVATE);
-        } else if (type == 2) {
-            prefs = mContext.getSharedPreferences("app_auto_expand", Context.MODE_PRIVATE);
-        } else if (type == 3) {
-            prefs = mContext.getSharedPreferences("app_notification_vibration", Context.MODE_PRIVATE);
-        } else if (type == 4) {
-            prefs = mContext.getSharedPreferences("app_notification_sound", Context.MODE_PRIVATE);
+        // 获取所有应用包名列表
+        List<String> packageNames = new ArrayList<>();
+        for (AppInfo app : filteredAppsList) {
+            packageNames.add(app.getPackageName());
         }
         
-        if (prefs == null) return;
+        // 使用SharedPreferencesManager批量更新
+        SharedPreferencesManager manager = SharedPreferencesManager.getInstance(mContext);
+        manager.batchUpdateMultipleApps(packageNames, type, isChecked);
         
-        SharedPreferences.Editor editor = prefs.edit();
-        
-        // 直接从列表中读取应用信息并保存到SharedPreferences
+        // 更新AppInfo对象状态（用于UI显示）
         for (AppInfo app : filteredAppsList) {
-            editor.putBoolean(app.getPackageName(), isChecked);
-            
-            // 更新AppInfo对象状态
             if (type == 0) {
                 app.setChecked(isChecked);
             } else if (type == 1) {
@@ -360,7 +356,6 @@ public class FilterFragment extends Fragment {
                 app.setNotificationSoundEnabled(isChecked);
             }
         }
-        editor.apply();
         
         // 通知适配器更新
         if (adapter != null) {
