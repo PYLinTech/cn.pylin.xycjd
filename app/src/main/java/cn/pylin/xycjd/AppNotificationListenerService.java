@@ -52,8 +52,7 @@ public class AppNotificationListenerService extends NotificationListenerService 
         logNotification(sbn, isSelected);
         
         if (isSelected) {
-            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-            String mode = prefs.getString(PREF_NOTIFICATION_MODE, MODE_SUPER_ISLAND_ONLY);
+            String mode = SharedPreferencesManager.getInstance(this).getNotificationMode();
 
             if (MODE_SUPER_ISLAND_ONLY.equals(mode)) {
                 cancelNotification(sbn.getKey());
@@ -82,8 +81,7 @@ public class AppNotificationListenerService extends NotificationListenerService 
     public void onNotificationRemoved(StatusBarNotification sbn, NotificationListenerService.RankingMap rankingMap, int reason) {
         String packageName = sbn.getPackageName();
         if (isAppSelected(packageName)) {
-             SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-             String mode = prefs.getString(PREF_NOTIFICATION_MODE, MODE_SUPER_ISLAND_ONLY);
+             String mode = SharedPreferencesManager.getInstance(this).getNotificationMode();
              
              if (MODE_SUPER_ISLAND_ONLY.equals(mode)) {
                  // REASON_LISTENER_CANCEL = 10 (Listener cancelled it)
@@ -101,18 +99,18 @@ public class AppNotificationListenerService extends NotificationListenerService 
      * @return 是否被选中
      */
     private boolean isAppSelected(String packageName) {
-        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
-        return prefs.getBoolean(packageName, false);
+        SharedPreferencesManager manager = SharedPreferencesManager.getInstance(this);
+        return manager.isAppEnabled(packageName);
     }
 
     private boolean isAppModelFilterSelected(String packageName) {
-        SharedPreferences prefs = getSharedPreferences(PREFS_MODEL_FILTER_NAME, Context.MODE_PRIVATE);
-        return prefs.getBoolean(packageName, false);
+        SharedPreferencesManager manager = SharedPreferencesManager.getInstance(this);
+        return manager.isAppModelFilterEnabled(packageName);
     }
 
     private boolean isAppAutoExpandSelected(String packageName) {
-        SharedPreferences prefs = getSharedPreferences(PREFS_AUTO_EXPAND_NAME, Context.MODE_PRIVATE);
-        return prefs.getBoolean(packageName, false);
+        SharedPreferencesManager manager = SharedPreferencesManager.getInstance(this);
+        return manager.isAppAutoExpandEnabled(packageName);
     }
     
     /**
@@ -129,8 +127,8 @@ public class AppNotificationListenerService extends NotificationListenerService 
         String predictionText = (text != null ? text : "");
 
         // 1. 准备基础环境
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-        String mode = prefs.getString(PREF_NOTIFICATION_MODE, MODE_SUPER_ISLAND_ONLY);
+        SharedPreferencesManager manager = SharedPreferencesManager.getInstance(this);
+        String mode = manager.getNotificationMode();
         
         // 检查是否为媒体通知
         String template = extras.getString(android.app.Notification.EXTRA_TEMPLATE);
@@ -145,9 +143,9 @@ public class AppNotificationListenerService extends NotificationListenerService 
         handleVibrationAndSound(sbn);
 
         // 3. 确定模型策略 (根据模型类型优先判断)
-        boolean isModelFilteringEnabled = prefs.getBoolean("pref_model_filtering_enabled", false);
+        boolean isModelFilteringEnabled = manager.isModelFilteringEnabled();
         boolean isSelectedApp = isAppModelFilterSelected(packageName);
-        String modelType = prefs.getString("pref_filter_model", SettingsFragment.MODEL_LOCAL);
+        String modelType = manager.getFilterModel();
         
         // 定义具体的策略标志
         boolean useLocalModel = isModelFilteringEnabled && isSelectedApp && !isMediaNotification && SettingsFragment.MODEL_LOCAL.equals(modelType);
@@ -159,7 +157,7 @@ public class AppNotificationListenerService extends NotificationListenerService 
             // 防止闪烁，只有检查通过后才显示
             new Thread(() -> {
                 float score = NotificationMLManager.getInstance(this).predict(title, predictionText);
-                float filteringDegree = prefs.getFloat("pref_filtering_degree", 5.0f);
+                float filteringDegree = manager.getFilteringDegree();
                 
                 boolean shouldFilter = score <= filteringDegree;
                 String resultStr = shouldFilter ? getString(R.string.log_result_filtered) : getString(R.string.log_result_allowed);
@@ -184,7 +182,7 @@ public class AppNotificationListenerService extends NotificationListenerService 
             // 后检查
             OnlineModelManager.getInstance(this).checkFilter(title, predictionText, (shouldFilter, score) -> {
                 // 获取过滤程度用于日志记录
-                float filteringDegree = prefs.getFloat("pref_online_filtering_degree", 5.0f);
+                float filteringDegree = manager.getOnlineFilteringDegree();
                 String resultStr = shouldFilter ? getString(R.string.log_result_filtered) : getString(R.string.log_result_allowed);
                 String logMsg = getString(R.string.log_online_check, title, score, filteringDegree, resultStr, predictionText);
                 NotificationLogManager.getInstance().log(logMsg);
@@ -259,16 +257,16 @@ public class AppNotificationListenerService extends NotificationListenerService 
      * 检查应用是否启用了震动
      */
     private boolean isAppVibrationEnabled(String packageName) {
-        SharedPreferences prefs = getSharedPreferences(PREFS_NOTIFICATION_VIBRATION_NAME, Context.MODE_PRIVATE);
-        return prefs.getBoolean(packageName, false);
+        SharedPreferencesManager manager = SharedPreferencesManager.getInstance(this);
+        return manager.isAppNotificationVibrationEnabled(packageName);
     }
 
     /**
      * 检查应用是否启用了声音
      */
     private boolean isAppSoundEnabled(String packageName) {
-        SharedPreferences prefs = getSharedPreferences(PREFS_NOTIFICATION_SOUND_NAME, Context.MODE_PRIVATE);
-        return prefs.getBoolean(packageName, false);
+        SharedPreferencesManager manager = SharedPreferencesManager.getInstance(this);
+        return manager.isAppNotificationSoundEnabled(packageName);
     }
 
     /**

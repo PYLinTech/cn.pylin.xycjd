@@ -19,13 +19,13 @@ public class AppInfoAdapter extends BaseAdapter {
     private Context mContext;
     private List<AppInfo> mAppInfoList;
     private LayoutInflater mInflater;
-    private SharedPreferences mPrefs;
+    private SharedPreferencesManager mManager;
     
     public AppInfoAdapter(Context context, List<AppInfo> appInfoList) {
         mContext = context;
         mAppInfoList = appInfoList;
         mInflater = LayoutInflater.from(context);
-        mPrefs = context.getSharedPreferences("app_checkboxes", Context.MODE_PRIVATE);
+        mManager = SharedPreferencesManager.getInstance(context);
     }
     
     @Override
@@ -81,7 +81,7 @@ public class AppInfoAdapter extends BaseAdapter {
         
         // 设置勾选框状态
         String packageName = appInfo.getPackageName();
-        boolean currentChecked = mPrefs.getBoolean(packageName, false);
+        boolean currentChecked = mManager.isAppEnabled(packageName);
         appInfo.setChecked(currentChecked);
         
         // 先移除之前的监听器，避免在设置状态时触发
@@ -91,8 +91,8 @@ public class AppInfoAdapter extends BaseAdapter {
         
         // 设置勾选框点击事件
         holder.appCheckbox.setOnCheckedChangeListener((buttonView, newChecked) -> {
-            // 保存状态到SharedPreferences
-            mPrefs.edit().putBoolean(packageName, newChecked).apply();
+            // 使用SharedPreferencesManager保存状态
+            mManager.setAppEnabled(packageName, newChecked);
             // 更新AppInfo对象状态
             appInfo.setChecked(newChecked);
         });

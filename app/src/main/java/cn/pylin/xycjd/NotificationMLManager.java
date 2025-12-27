@@ -55,8 +55,7 @@ public class NotificationMLManager {
      * @return 新的分数
      */
     public float process(String title, String text, boolean isPositive) {
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
-        float learningDegree = prefs.getFloat("pref_learning_degree", 3.0f);
+        float learningDegree = SharedPreferencesManager.getInstance(context).getLearningDegree();
         return process(title, text, isPositive, learningDegree);
     }
 

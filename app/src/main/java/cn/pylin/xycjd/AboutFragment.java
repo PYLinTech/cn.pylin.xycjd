@@ -31,6 +31,7 @@ public class AboutFragment extends Fragment {
     private ConstraintLayout layoutWebsite;
     private ConstraintLayout layoutGithub;
     private ConstraintLayout layoutQqGroup;
+    private TextView tvLogRecordingHint;
 
     private final long[] mHits = new long[5];
 
@@ -48,7 +49,24 @@ public class AboutFragment extends Fragment {
         // 设置点击事件
         setClickListeners();
         
+        // 更新日志记录提示状态
+        updateLogRecordingHint();
+        
         return view;
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        // 每次显示Fragment时都更新提示状态
+        updateLogRecordingHint();
+    }
+
+    private void updateLogRecordingHint() {
+        if (tvLogRecordingHint != null) {
+            boolean isRecording = NotificationLogManager.getInstance().isRecording();
+            tvLogRecordingHint.setVisibility(isRecording ? View.VISIBLE : View.GONE);
+        }
     }
 
     private void initViews(View view) {
@@ -64,6 +82,9 @@ public class AboutFragment extends Fragment {
         layoutWebsite = view.findViewById(R.id.layout_website);
         layoutGithub = view.findViewById(R.id.layout_github);
         layoutQqGroup = view.findViewById(R.id.layout_qq_group);
+        
+        // 初始化日志记录提示
+        tvLogRecordingHint = view.findViewById(R.id.tv_log_recording_hint);
     }
 
     private void setVersionInfo() {
@@ -91,6 +112,14 @@ public class AboutFragment extends Fragment {
                 java.util.Arrays.fill(mHits, 0);
             }
         });
+
+        // 日志记录提示点击事件
+        if (tvLogRecordingHint != null) {
+            tvLogRecordingHint.setOnClickListener(v -> {
+                Intent intent = new Intent(requireContext(), LogActivity.class);
+                startActivity(intent);
+            });
+        }
 
         // 检查更新
         layoutVersion.setOnClickListener(v -> {

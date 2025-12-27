@@ -208,8 +208,8 @@
     <string name="log_exit">退出</string>
     <string name="log_online_check" translatable="false">在线模型检测: %1$s | 分数: %2$.1f (阈值: %3$.1f) | 结果: %4$s | 原文: %5$s</string>
     <string name="log_local_check" translatable="false">本地模型检测: %1$s | 分数: %2$.2f (阈值: %3$.1f) | 结果: %4$s | 原文: %5$s</string>
-    <string name="log_result_filtered">过滤</string>
-    <string name="log_result_allowed">放行</string>
+    <string name="log_result_filtered" translatable="false">过滤</string>
+    <string name="log_result_allowed" translatable="false">放行</string>
 
     <!-- 在线模型警告对话框相关字符串 -->
     <string name="warning_title">警告</string>
@@ -239,4 +239,7 @@
     <string name="version_label">当前版本</string>
     <string name="appsettings_app_enabled">状态：已启用</string>
     <string name="appsettings_app_disabled">状态：未启用</string>
+    
+    <!-- 日志记录状态提示 -->
+    <string name="log_recording_hint">正在记录日志，点击查看</string>
 </resources>

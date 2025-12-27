@@ -8,6 +8,8 @@ import android.preference.PreferenceManager;
 import android.view.View;
 import android.widget.Button;
 import android.widget.FrameLayout;
+import android.app.ActivityManager;
+import android.content.Context;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
@@ -18,6 +20,7 @@ import androidx.dynamicanimation.animation.SpringAnimation;
 import androidx.dynamicanimation.animation.SpringForce;
 
 import java.util.Locale;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -36,6 +39,9 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        
+        // 初始化SharedPreferences管理器（一次性加载所有全局设置）
+        SharedPreferencesManager.getInstance(this);
         
         // 检查是否需要显示引导页面
         if (shouldShowIntro()) {
@@ -198,6 +204,18 @@ public class MainActivity extends AppCompatActivity {
         updateIndicatorLayout();
     }
 
+    @Override
+    public void onBackPressed() {
+        // 检查是否在主界面（当前显示的是SettingsFragment、FilterFragment或AboutFragment）
+        if (currentPage == PAGE_SETTINGS || currentPage == PAGE_FILTER || currentPage == PAGE_ABOUT) {
+            // 在主界面，按返回键时将APP从后台卡片列表排除
+            finishAndRemoveTask();
+        } else {
+            // 不在主界面，执行默认的返回行为
+            super.onBackPressed();
+        }
+    }
+
     private void updateIndicatorLayout() {
         final View navBar = findViewById(R.id.navigation_bar);
         if (navBar == null) return;
@@ -238,9 +256,8 @@ public class MainActivity extends AppCompatActivity {
      * 加载保存的语言设置
      */
     private void loadLanguageSetting() {
-        // 获取SharedPreferences中保存的语言设置
-        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
-        String language = preferences.getString("language", "zh");
+        // 从SharedPreferences管理器获取语言设置
+        String language = SharedPreferencesManager.getInstance(this).getLanguage();
         
         // 更新应用语言设置
         Locale locale;
@@ -263,9 +280,8 @@ public class MainActivity extends AppCompatActivity {
      * 加载保存的主题设置
      */
     private void loadThemeSetting() {
-        // 获取SharedPreferences中保存的主题设置
-        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
-        int themeMode = preferences.getInt("theme", AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM);
+        // 从SharedPreferences管理器获取主题设置
+        int themeMode = SharedPreferencesManager.getInstance(this).getTheme();
         
         // 应用主题设置
         AppCompatDelegate.setDefaultNightMode(themeMode);
@@ -275,8 +291,8 @@ public class MainActivity extends AppCompatActivity {
      * 检查是否需要显示引导页面
      */
     private boolean shouldShowIntro() {
-        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
-        int savedVersion = preferences.getInt("intro_version", 0);
+        // 从SharedPreferences管理器获取引导页面版本
+        int savedVersion = SharedPreferencesManager.getInstance(this).getIntroVersion();
         return savedVersion < IntroActivity.INTRO_VERSION;
     }
     

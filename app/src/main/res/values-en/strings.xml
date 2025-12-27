@@ -187,8 +187,6 @@
     <!-- Log Page -->
     <string name="log_return">Return</string>
     <string name="log_exit">Exit</string>
-    <string name="log_result_filtered">Filtered</string>
-    <string name="log_result_allowed">Allowed</string>
 
     <!-- Online Model Warning -->
     <string name="warning_title">Warning</string>
@@ -214,4 +212,5 @@
     <string name="app_settings_title">Application Settings</string>
     <string name="appsettings_app_enabled">Status: Enabled</string>
     <string name="appsettings_app_disabled">Status: Disabled</string>
+    <string name="log_recording_hint">Logging. Click here to view</string>
 </resources>

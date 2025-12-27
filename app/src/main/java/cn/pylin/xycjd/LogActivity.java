@@ -30,11 +30,18 @@ public class LogActivity extends AppCompatActivity implements NotificationLogMan
         Button btnExit = findViewById(R.id.btn_exit);
 
         btnReturn.setOnClickListener(v -> {
-            Intent intent = new Intent(this, MainActivity.class);
-            intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
-            startActivity(intent);
+            // 只销毁Activity，不停止记录
+            finish();
         });
-        btnExit.setOnClickListener(v -> finish());
+        btnExit.setOnClickListener(v -> {
+            // 停止记录、清除日志、销毁Activity
+            NotificationLogManager.getInstance().stopRecording();
+            NotificationLogManager.getInstance().clearLogs();
+            finish();
+        });
+
+        // 确保记录处于开启状态
+        NotificationLogManager.getInstance().startRecording();
 
         // Load existing logs
         StringBuilder sb = new StringBuilder();
@@ -53,7 +60,7 @@ public class LogActivity extends AppCompatActivity implements NotificationLogMan
     protected void onDestroy() {
         super.onDestroy();
         NotificationLogManager.getInstance().removeListener(this);
-        NotificationLogManager.getInstance().clearLogs();
+        // 不再自动清除日志，让记录继续
     }
 
     @Override

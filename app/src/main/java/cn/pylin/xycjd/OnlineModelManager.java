@@ -63,9 +63,8 @@ public class OnlineModelManager {
         executor.execute(() -> {
             float score = callOnlineApi(title, content);
 
-            // 获取在线过滤程度配置
-            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
-            float filteringDegree = prefs.getFloat("pref_online_filtering_degree", 5.0f);
+            // 使用管理器获取在线过滤程度配置
+            float filteringDegree = SharedPreferencesManager.getInstance(context).getOnlineFilteringDegree();
 
             boolean shouldFilter = score <= filteringDegree;
             
@@ -78,11 +77,11 @@ public class OnlineModelManager {
     }
 
     private float callOnlineApi(String title, String content) {
-        // 从配置中读取API参数
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
-        String apiUrl = prefs.getString(PREF_API_URL, "");
-        String apiKey = prefs.getString(PREF_API_KEY, "");
-        String modelName = prefs.getString(PREF_MODEL_NAME, "");
+        // 使用SharedPreferencesManager读取API参数
+        SharedPreferencesManager manager = SharedPreferencesManager.getInstance(context);
+        String apiUrl = manager.getOnlineApiUrl();
+        String apiKey = manager.getOnlineApiKey();
+        String modelName = manager.getOnlineModelName();
         
         // 如果没有配置API参数，返回默认值
         if (apiUrl.isEmpty() || apiKey.isEmpty() || modelName.isEmpty()) {
@@ -137,7 +136,10 @@ public class OnlineModelManager {
             
             // 获取自定义提示词
             String defaultPrompt = context.getString(R.string.default_prompt_content);
-            String systemContent = prefs.getString(PREF_SYSTEM_PROMPT, defaultPrompt);
+            String systemContent = manager.getOnlineModelPrompt();
+            if (systemContent.isEmpty()) {
+                systemContent = defaultPrompt;
+            }
             
             systemMessage.put("content", systemContent);
             messages.put(systemMessage);
@@ -148,8 +150,8 @@ public class OnlineModelManager {
             messages.put(userMessage);
             jsonBody.put("messages", messages);
 
-            // 从配置中读取温度值，默认为0.5
-            float temperature = prefs.getFloat(PREF_TEMPERATURE, 0.5f);
+            // 使用管理器读取温度值
+            float temperature = manager.getTemperature();
             jsonBody.put("temperature", temperature);
 
             // 发送请求

@@ -279,67 +279,60 @@ public class SettingsFragment extends Fragment {
     }
 
     private void setLanguageSelection() {
-        // 获取SharedPreferences中保存的语言设置
-        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(requireContext());
-        String savedLanguage = preferences.getString("language", "zh");
+        // 从SharedPreferences管理器获取语言设置
+        String savedLanguage = SharedPreferencesManager.getInstance(requireContext()).getLanguage();
         
-        // 设置选中状态
+        // 设置选中状态，如果没有设置过语言，默认选中中文
         if (savedLanguage.equals("en")) {
             radioBtnEnglish.setChecked(true);
         } else if (savedLanguage.equals("zh-rTW")) {
             radioBtnZhTw.setChecked(true);
         } else {
+            // 默认值（"zh"）或未设置时选中中文
             radioBtnChinese.setChecked(true);
         }
     }
     
     private void setThemeSelection() {
-        // 获取SharedPreferences中保存的主题设置
-        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(requireContext());
-        int savedTheme = preferences.getInt("theme", AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM);
+        // 从SharedPreferences管理器获取主题设置
+        int savedTheme = SharedPreferencesManager.getInstance(requireContext()).getTheme();
         
-        // 设置选中状态
-        switch (savedTheme) {
-            case AppCompatDelegate.MODE_NIGHT_NO:
-                radioBtnLight.setChecked(true);
-                break;
-            case AppCompatDelegate.MODE_NIGHT_YES:
-                radioBtnDark.setChecked(true);
-                break;
-            case AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM:
-                radioBtnSystem.setChecked(true);
-                break;
+        // 设置选中状态，如果没有设置过主题，默认选中"跟随系统"
+        if (savedTheme == AppCompatDelegate.MODE_NIGHT_NO) {
+            radioBtnLight.setChecked(true);
+        } else if (savedTheme == AppCompatDelegate.MODE_NIGHT_YES) {
+            radioBtnDark.setChecked(true);
+        } else {
+            // 默认值（0）或 MODE_NIGHT_FOLLOW_SYSTEM 都选中"跟随系统"
+            radioBtnSystem.setChecked(true);
         }
     }
 
     private void setupNotificationModeControls() {
-        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(requireContext());
-        String mode = preferences.getString(PREF_NOTIFICATION_MODE, MODE_SUPER_ISLAND_ONLY);
+        // 从SharedPreferences管理器获取通知模式设置
+        String mode = SharedPreferencesManager.getInstance(requireContext()).getNotificationMode();
         
-        // 设置选中状态
-        switch (mode) {
-            case MODE_SUPER_ISLAND_ONLY:
-                radioBtnSuperIslandOnly.setChecked(true);
-                break;
-            case MODE_NOTIFICATION_BAR_ONLY:
-                radioBtnNotificationBarOnly.setChecked(true);
-                break;
-            case MODE_BOTH:
-                radioBtnModeBoth.setChecked(true);
-                break;
+        // 设置选中状态，如果没有设置过通知模式，默认选中"仅超级岛"
+        if (mode == null || mode.isEmpty() || mode.equals(MODE_SUPER_ISLAND_ONLY)) {
+            radioBtnSuperIslandOnly.setChecked(true);
+        } else if (mode.equals(MODE_NOTIFICATION_BAR_ONLY)) {
+            radioBtnNotificationBarOnly.setChecked(true);
+        } else if (mode.equals(MODE_BOTH)) {
+            radioBtnModeBoth.setChecked(true);
+        } else {
+            // 未知模式，默认选中"仅超级岛"
+            radioBtnSuperIslandOnly.setChecked(true);
         }
 
         // 设置监听器
         radioGroupNotificationMode.setOnCheckedChangeListener((group, checkedId) -> {
-            SharedPreferences.Editor editor = preferences.edit();
             if (checkedId == R.id.radio_btn_super_island_only) {
-                editor.putString(PREF_NOTIFICATION_MODE, MODE_SUPER_ISLAND_ONLY);
+                SharedPreferencesManager.getInstance(requireContext()).setNotificationMode(MODE_SUPER_ISLAND_ONLY);
             } else if (checkedId == R.id.radio_btn_notification_bar_only) {
-                editor.putString(PREF_NOTIFICATION_MODE, MODE_NOTIFICATION_BAR_ONLY);
+                SharedPreferencesManager.getInstance(requireContext()).setNotificationMode(MODE_NOTIFICATION_BAR_ONLY);
             } else if (checkedId == R.id.radio_btn_mode_both) {
-                editor.putString(PREF_NOTIFICATION_MODE, MODE_BOTH);
+                SharedPreferencesManager.getInstance(requireContext()).setNotificationMode(MODE_BOTH);
             }
-            editor.apply();
         });
     }
 
@@ -377,11 +370,8 @@ public class SettingsFragment extends Fragment {
         // 保存当前滚动位置
         saveScrollPosition();
         
-        // 保存语言设置到SharedPreferences
-        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(requireContext());
-        SharedPreferences.Editor editor = preferences.edit();
-        editor.putString("language", languageCode);
-        editor.apply();
+        // 使用SharedPreferences管理器保存语言设置
+        SharedPreferencesManager.getInstance(requireContext()).setLanguage(languageCode);
         
         // 重启应用以应用新语言设置
         restartApp();
@@ -391,11 +381,8 @@ public class SettingsFragment extends Fragment {
         // 保存当前滚动位置
         saveScrollPosition();
         
-        // 保存主题设置到SharedPreferences
-        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(requireContext());
-        SharedPreferences.Editor editor = preferences.edit();
-        editor.putInt("theme", themeMode);
-        editor.apply();
+        // 使用SharedPreferences管理器保存主题设置
+        SharedPreferencesManager.getInstance(requireContext()).setTheme(themeMode);
         
         // 应用主题设置
         AppCompatDelegate.setDefaultNightMode(themeMode);
@@ -703,13 +690,9 @@ public class SettingsFragment extends Fragment {
 
         // 设置点击事件
         btnModelFilteringToggle.setOnClickListener(v -> {
-            SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(requireContext());
-            boolean isEnabled = preferences.getBoolean(PREF_MODEL_FILTERING_ENABLED, false);
-            
-            // 切换状态
-            SharedPreferences.Editor editor = preferences.edit();
-            editor.putBoolean(PREF_MODEL_FILTERING_ENABLED, !isEnabled);
-            editor.apply();
+            // 使用SharedPreferences管理器切换模型过滤状态
+            boolean currentState = SharedPreferencesManager.getInstance(requireContext()).isModelFilteringEnabled();
+            SharedPreferencesManager.getInstance(requireContext()).setModelFilteringEnabled(!currentState);
             
             // 更新UI
             updateModelFilteringUI();
@@ -717,8 +700,8 @@ public class SettingsFragment extends Fragment {
     }
 
     private void updateModelFilteringUI() {
-        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(requireContext());
-        boolean isEnabled = preferences.getBoolean(PREF_MODEL_FILTERING_ENABLED, false);
+        // 从SharedPreferences管理器获取模型过滤状态
+        boolean isEnabled = SharedPreferencesManager.getInstance(requireContext()).isModelFilteringEnabled();
         
         if (isEnabled) {
             // 获取已过滤数量
@@ -738,8 +721,8 @@ public class SettingsFragment extends Fragment {
     }
     
     private void setupFilterModelControls() {
-        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(requireContext());
-        String model = preferences.getString(PREF_FILTER_MODEL, MODEL_LOCAL);
+        // 从SharedPreferences管理器获取过滤模型设置
+        String model = SharedPreferencesManager.getInstance(requireContext()).getFilterModel();
         
         // 设置选中状态
         if (MODEL_ONLINE.equals(model)) {
@@ -754,10 +737,8 @@ public class SettingsFragment extends Fragment {
         
         // 设置监听器
         radioGroupFilterModel.setOnCheckedChangeListener((group, checkedId) -> {
-            SharedPreferences.Editor editor = preferences.edit();
             if (checkedId == R.id.radio_btn_model_local) {
-                editor.putString(PREF_FILTER_MODEL, MODEL_LOCAL);
-                editor.apply();
+                SharedPreferencesManager.getInstance(requireContext()).setFilterModel(MODEL_LOCAL);
                 cardLearningConfig.setVisibility(View.VISIBLE);
                 cardOnlineModelConfig.setVisibility(View.GONE);
             } else if (checkedId == R.id.radio_btn_model_online) {
@@ -815,10 +796,7 @@ public class SettingsFragment extends Fragment {
         btnConfirm.setOnClickListener(v -> {
             dialog.dismiss();
             // 确认切换到在线模型
-            SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(requireContext());
-            SharedPreferences.Editor editor = preferences.edit();
-            editor.putString(PREF_FILTER_MODEL, MODEL_ONLINE);
-            editor.apply();
+            SharedPreferencesManager.getInstance(requireContext()).setFilterModel(MODEL_ONLINE);
             
             cardLearningConfig.setVisibility(View.GONE);
             cardOnlineModelConfig.setVisibility(View.VISIBLE);
@@ -832,11 +810,9 @@ public class SettingsFragment extends Fragment {
     }
 
     private void setupOnlineModelConfigControls() {
-        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(requireContext());
-        
-        // 获取保存的值，如果不存在则使用默认值
-        float filteringDegree = preferences.getFloat(PREF_ONLINE_FILTERING_DEGREE, 5.0f);
-        float temperature = preferences.getFloat(PREF_TEMPERATURE, 0.5f);
+        // 从SharedPreferences管理器获取在线模型配置
+        float filteringDegree = SharedPreferencesManager.getInstance(requireContext()).getOnlineFilteringDegree();
+        float temperature = SharedPreferencesManager.getInstance(requireContext()).getTemperature();
         
         // 设置初始值
         // SeekBar范围是0-100，对应0.0-10.0
@@ -855,10 +831,8 @@ public class SettingsFragment extends Fragment {
                 tvOnlineFilteringDegreeValue.setText(String.format("%.1f", value));
                 
                 if (fromUser) {
-                    // 保存设置
-                    SharedPreferences.Editor editor = preferences.edit();
-                    editor.putFloat(PREF_ONLINE_FILTERING_DEGREE, value);
-                    editor.apply();
+                    // 使用管理器保存设置
+                    SharedPreferencesManager.getInstance(requireContext()).setOnlineFilteringDegree(value);
                 }
             }
             
@@ -877,10 +851,8 @@ public class SettingsFragment extends Fragment {
                 tvTemperatureValue.setText(String.format("%.1f", value));
                 
                 if (fromUser) {
-                    // 保存设置
-                    SharedPreferences.Editor editor = preferences.edit();
-                    editor.putFloat(PREF_TEMPERATURE, value);
-                    editor.apply();
+                    // 使用管理器保存设置
+                    SharedPreferencesManager.getInstance(requireContext()).setTemperature(value);
                 }
             }
             
@@ -897,15 +869,14 @@ public class SettingsFragment extends Fragment {
             float defaultFilteringDegree = 5.0f;
             float defaultTemperature = 0.5f;
 
-            // 重置API配置
-            SharedPreferences.Editor editor = preferences.edit();
-            editor.putFloat(PREF_ONLINE_FILTERING_DEGREE, defaultFilteringDegree);
-            editor.putFloat(PREF_TEMPERATURE, defaultTemperature);
-            editor.remove("pref_online_api_url");
-            editor.remove("pref_online_api_key");
-            editor.remove("pref_online_model_name");
-            editor.remove("pref_online_model_prompt");
-            editor.apply();
+            // 使用管理器重置API配置
+            SharedPreferencesManager manager = SharedPreferencesManager.getInstance(requireContext());
+            manager.setOnlineFilteringDegree(defaultFilteringDegree);
+            manager.setTemperature(defaultTemperature);
+            manager.setOnlineApiUrl("");
+            manager.setOnlineApiKey("");
+            manager.setOnlineModelName("");
+            manager.setOnlineModelPrompt("");
 
             // 更新 UI
             seekBarOnlineFilteringDegree.setProgress((int) (defaultFilteringDegree * 10));
@@ -937,15 +908,16 @@ public class SettingsFragment extends Fragment {
         Button btnCancel = view.findViewById(R.id.btn_cancel);
         Button btnSave = view.findViewById(R.id.btn_save);
 
-        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(requireContext());
-        
-        // 读取当前保存的配置
-        String currentApiUrl = preferences.getString("pref_online_api_url", "");
-        String currentApiKey = preferences.getString("pref_online_api_key", "");
-        String currentModelName = preferences.getString("pref_online_model_name", "");
-        String currentSystemPrompt = preferences.getString("pref_online_model_prompt",
-                getString(R.string.default_prompt_content));
-        float currentTemperature = preferences.getFloat(PREF_TEMPERATURE, 0.5f);
+        // 从SharedPreferences管理器读取当前保存的配置
+        SharedPreferencesManager manager = SharedPreferencesManager.getInstance(requireContext());
+        String currentApiUrl = manager.getOnlineApiUrl();
+        String currentApiKey = manager.getOnlineApiKey();
+        String currentModelName = manager.getOnlineModelName();
+        String currentSystemPrompt = manager.getOnlineModelPrompt();
+        if (currentSystemPrompt.isEmpty()) {
+            currentSystemPrompt = getString(R.string.default_prompt_content);
+        }
+        float currentTemperature = manager.getTemperature();
 
         // 设置当前值到输入框
         etApiUrl.setText(currentApiUrl);
@@ -989,13 +961,12 @@ public class SettingsFragment extends Fragment {
                 return;
             }
 
-            SharedPreferences.Editor editor = preferences.edit();
-            editor.putString("pref_online_api_url", apiUrl);
-            editor.putString("pref_online_api_key", apiKey);
-            editor.putString("pref_online_model_name", modelName);
-            editor.putString("pref_online_model_prompt", systemPrompt);
-            editor.putFloat(PREF_TEMPERATURE, temperature);
-            editor.apply();
+            // 使用管理器保存设置
+            manager.setOnlineApiUrl(apiUrl);
+            manager.setOnlineApiKey(apiKey);
+            manager.setOnlineModelName(modelName);
+            manager.setOnlineModelPrompt(systemPrompt);
+            manager.setTemperature(temperature);
             
             // 更新主页面的温度显示
             if (tvTemperatureValue != null) {
@@ -1012,11 +983,9 @@ public class SettingsFragment extends Fragment {
     }
 
     private void setupLearningConfigControls() {
-        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(requireContext());
-        
-        // 获取保存的值，如果不存在则使用默认值
-        float filteringDegree = preferences.getFloat(PREF_FILTERING_DEGREE, 5.0f);
-        float learningDegree = preferences.getFloat(PREF_LEARNING_DEGREE, 3.0f);
+        // 从SharedPreferences管理器获取学习配置
+        float filteringDegree = SharedPreferencesManager.getInstance(requireContext()).getFilteringDegree();
+        float learningDegree = SharedPreferencesManager.getInstance(requireContext()).getLearningDegree();
         
         // 设置初始值
         // SeekBar范围是0-100，对应0.0-10.0
@@ -1034,10 +1003,8 @@ public class SettingsFragment extends Fragment {
                 tvFilteringDegreeValue.setText(String.format("%.1f", value));
                 
                 if (fromUser) {
-                    // 保存设置
-                    SharedPreferences.Editor editor = preferences.edit();
-                    editor.putFloat(PREF_FILTERING_DEGREE, value);
-                    editor.apply();
+                    // 使用管理器保存设置
+                    SharedPreferencesManager.getInstance(requireContext()).setFilteringDegree(value);
                 }
             }
             
@@ -1055,10 +1022,8 @@ public class SettingsFragment extends Fragment {
                 tvLearningDegreeValue.setText(String.format("%.1f", value));
                 
                 if (fromUser) {
-                    // 保存设置
-                    SharedPreferences.Editor editor = preferences.edit();
-                    editor.putFloat(PREF_LEARNING_DEGREE, value);
-                    editor.apply();
+                    // 使用管理器保存设置
+                    SharedPreferencesManager.getInstance(requireContext()).setLearningDegree(value);
                 }
             }
             
@@ -1075,11 +1040,10 @@ public class SettingsFragment extends Fragment {
             float defaultFilteringDegree = 5.0f;
             float defaultLearningDegree = 3.0f;
 
-            // 更新 SharedPreferences
-            SharedPreferences.Editor editor = preferences.edit();
-            editor.putFloat(PREF_FILTERING_DEGREE, defaultFilteringDegree);
-            editor.putFloat(PREF_LEARNING_DEGREE, defaultLearningDegree);
-            editor.apply();
+            // 使用管理器重置设置
+            SharedPreferencesManager manager = SharedPreferencesManager.getInstance(requireContext());
+            manager.setFilteringDegree(defaultFilteringDegree);
+            manager.setLearningDegree(defaultLearningDegree);
 
             // 更新 UI
             seekBarFilteringDegree.setProgress((int) (defaultFilteringDegree * 10));
@@ -1205,16 +1169,14 @@ public class SettingsFragment extends Fragment {
     }
 
     private void setupAnimationSpeedControls() {
-        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(requireContext());
-        
-        // 1. 初始化回显
-        float speed = preferences.getFloat(PREF_ANIMATION_SPEED, 1.0f);
+        // 从SharedPreferences管理器获取动画速度设置
+        float speed = SharedPreferencesManager.getInstance(requireContext()).getAnimationSpeed();
         int progress = Math.max(0, Math.min(29, (int) (speed * 10) - 1));
         
         seekBarSpeed.setProgress(progress);
         tvSpeedValue.setText(getString(R.string.value_speed, (progress + 1) / 10.0f));
         
-        // 2. 统一监听逻辑（拖动+按钮点击都会触发 onProgressChanged）
+        // 统一监听逻辑（拖动+按钮点击都会触发 onProgressChanged）
         seekBarSpeed.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
@@ -1227,17 +1189,17 @@ public class SettingsFragment extends Fragment {
             @Override public void onStopTrackingTouch(SeekBar seekBar) {}
         });
         
-        // 3. 按钮直接操作进度，复用监听器逻辑
+        // 按钮直接操作进度，复用监听器逻辑
         btnSpeedDecrease.setOnClickListener(v -> seekBarSpeed.setProgress(seekBarSpeed.getProgress() - 1));
         btnSpeedIncrease.setOnClickListener(v -> seekBarSpeed.setProgress(seekBarSpeed.getProgress() + 1));
         btnResetSpeed.setOnClickListener(v -> seekBarSpeed.setProgress(9)); // 1.0x 对应 progress 9
     }
 
     private void saveAnimationSpeed(float speed) {
-        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(requireContext());
-        preferences.edit().putFloat(PREF_ANIMATION_SPEED, speed).apply();
+        // 使用管理器保存动画速度设置
+        SharedPreferencesManager.getInstance(requireContext()).setAnimationSpeed(speed);
         
-        // Notify service to update animation config
+        // 通知服务更新动画配置
         if (FloatingWindowService.isServiceRunning(requireContext())) {
             FloatingWindowService service = FloatingWindowService.getInstance();
             if (service != null) {
@@ -1248,19 +1210,21 @@ public class SettingsFragment extends Fragment {
 
     private void saveScrollPosition() {
         if (scrollView != null) {
-            SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(requireContext());
-            preferences.edit().putInt(PREF_SETTINGS_SCROLL_Y, scrollView.getScrollY()).apply();
+            // 使用自定义SharedPreferences保存滚动位置（不通过管理器，因为这是临时状态）
+            SharedPreferences preferences = requireContext().getSharedPreferences("app_settings_scroll", Context.MODE_PRIVATE);
+            preferences.edit().putInt("scroll_y", scrollView.getScrollY()).apply();
         }
     }
 
     private void restoreScrollPosition() {
-        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(requireContext());
-        if (preferences.contains(PREF_SETTINGS_SCROLL_Y)) {
-            final int scrollY = preferences.getInt(PREF_SETTINGS_SCROLL_Y, 0);
+        // 使用自定义SharedPreferences恢复滚动位置
+        SharedPreferences preferences = requireContext().getSharedPreferences("app_settings_scroll", Context.MODE_PRIVATE);
+        if (preferences.contains("scroll_y")) {
+            final int scrollY = preferences.getInt("scroll_y", 0);
             if (scrollView != null) {
                 scrollView.post(() -> scrollView.scrollTo(0, scrollY));
             }
-            preferences.edit().remove(PREF_SETTINGS_SCROLL_Y).apply();
+            preferences.edit().remove("scroll_y").apply();
         }
     }
     
