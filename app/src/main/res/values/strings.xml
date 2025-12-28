@@ -202,6 +202,9 @@
     <string name="api_key_hint">请填写密钥，密钥仅本地保存</string>
     <string name="model_name_hint">填写服务商提供的模型名称</string>
     <string name="system_prompt_hint">请输入系统提示词</string>
+    <string name="api_testing">正在测试API连接...</string>
+    <string name="api_test_success">API连接成功，配置已保存</string>
+    <string name="api_test_failed">API连接失败，请检查配置</string>
 
     <!-- 日志页面相关字符串 -->
     <string name="log_return">返回</string>

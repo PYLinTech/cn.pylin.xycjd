@@ -10,8 +10,8 @@ android {
         applicationId = "cn.pylin.xycjd"
         minSdk = 30
         targetSdk = 36
-        versionCode = 251228
-        versionName = "1.5.3"
+        versionCode = 251229
+        versionName = "1.5.4"
     }
 
     buildTypes {

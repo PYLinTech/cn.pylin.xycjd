@@ -134,7 +134,40 @@
             android:textColor="?android:attr/textColorPrimary" />
     </LinearLayout>
 
+    <!-- 进度条区域，默认隐藏 -->
     <LinearLayout
+        android:id="@+id/layout_progress"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:visibility="gone"
+        android:layout_marginTop="16dp"
+        android:gravity="center">
+
+        <!-- 圆环进度条 -->
+        <ProgressBar
+            android:id="@+id/circle_progress"
+            style="?android:attr/progressBarStyle"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:indeterminate="true"
+            android:indeterminateTint="@color/colorPrimary" />
+
+        <!-- 进度提示文本 -->
+        <TextView
+            android:id="@+id/tv_progress_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="@string/api_testing"
+            android:textColor="?android:attr/textColorPrimary"
+            android:textSize="14sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <!-- 按钮区域 -->
+    <LinearLayout
+        android:id="@+id/layout_buttons"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="end"

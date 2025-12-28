@@ -1,49 +1,35 @@
 package cn.pylin.xycjd;
 
 import android.content.Context;
-import android.content.SharedPreferences;
-import android.os.Handler;
-import android.os.Looper;
-import android.preference.PreferenceManager;
 import android.util.Log;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
+
 /**
- * 在线模型管理器
+ * 在线模型管理器 - 重构版
  * 实现OpenAI接口规范的调用
  */
 public class OnlineModelManager {
     
     private static OnlineModelManager instance;
     private final ExecutorService executor;
-    private final Handler mainHandler;
     private final Context context;
-
-    // 配置键名
-    private static final String PREF_API_URL = "pref_online_api_url";
-    private static final String PREF_API_KEY = "pref_online_api_key";
-    private static final String PREF_MODEL_NAME = "pref_online_model_name";
-    private static final String PREF_SYSTEM_PROMPT = "pref_online_model_prompt";
-    private static final String PREF_TEMPERATURE = "pref_temperature";
-
-    public interface FilterCallback {
-        void onResult(boolean shouldFilter, float score);
-    }
+    private final OkHttpClient client;
 
     private OnlineModelManager(Context context) {
         this.context = context.getApplicationContext();
         this.executor = Executors.newSingleThreadExecutor();
-        this.mainHandler = new Handler(Looper.getMainLooper());
+        this.client = new OkHttpClient();
     }
 
     public static synchronized OnlineModelManager getInstance(Context context) {
@@ -53,150 +39,160 @@ public class OnlineModelManager {
         return instance;
     }
 
+    public interface FilterCallback {
+        void onResult(boolean shouldFilter, float score);
+    }
+
     /**
      * 异步检查是否需要过滤
-     * @param title 通知标题
-     * @param content 通知内容
-     * @param callback 回调接口
      */
     public void checkFilter(String title, String content, FilterCallback callback) {
         executor.execute(() -> {
-            float score = callOnlineApi(title, content);
-
-            // 使用管理器获取在线过滤程度配置
+            float score = executeApiCall(title, content);
             float filteringDegree = SharedPreferencesManager.getInstance(context).getOnlineFilteringDegree();
-
             boolean shouldFilter = score <= filteringDegree;
             
-            mainHandler.post(() -> {
-                if (callback != null) {
-                    callback.onResult(shouldFilter, score);
-                }
-            });
+            if (callback != null) {
+                callback.onResult(shouldFilter, score);
+            }
         });
     }
 
-    private float callOnlineApi(String title, String content) {
-        // 使用SharedPreferencesManager读取API参数
-        SharedPreferencesManager manager = SharedPreferencesManager.getInstance(context);
-        String apiUrl = manager.getOnlineApiUrl();
-        String apiKey = manager.getOnlineApiKey();
-        String modelName = manager.getOnlineModelName();
-        
-        // 如果没有配置API参数，返回默认值
-        if (apiUrl.isEmpty() || apiKey.isEmpty() || modelName.isEmpty()) {
-            Log.e("OnlineModelManager", "API configuration is missing");
+    /**
+     * 执行API调用并返回分数（实际使用的方法）
+     * 失败时返回10.0f
+     */
+    public float executeApiCall(String title, String content) {
+        try {
+            return callOnlineApi(title, content, 
+                SharedPreferencesManager.getInstance(context));
+        } catch (Exception e) {
+            Log.e("OnlineModelManager", "API call failed: " + e.getMessage());
             return 10.0f;
         }
+    }
 
+    /**
+     * 核心API调用方法 - 使用配置管理器
+     */
+    private float callOnlineApi(String title, String content, SharedPreferencesManager manager) throws Exception {
+        return callOnlineApi(title, content, 
+            manager.getOnlineApiUrl(),
+            manager.getOnlineApiKey(),
+            manager.getOnlineModelName(),
+            manager.getOnlineModelPrompt(),
+            manager.getTemperature());
+    }
+
+    /**
+     * 测试API连接方法
+     * @return true 如果测试成功返回0.0f-10.0f的分数
+     */
+    public boolean testApiConnection(String apiUrl, String apiKey, String modelName, 
+                                   String systemPrompt, float temperature) {
         try {
-            // 自动补全API路径
-            String finalUrl = apiUrl;
-            // 移除末尾的斜杠，防止双斜杠问题
-            while (finalUrl.endsWith("/")) {
-                finalUrl = finalUrl.substring(0, finalUrl.length() - 1);
-            }
-            
-            // 如果路径不以 /chat/completions 结尾，则自动追加
-            if (!finalUrl.endsWith("/chat/completions")) {
-                finalUrl += "/chat/completions";
-            }
-
-            URL url = new URL(finalUrl);
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-            conn.setRequestMethod("POST");
-            conn.setRequestProperty("Content-Type", "application/json");
-            conn.setRequestProperty("Authorization", "Bearer " + apiKey);
-            conn.setDoOutput(true);
-
-            // 截断标题和内容
-            String safeTitle = title != null ? title : "";
-            if (safeTitle.length() > 50) {
-                safeTitle = safeTitle.substring(0, 50);
-            }
-            String safeContent = content != null ? content : "";
-            if (safeContent.length() > 200) {
-                safeContent = safeContent.substring(0, 200);
-            }
-
-            // 构建提示词
-            String prompt = String.format("标题：%s\n内容：%s", 
-                    safeTitle, 
-                    safeContent);
-
-            // 构建请求体 (OpenAI 格式)
-            JSONObject jsonBody = new JSONObject();
-            jsonBody.put("model", modelName);
-            
-            JSONArray messages = new JSONArray();
-
-            // 系统提示词
-            JSONObject systemMessage = new JSONObject();
-            systemMessage.put("role", "system");
-            
-            // 获取自定义提示词
-            String defaultPrompt = context.getString(R.string.default_prompt_content);
-            String systemContent = manager.getOnlineModelPrompt();
-            if (systemContent.isEmpty()) {
-                systemContent = defaultPrompt;
-            }
-            
-            systemMessage.put("content", systemContent);
-            messages.put(systemMessage);
-            
-            JSONObject userMessage = new JSONObject();
-            userMessage.put("role", "user");
-            userMessage.put("content", prompt);
-            messages.put(userMessage);
-            jsonBody.put("messages", messages);
-
-            // 使用管理器读取温度值
-            float temperature = manager.getTemperature();
-            jsonBody.put("temperature", temperature);
-
-            // 发送请求
-            try (OutputStream os = conn.getOutputStream()) {
-                byte[] input = jsonBody.toString().getBytes("utf-8");
-                os.write(input, 0, input.length);
-            }
-
-            // 读取响应
-            int responseCode = conn.getResponseCode();
-            if (responseCode == HttpURLConnection.HTTP_OK) {
-                try (BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream(), "utf-8"))) {
-                    StringBuilder response = new StringBuilder();
-                    String responseLine;
-                    while ((responseLine = br.readLine()) != null) {
-                        response.append(responseLine.trim());
-                    }
-                    
-                    // 解析响应
-                    JSONObject jsonResponse = new JSONObject(response.toString());
-                    JSONArray choices = jsonResponse.getJSONArray("choices");
-                    if (choices.length() > 0) {
-                        JSONObject choice = choices.getJSONObject(0);
-                        JSONObject message = choice.getJSONObject("message");
-                        String contentResult = message.getString("content").trim();
-                        
-                        // 尝试解析数字
-                        try {
-                            // 提取字符串中的数字（防止AI返回"Score: 8.5"等情况）
-                            String numberStr = contentResult.replaceAll("[^0-9.]", "");
-                            if (!numberStr.isEmpty()) {
-                                float score = Float.parseFloat(numberStr);
-                                // 限制范围在0-10之间
-                                return Math.max(0f, Math.min(10f, score));
-                            }
-                        } catch (NumberFormatException e) {
-                            Log.e("OnlineModelManager", "Failed to parse score: " + contentResult);
-                        }
-                    }
-                }
-            } 
+            float score = callOnlineApi("测试标题", "测试内容", 
+                apiUrl, apiKey, modelName, systemPrompt, temperature);
+            return score >= 0.0f && score <= 10.0f;
         } catch (Exception e) {
-            e.printStackTrace();
+            Log.e("OnlineModelManager", "Test failed: " + e.getMessage());
+            return false;
         }
-        // 默认返回满分（放行），避免因网络错误误杀
-        return 10.0f;
+    }
+
+    /**
+     * 核心API调用方法 - 使用OkHttp
+     */
+    private float callOnlineApi(String title, String content, 
+                               String apiUrl, String apiKey, String modelName,
+                               String systemPrompt, float temperature) throws Exception {
+
+        // 构建URL
+        String finalUrl = apiUrl.replaceAll("/+$", "");
+        if (!finalUrl.endsWith("/chat/completions")) {
+            finalUrl += "/chat/completions";
+        }
+
+        // 构建请求体
+        JSONObject requestBody = buildRequestBody(title, content, modelName, systemPrompt, temperature);
+        
+        // 创建请求
+        Request request = new Request.Builder()
+                .url(finalUrl)
+                .addHeader("Content-Type", "application/json")
+                .addHeader("Authorization", "Bearer " + apiKey)
+                .post(RequestBody.create(requestBody.toString(), MediaType.get("application/json; charset=utf-8")))
+                .build();
+
+        // 执行请求并解析响应
+        try (Response response = client.newCall(request).execute()) {
+            if (response.isSuccessful() && response.body() != null) {
+                // 直接使用 OkHttp 的 string() 方法获取响应内容
+                String responseString = response.body().string();
+                return parseScoreFromResponse(responseString);
+            } else {
+                throw new Exception("HTTP error: " + response.code());
+            }
+        }
+    }
+
+    /**
+     * 构建请求体
+     */
+    private JSONObject buildRequestBody(String title, String content, String modelName, 
+                                      String systemPrompt, float temperature) throws Exception {
+        // 截断内容
+        String safeTitle = title != null ? title.substring(0, Math.min(50, title.length())) : "";
+        String safeContent = content != null ? content.substring(0, Math.min(200, content.length())) : "";
+
+        // 获取系统提示词
+        if (systemPrompt == null || systemPrompt.isEmpty()) {
+            systemPrompt = context.getString(R.string.default_prompt_content);
+        }
+
+        // 构建消息
+        JSONObject systemMessage = new JSONObject();
+        systemMessage.put("role", "system");
+        systemMessage.put("content", systemPrompt);
+
+        JSONObject userMessage = new JSONObject();
+        userMessage.put("role", "user");
+        userMessage.put("content", String.format("标题：%s\n内容：%s", safeTitle, safeContent));
+
+        JSONArray messages = new JSONArray();
+        messages.put(systemMessage);
+        messages.put(userMessage);
+
+        // 构建请求体
+        JSONObject requestBody = new JSONObject();
+        requestBody.put("model", modelName);
+        requestBody.put("messages", messages);
+        requestBody.put("temperature", temperature);
+
+        return requestBody;
+    }
+
+    /**
+     * 从API响应中解析分数
+     */
+    private float parseScoreFromResponse(String responseString) throws Exception {
+        JSONObject jsonResponse = new JSONObject(responseString);
+        JSONArray choices = jsonResponse.getJSONArray("choices");
+        
+        if (choices.length() > 0) {
+            String contentResult = choices.getJSONObject(0)
+                .getJSONObject("message")
+                .getString("content")
+                .trim();
+            
+            // 提取数字
+            String numberStr = contentResult.replaceAll("[^0-9.]", "");
+            if (!numberStr.isEmpty()) {
+                float score = Float.parseFloat(numberStr);
+                return Math.max(0f, Math.min(10f, score));
+            }
+        }
+        
+        throw new Exception("No valid score found in response");
     }
 }

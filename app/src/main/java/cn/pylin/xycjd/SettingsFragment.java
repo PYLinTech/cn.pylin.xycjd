@@ -911,6 +911,11 @@ public class SettingsFragment extends Fragment {
         TextView tvTemperatureValue = view.findViewById(R.id.tv_temperature_value);
         Button btnCancel = view.findViewById(R.id.btn_cancel);
         Button btnSave = view.findViewById(R.id.btn_save);
+        
+        // 新增：进度条相关控件
+        LinearLayout layoutProgress = view.findViewById(R.id.layout_progress);
+        TextView tvProgressText = view.findViewById(R.id.tv_progress_text);
+        LinearLayout layoutButtons = view.findViewById(R.id.layout_buttons);
 
         // 从SharedPreferences管理器读取当前保存的配置
         SharedPreferencesManager manager = SharedPreferencesManager.getInstance(requireContext());
@@ -951,7 +956,7 @@ public class SettingsFragment extends Fragment {
         // 取消
         btnCancel.setOnClickListener(v -> dialog.dismiss());
 
-        // 保存
+        // 保存 - 先测试API，成功后再保存到本地
         btnSave.setOnClickListener(v -> {
             String apiUrl = etApiUrl.getText().toString().trim();
             String apiKey = etApiKey.getText().toString().trim();
@@ -965,25 +970,82 @@ public class SettingsFragment extends Fragment {
                 return;
             }
 
-            // 使用管理器保存设置
-            manager.setOnlineApiUrl(apiUrl);
-            manager.setOnlineApiKey(apiKey);
-            manager.setOnlineModelName(modelName);
-            manager.setOnlineModelPrompt(systemPrompt);
-            manager.setTemperature(temperature);
+            // 显示进度条，隐藏按钮
+            layoutProgress.setVisibility(View.VISIBLE);
+            layoutButtons.setVisibility(View.GONE);
             
-            // 更新主页面的温度显示
-            if (tvTemperatureValue != null) {
-                tvTemperatureValue.setText(String.format("%.1f", temperature));
-            }
-            if (seekBarTemperature != null) {
-                seekBarTemperature.setProgress((int) (temperature * 10));
-            }
-            
-            dialog.dismiss();
+            // 调用测试API连接方法（不先保存到本地）
+            testApiConnection(apiUrl, apiKey, modelName, systemPrompt, temperature, 
+                new ApiTestCallback() {
+                    @Override
+                    public void onSuccess() {
+                        // 测试成功，保存配置到本地并关闭弹窗
+                        requireActivity().runOnUiThread(() -> {
+                            // 成功后再保存到SharedPreferences
+                            manager.setOnlineApiUrl(apiUrl);
+                            manager.setOnlineApiKey(apiKey);
+                            manager.setOnlineModelName(modelName);
+                            manager.setOnlineModelPrompt(systemPrompt);
+                            manager.setTemperature(temperature);
+                            
+                            Toast.makeText(requireContext(), R.string.api_test_success, Toast.LENGTH_SHORT).show();
+                            
+                            // 更新主页面的温度显示
+                            if (tvTemperatureValue != null) {
+                                tvTemperatureValue.setText(String.format("%.1f", temperature));
+                            }
+                            if (seekBarTemperature != null) {
+                                seekBarTemperature.setProgress((int) (temperature * 10));
+                            }
+                            
+                            dialog.dismiss();
+                        });
+                    }
+                    
+                    @Override
+                    public void onFailure() {
+                        // 测试失败，隐藏进度条，显示按钮，显示错误
+                        requireActivity().runOnUiThread(() -> {
+                            layoutProgress.setVisibility(View.GONE);
+                            layoutButtons.setVisibility(View.VISIBLE);
+                            
+                            Toast.makeText(requireContext(), R.string.api_test_failed, Toast.LENGTH_SHORT).show();
+                        });
+                    }
+                });
         });
 
         dialog.show();
+    }
+
+    // API测试回调接口
+    private interface ApiTestCallback {
+        void onSuccess();
+        void onFailure();
+    }
+
+    // 测试API连接方法
+    private void testApiConnection(String apiUrl, String apiKey, String modelName, 
+                                   String systemPrompt, float temperature, ApiTestCallback callback) {
+        // 使用OnlineModelManager的testApiConnection方法进行测试
+        new Thread(() -> {
+            try {
+                OnlineModelManager manager = OnlineModelManager.getInstance(requireContext());
+                boolean success = manager.testApiConnection(apiUrl, apiKey, modelName, systemPrompt, temperature);
+                
+                requireActivity().runOnUiThread(() -> {
+                    if (success) {
+                        callback.onSuccess();
+                    } else {
+                        callback.onFailure();
+                    }
+                });
+            } catch (Exception e) {
+                requireActivity().runOnUiThread(() -> {
+                    callback.onFailure();
+                });
+            }
+        }).start();
     }
 
     private void setupLearningConfigControls() {

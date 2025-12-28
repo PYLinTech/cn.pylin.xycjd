@@ -185,6 +185,7 @@
     <string name="system_prompt_hint">Enter the system prompt</string>
 
     <!-- Log Page -->
+    <string name="api_test_failed">API connection failed. Check the configuration</string>
     <string name="log_return">Return</string>
     <string name="log_exit">Exit</string>
     <string name="log_export">Export</string>
@@ -265,4 +266,6 @@
     <string name="heartbeat_log_heartbeat_normal">[Heartbeat Check] Normal Heartbeat</string>
     <string name="heartbeat_log_service_death">[Heartbeat Check] Service Disconnected</string>
     <string name="heartbeat_log_restart_completed">[Heartbeat Check] The notification listener service has automatically restarted</string>
+    <string name="api_testing">Testing API connection...</string>
+    <string name="api_test_success">API connection succeeded. Configuration saved</string>
 </resources>
