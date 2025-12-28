@@ -79,12 +79,6 @@ public class MainActivity extends AppCompatActivity {
         
         // 启动悬浮窗服务并恢复通知
         startFloatingWindowServiceWithNotifications();
-        
-        // 启动心跳检查后台服务
-        new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> {
-            Intent serviceIntent = new Intent(this, NotificationServiceHeartbeat.class);
-            startService(serviceIntent);
-        }, 2000);
 
         // 设置按钮点击事件
         btnSettings.setOnClickListener(new View.OnClickListener() {
@@ -308,22 +302,16 @@ public class MainActivity extends AppCompatActivity {
     private void startFloatingWindowServiceWithNotifications() {
         // 检查悬浮窗权限并启动服务
         if (FloatingWindowPermissionManager.hasPermission(this)) {
+            // 检查用户是否在设置中明确关闭了悬浮窗功能
+            boolean userEnabledFloatingWindow = SharedPreferencesManager.getInstance(this).isFloatingWindowEnabled();
+            if (!userEnabledFloatingWindow) {
+                // 用户没有主动开启悬浮窗，不自动启动
+                return;
+            }
+            
             // 启动悬浮窗服务
             Intent serviceIntent = new Intent(this, FloatingWindowService.class);
             startService(serviceIntent);
-            
-            // 延迟检查是否有恢复的通知需要显示
-            new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> {
-                FloatingWindowService service = FloatingWindowService.getInstance();
-                if (service != null) {
-                    // 检查是否有恢复的通知
-                    java.util.LinkedList<FloatingWindowService.NotificationInfo> queue = service.getNotificationQueue();
-                    if (queue != null && !queue.isEmpty()) {
-                        // 显示三圆悬浮窗来提示有恢复的通知
-                        service.showThreeCircleIsland();
-                    }
-                }
-            }, 1000); // 延迟1秒，确保服务完全启动
         }
     }
     

@@ -80,6 +80,10 @@ public class SharedPreferencesManager {
     private static final String PREF_NOTIFICATION_LOG_RECORDING = "notification_log_recording";
     private boolean notificationLogRecording;
     
+    // 悬浮窗开关状态
+    private static final String PREF_FLOATING_WINDOW_ENABLED = "floating_window_enabled";
+    private boolean floatingWindowEnabled;
+    
     private SharedPreferencesManager(Context context) {
         // 初始化全局SharedPreferences
         globalPrefs = PreferenceManager.getDefaultSharedPreferences(context);
@@ -129,6 +133,7 @@ public class SharedPreferencesManager {
         floatingY = globalPrefs.getInt(PREF_FLOATING_Y, -100);
         introVersion = globalPrefs.getInt(PREF_INTRO_VERSION, 0);
         notificationLogRecording = globalPrefs.getBoolean(PREF_NOTIFICATION_LOG_RECORDING, false);
+        floatingWindowEnabled = globalPrefs.getBoolean(PREF_FLOATING_WINDOW_ENABLED, false);
     }
     
     // ==================== 全局设置读写方法 ====================
@@ -304,6 +309,17 @@ public class SharedPreferencesManager {
     public void setNotificationLogRecording(boolean recording) {
         this.notificationLogRecording = recording;
         globalEditor.putBoolean(PREF_NOTIFICATION_LOG_RECORDING, recording).apply();
+    }
+    
+    // ==================== 悬浮窗开关状态方法 ====================
+    
+    public boolean isFloatingWindowEnabled() {
+        return floatingWindowEnabled;
+    }
+    
+    public void setFloatingWindowEnabled(boolean enabled) {
+        this.floatingWindowEnabled = enabled;
+        globalEditor.putBoolean(PREF_FLOATING_WINDOW_ENABLED, enabled).apply();
     }
     
     // ==================== 应用包特定设置读写方法 ====================

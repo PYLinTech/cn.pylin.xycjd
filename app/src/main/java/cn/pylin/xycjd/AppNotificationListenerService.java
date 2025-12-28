@@ -1,6 +1,5 @@
 package cn.pylin.xycjd;
 
-import android.content.Intent;
 import android.os.Handler;
 import android.os.Looper;
 import android.service.notification.NotificationListenerService;
@@ -19,7 +18,7 @@ public class AppNotificationListenerService extends NotificationListenerService 
     // 心跳上报定时器（被检测部分）
     private Handler heartbeatHandler;
     private Runnable heartbeatRunnable;
-    private static final long HEARTBEAT_REPORT_INTERVAL_MS = 20000; // 20秒上报一次心跳
+    private static final long HEARTBEAT_REPORT_INTERVAL_MS = 20000; // 20秒上报一次心跳（由待检测对象发送）
 
     public static AppNotificationListenerService getInstance() {
         return instance;
@@ -131,11 +130,6 @@ public class AppNotificationListenerService extends NotificationListenerService 
         try {
             String logMessage = getString(R.string.heartbeat_log_heartbeat_normal);
             NotificationLogManager.getInstance(this).log(logMessage);
-            
-            // 心跳正常时，重置重启计数
-            if (heartbeat != null) {
-                heartbeat.resetRestartCount();
-            }
         } catch (Exception e) {
             // 日志记录失败不影响心跳
         }

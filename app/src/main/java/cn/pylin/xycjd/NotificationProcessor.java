@@ -18,9 +18,6 @@ public class NotificationProcessor {
     private SharedPreferencesManager prefsManager;
     private Handler mainHandler;
     
-    // 用于跟踪已提醒过的通知key（避免重复震动/声音）
-    private static java.util.Set<String> remindedKeys = new java.util.HashSet<>();
-    
     public NotificationProcessor(Context context) {
         this.context = context.getApplicationContext();
         this.prefsManager = SharedPreferencesManager.getInstance(context);
@@ -46,7 +43,7 @@ public class NotificationProcessor {
         // 3. 执行模式逻辑
         executeByMode(context);
     }
-    
+
     /**
      * 步骤1：构建处理上下文
      */
@@ -181,7 +178,6 @@ public class NotificationProcessor {
      */
     private void executeNotificationBarMode(NotificationContext context) {
         // 不显示超级岛，仅保留系统通知
-        // 执行行为（如果需要）
         executeBehaviors(context);
     }
     
@@ -193,9 +189,7 @@ public class NotificationProcessor {
         if (context.config.shouldShowIsland()) {
             showInIsland(context);
         }
-        
-        // 不删除系统通知（默认行为）
-        
+
         // 执行行为
         executeBehaviors(context);
     }
@@ -260,7 +254,6 @@ public class NotificationProcessor {
             } else if (mode.equals("mode_both")) {
                 executeBothMode(context);
             }
-            // mode_notification_bar_only 不需要特殊处理
         });
     }
     
@@ -268,15 +261,8 @@ public class NotificationProcessor {
      * 步骤6：执行行为（震动、声音、自动展开）
      */
     private void executeBehaviors(NotificationContext context) {
-        // 避免重复提醒
-        if (remindedKeys.contains(context.key)) {
-            return;
-        }
-        
         // 检查是否有任何行为需要执行
         if (context.config.vibration || context.config.sound || context.config.autoExpand) {
-            remindedKeys.add(context.key);
-            
             mainHandler.post(() -> {
                 // 震动
                 if (context.config.vibration) {
@@ -413,27 +399,7 @@ public class NotificationProcessor {
             }
         });
     }
-    
-    /**
-     * 更新超级岛内容
-     */
-    private void updateIslandContent(NotificationContext context) {
-        mainHandler.post(() -> {
-            FloatingWindowService service = FloatingWindowService.getInstance();
-            if (service != null) {
-                // 先移除再添加，实现更新
-                service.removeNotification(context.key);
-                service.addNotification(
-                    context.key, 
-                    context.packageName, 
-                    context.title, 
-                    context.content, 
-                    context.pendingIntent, 
-                    context.mediaToken);
-            }
-        });
-    }
-    
+
     /**
      * 从系统通知栏移除
      */
