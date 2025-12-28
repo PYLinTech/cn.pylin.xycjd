@@ -63,8 +63,8 @@ public class AboutFragment extends Fragment {
     }
 
     private void updateLogRecordingHint() {
-        if (tvLogRecordingHint != null) {
-            boolean isRecording = NotificationLogManager.getInstance().isRecording();
+        if (tvLogRecordingHint != null && getContext() != null) {
+            boolean isRecording = NotificationLogManager.getInstance(getContext()).isRecording();
             tvLogRecordingHint.setVisibility(isRecording ? View.VISIBLE : View.GONE);
         }
     }

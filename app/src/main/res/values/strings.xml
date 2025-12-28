@@ -206,10 +206,13 @@
     <!-- 日志页面相关字符串 -->
     <string name="log_return">返回</string>
     <string name="log_exit">退出</string>
-    <string name="log_online_check" translatable="false">在线模型检测: %1$s | 分数: %2$.1f (阈值: %3$.1f) | 结果: %4$s | 原文: %5$s</string>
-    <string name="log_local_check" translatable="false">本地模型检测: %1$s | 分数: %2$.2f (阈值: %3$.1f) | 结果: %4$s | 原文: %5$s</string>
-    <string name="log_result_filtered" translatable="false">过滤</string>
-    <string name="log_result_allowed" translatable="false">放行</string>
+    <string name="log_export">导出</string>
+    <string name="log_export_success">日志已导出到：%s</string>
+    <string name="log_export_success_title">导出成功</string>
+    <string name="log_export_failed">导出失败，请检查存储权限</string>
+    <string name="log_export_empty">暂无日志可导出</string>
+    <string name="log_share_file">分享通知日志文件</string>
+    <string name="log_share_failed">分享失败，请重试</string>
 
     <!-- 在线模型警告对话框相关字符串 -->
     <string name="warning_title">警告</string>
@@ -242,4 +245,59 @@
     
     <!-- 日志记录状态提示 -->
     <string name="log_recording_hint">正在记录日志，点击查看</string>
+
+    <!-- 通知日志相关字符串 -->
+    <string name="log_notification_label">------【通知标签】------</string>
+    <string name="log_package_name">包名：</string>
+    <string name="log_notification_id" translatable="false">ID：</string>
+    <string name="log_tag">标签：</string>
+    <string name="log_time">时间：</string>
+    <string name="log_clearable">可清除：</string>
+    <string name="log_ongoing">可持续：</string>
+    <string name="log_key">键值：</string>
+    <string name="log_group_key">组键：</string>
+    <string name="log_override_group_key">覆盖组键：</string>
+    <string name="log_channel_id">频道ID：</string>
+    <string name="log_category">类别：</string>
+    <string name="log_ticker_text">提示文本：</string>
+    <string name="log_content_intent">内容意图：</string>
+    <string name="log_flags">标志：</string>
+    <string name="log_priority">优先级：</string>
+    <string name="log_extras_header">------【额外信息】------</string>
+    <string name="log_extras_footer" translatable="false">----------------------------</string>
+
+    <!-- 模型检查日志相关字符串 -->
+    <string name="log_model_check_header">------【%s检查】------</string>
+    <string name="log_package_name_colon">包名：</string>
+    <string name="log_score_colon">分数：</string>
+    <string name="log_threshold_colon">阈值：</string>
+    <string name="log_result_colon">结果：</string>
+    <string name="log_title_colon">标题：</string>
+    <string name="log_content_colon">内容：</string>
+    <string name="log_model_local">本地模型</string>
+    <string name="log_model_online">在线模型</string>
+    <string name="log_result_filtered">过滤</string>
+    <string name="log_result_allowed">放行</string>
+
+    <!-- 通知处理日志相关字符串 -->
+    <string name="log_notification_processed">通知已处理</string>
+    <string name="log_notification_ignored">通知被忽略</string>
+    <string name="log_notification_updated">通知已更新</string>
+    <string name="log_notification_shown_island">显示在超级岛</string>
+    <string name="log_notification_removed_system">从系统通知栏移除</string>
+    <string name="log_notification_filtered">通知被过滤</string>
+    <string name="log_behavior_vibration">执行震动</string>
+    <string name="log_behavior_sound">播放声音</string>
+    <string name="log_behavior_expand">自动展开</string>
+    <string name="log_error_failed_cancel">取消系统通知失败</string>
+    <string name="log_error_failed_play_sound">播放通知声音失败</string>
+
+    <!-- 心跳检查相关字符串 -->
+    <string name="heartbeat_channel_name">通知监听服务异常提醒</string>
+    <string name="heartbeat_channel_desc">通知监听服务异常时提醒用户重新授权</string>
+    <string name="heartbeat_notification_title">通知监听服务异常</string>
+    <string name="heartbeat_notification_content">通知监听服务异常，请将通知监听权限先关闭后再重新开启！</string>
+    <string name="heartbeat_log_heartbeat_normal">【心跳检查】心跳正常</string>
+    <string name="heartbeat_log_service_death">【心跳检查】检测到服务失联</string>
+    <string name="heartbeat_log_restart_completed">【心跳检查】通知监听服务已自动重启</string>
 </resources>

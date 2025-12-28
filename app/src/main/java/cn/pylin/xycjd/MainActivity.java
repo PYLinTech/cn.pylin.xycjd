@@ -79,6 +79,12 @@ public class MainActivity extends AppCompatActivity {
         
         // 启动悬浮窗服务并恢复通知
         startFloatingWindowServiceWithNotifications();
+        
+        // 启动心跳检查后台服务
+        new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> {
+            Intent serviceIntent = new Intent(this, NotificationServiceHeartbeat.class);
+            startService(serviceIntent);
+        }, 2000);
 
         // 设置按钮点击事件
         btnSettings.setOnClickListener(new View.OnClickListener() {
@@ -320,4 +326,5 @@ public class MainActivity extends AppCompatActivity {
             }, 1000); // 延迟1秒，确保服务完全启动
         }
     }
+    
 }

@@ -17,6 +17,9 @@
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
     <!-- 振动权限 -->
     <uses-permission android:name="android.permission.VIBRATE" />
+    
+    <!-- Android 10+ 使用分区存储，导出到下载目录 -->
+    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" tools:ignore="ScopedStorage" />
 
     <application
         android:allowBackup="true"
@@ -55,6 +58,12 @@
         <!-- 悬浮窗服务 -->
         <service
             android:name=".FloatingWindowService"
+            android:enabled="true"
+            android:exported="false" />
+
+        <!-- 心跳检查服务（后台服务） -->
+        <service
+            android:name=".NotificationServiceHeartbeat"
             android:enabled="true"
             android:exported="false" />
 

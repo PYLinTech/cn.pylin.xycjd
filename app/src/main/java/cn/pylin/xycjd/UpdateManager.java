@@ -185,11 +185,33 @@ public class UpdateManager {
     
     public void cleanupOldApkFiles() {
         try {
-            File apkDir = new File(context.getFilesDir(), "apk");
-            if (apkDir.exists()) {
-                File[] apkFiles = apkDir.listFiles();
-                if (apkFiles != null) {
-                    for (File file : apkFiles) {
+            // 清理新的下载目录中的旧APK文件
+            File downloadDir = android.os.Environment.getExternalStoragePublicDirectory(
+                android.os.Environment.DIRECTORY_DOWNLOADS
+            );
+            
+            if (downloadDir != null && downloadDir.exists()) {
+                File appDir = new File(downloadDir, "cn.pylin.xycjd");
+                File updateDir = new File(appDir, "update");
+                
+                if (updateDir.exists()) {
+                    File[] apkFiles = updateDir.listFiles();
+                    if (apkFiles != null) {
+                        for (File file : apkFiles) {
+                            if (file.isFile() && file.getName().endsWith(".apk")) {
+                                file.delete();
+                            }
+                        }
+                    }
+                }
+            }
+            
+            // 同时清理旧的私有目录（向后兼容）
+            File oldApkDir = new File(context.getFilesDir(), "apk");
+            if (oldApkDir.exists()) {
+                File[] oldApkFiles = oldApkDir.listFiles();
+                if (oldApkFiles != null) {
+                    for (File file : oldApkFiles) {
                         if (file.isFile() && file.getName().endsWith(".apk")) {
                             file.delete();
                         }
@@ -286,9 +308,23 @@ public class UpdateManager {
             long fileLength = response.body().contentLength();
             InputStream input = response.body().byteStream();
             
-            File apkDir = new File(context.getFilesDir(), "apk");
-            if (!apkDir.exists()) apkDir.mkdirs();
-            File outputFile = new File(apkDir, "update.apk");
+            // 获取下载目录路径
+            File downloadDir = android.os.Environment.getExternalStoragePublicDirectory(
+                android.os.Environment.DIRECTORY_DOWNLOADS
+            );
+            
+            // 创建子文件夹结构：Download/cn.pylin.xycjd/update/
+            File appDir = new File(downloadDir, "cn.pylin.xycjd");
+            if (!appDir.exists()) {
+                appDir.mkdirs();
+            }
+            
+            File updateDir = new File(appDir, "update");
+            if (!updateDir.exists()) {
+                updateDir.mkdirs();
+            }
+            
+            File outputFile = new File(updateDir, "update.apk");
             
             FileOutputStream output = new FileOutputStream(outputFile);
             byte[] data = new byte[4096];
