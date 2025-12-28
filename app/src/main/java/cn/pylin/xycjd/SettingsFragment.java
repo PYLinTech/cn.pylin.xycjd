@@ -635,11 +635,15 @@ public class SettingsFragment extends Fragment {
             if (isFloatingWindowEnabled) {
                 // 当前服务已开启，执行关闭操作
                 stopFloatingWindowService();
+                // 保存用户主动关闭的状态
+                SharedPreferencesManager.getInstance(requireContext()).setFloatingWindowEnabled(false);
             } else {
                 // 当前服务未开启，执行开启操作
                 // 检查悬浮窗权限
                 if (FloatingWindowPermissionManager.hasPermission(requireContext())) {
                     startFloatingWindowService();
+                    // 保存用户主动开启的状态
+                    SharedPreferencesManager.getInstance(requireContext()).setFloatingWindowEnabled(true);
                 } else {
                     // 请求权限
                     FloatingWindowPermissionManager.requestPermission(requireActivity(), REQUEST_OVERLAY_PERMISSION);

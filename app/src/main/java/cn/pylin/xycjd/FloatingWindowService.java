@@ -101,8 +101,6 @@ public class FloatingWindowService extends Service {
         instance = this;
         // 初始化SharedPreferences管理器
         manager = SharedPreferencesManager.getInstance(this);
-        
-        // 已完全移除本地存储功能，不再恢复通知
     }
     
     @Override
@@ -120,6 +118,33 @@ public class FloatingWindowService extends Service {
                 windowManager.removeView(floatingThreeCircleView);
             }
         }
+        
+        // 停止心跳服务
+        stopHeartbeatService();
+    }
+    
+    /**
+     * 启动心跳服务
+     */
+    private void startHeartbeatService() {
+        try {
+            Intent intent = new Intent(this, NotificationServiceHeartbeat.class);
+            startService(intent);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    
+    /**
+     * 停止心跳服务
+     */
+    private void stopHeartbeatService() {
+        try {
+            Intent intent = new Intent(this, NotificationServiceHeartbeat.class);
+            stopService(intent);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
     
     public static FloatingWindowService getInstance() {
@@ -127,7 +152,7 @@ public class FloatingWindowService extends Service {
     }
     
     /**
-     * 获取通知队列（用于恢复通知显示）
+     * 获取通知队列
      */
     public java.util.LinkedList<NotificationInfo> getNotificationQueue() {
         return notificationQueue;
@@ -144,6 +169,8 @@ public class FloatingWindowService extends Service {
         } else {
             // 创建新的悬浮窗
             createFloatingWindow();
+            // 启动心跳服务
+            startHeartbeatService();
         }
         return START_STICKY;
     }
@@ -453,8 +480,6 @@ public class FloatingWindowService extends Service {
                     updateNotificationContent(latest.packageName, latest.title, latest.content);
                 }
             }
-            
-            // 已完全移除本地存储功能，不再保存通知队列
         });
     }
 

@@ -9,19 +9,20 @@ import android.os.Looper;
 
 /**
  * 通知监听服务心跳检查管理器（后台服务）
- * 使用内存存储心跳状态，无需IO操作
+ * 重构后：简化计数逻辑，按要求实现心跳检测和重启机制
  */
 public class NotificationServiceHeartbeat extends Service {
     
     private static final String TAG = "NotificationServiceHeartbeat";
     private static final long HEARTBEAT_CHECK_INTERVAL_MS = 30000; // 30秒检查间隔
-    private static final long HEARTBEAT_TIMEOUT_MS = 60000;  // 60秒超时时间
-    private static final int MAX_RESTART_COUNT = 3;  // 最大重启次数
+    private static final long HEARTBEAT_TIMEOUT_MS = 25000;  // 25秒超时时间（比心跳间隔稍长）
+    private static final int MAX_FAILURE_COUNT = 2;  // 最大失败次数，超过则重启
+    private static final int MAX_RESTART_COUNT = 2;  // 最大重启次数，超过则通知
     
     // 内存中存储的心跳状态（无需IO存储）
     private static volatile long lastHeartbeatTime = 0;
-    private static volatile boolean isServiceResponsive = false;
-    private static volatile int restartCount = 0;  // 重启次数计数
+    private static volatile int failureCount = 0;  // 心跳失败计数
+    private static volatile int restartCount = 0;  // 重启服务计数
     
     private static NotificationServiceHeartbeat instance;
     private Handler handler;
@@ -74,15 +75,16 @@ public class NotificationServiceHeartbeat extends Service {
     }
     
     /**
-     * 上报心跳（由NotificationListenerService的定时器调用）
+     * 上报心跳（由NotificationListenerService的定时器调用，20秒一次）
      */
     public void reportHeartbeat() {
         lastHeartbeatTime = System.currentTimeMillis();
-        isServiceResponsive = true;
+        // 成功收到心跳，重置失败计数
+        failureCount = 0;
     }
     
     /**
-     * 开始心跳检查（检测部分）
+     * 开始心跳检查（检测部分，30秒检查一次）
      */
     public void startHeartbeatCheck() {
         if (isChecking) {
@@ -108,13 +110,15 @@ public class NotificationServiceHeartbeat extends Service {
         long timeSinceLastHeartbeat = currentTime - lastHeartbeatTime;
         
         // 如果超过超时时间没有心跳，说明服务可能已死亡
-        if (lastHeartbeatTime > 0 && timeSinceLastHeartbeat > HEARTBEAT_TIMEOUT_MS) {
-            isServiceResponsive = false;
+        if (timeSinceLastHeartbeat > HEARTBEAT_TIMEOUT_MS) {
+            // 心跳异常，失败计数+1
+            failureCount++;
             logServiceDeath();
-            attemptRestartService();
-        } else if (lastHeartbeatTime == 0) {
-            // 第一次检查，服务可能还未启动，尝试启动
-            attemptRestartService();
+            
+            // 当不正常计数大于2时进入重启阶段
+            if (failureCount > MAX_FAILURE_COUNT) {
+                attemptRestartService();
+            }
         }
     }
     
@@ -134,26 +138,19 @@ public class NotificationServiceHeartbeat extends Service {
      * 尝试重启通知监听服务
      */
     private void attemptRestartService() {
-        // 检查权限是否已授予
-        if (!NotificationListenerManager.isNotificationListenerEnabled(this)) {
-            return; // 没有权限，无法重启
-        }
-        
-        // 检查重启次数
+        // 每一次重启服务计数+1
         restartCount++;
-        
+
         if (restartCount > MAX_RESTART_COUNT) {
-            // 超过最大重启次数，发送通知提醒用户
+            // 重启服务计数超过2时通知提示
             sendPermissionReminderNotification();
+            // 重置重启计数，避免重复发送通知
+            restartCount = 0;
             return;
         }
         
         // 使用重启助手进行重启
         NotificationServiceRestartHelper.restartNotificationListenerService(this);
-        
-        // 重置心跳状态
-        lastHeartbeatTime = 0;
-        isServiceResponsive = false;
     }
     
     /**
@@ -161,24 +158,17 @@ public class NotificationServiceHeartbeat extends Service {
      */
     private void sendPermissionReminderNotification() {
         try {
-            // 检查Android版本（API 30+）
-            if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.R) {
-                return; // 低于API 30不发送通知
-            }
-            
             android.app.NotificationManager notificationManager = 
                 (android.app.NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
             
-            // 创建通知渠道（Android 8.0+需要）
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-                android.app.NotificationChannel channel = new android.app.NotificationChannel(
-                    "heartbeat_permission_channel",
-                    getString(R.string.heartbeat_channel_name),
-                    android.app.NotificationManager.IMPORTANCE_HIGH
-                );
-                channel.setDescription(getString(R.string.heartbeat_channel_desc));
-                notificationManager.createNotificationChannel(channel);
-            }
+            // 创建通知渠道
+            android.app.NotificationChannel channel = new android.app.NotificationChannel(
+                "heartbeat_permission_channel",
+                getString(R.string.heartbeat_channel_name),
+                android.app.NotificationManager.IMPORTANCE_HIGH
+            );
+            channel.setDescription(getString(R.string.heartbeat_channel_desc));
+            notificationManager.createNotificationChannel(channel);
             
             // 创建Intent，点击后直接打开小雨超级岛的通知监听权限页面
             Intent intent = new Intent(android.provider.Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS);
@@ -198,11 +188,7 @@ public class NotificationServiceHeartbeat extends Service {
             
             // 构建通知
             android.app.Notification.Builder builder;
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-                builder = new android.app.Notification.Builder(this, "heartbeat_permission_channel");
-            } else {
-                builder = new android.app.Notification.Builder(this);
-            }
+            builder = new android.app.Notification.Builder(this, "heartbeat_permission_channel");
             
             builder.setContentTitle(getString(R.string.heartbeat_notification_title))
                    .setContentText(getString(R.string.heartbeat_notification_content))
@@ -216,12 +202,5 @@ public class NotificationServiceHeartbeat extends Service {
         } catch (Exception e) {
             // 通知发送失败，静默处理
         }
-    }
-
-    /**
-     * 重置重启计数（当心跳正常时调用）
-     */
-    public void resetRestartCount() {
-        restartCount = 0;
     }
 }

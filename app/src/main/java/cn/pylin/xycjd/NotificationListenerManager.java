@@ -51,40 +51,4 @@ public class NotificationListenerManager {
             // 所有方法都失败，无法打开设置页面
         }
     }
-    
-
-    
-    /**
-     * 获取所有启用的通知监听器
-     * @param context 上下文
-     * @return 启用的监听器集合
-     */
-    public static Set<String> getEnabledListeners(Context context) {
-        String enabledListeners = Settings.Secure.getString(context.getContentResolver(), "enabled_notification_listeners");
-        if (enabledListeners != null) {
-            String[] listeners = android.text.TextUtils.split(enabledListeners, ":");
-            Set<String> listenerSet = new java.util.HashSet<>();
-            for (String listener : listeners) {
-                listenerSet.add(listener);
-            }
-            return listenerSet;
-        }
-        return new java.util.HashSet<>();
-    }
-    
-    /**
-     * 检查特定包名的通知监听器是否启用
-     * @param context 上下文
-     * @param packageName 包名
-     * @return 是否启用
-     */
-    public static boolean isListenerEnabled(Context context, String packageName) {
-        Set<String> enabledListeners = getEnabledListeners(context);
-        for (String listener : enabledListeners) {
-            if (listener.contains(packageName)) {
-                return true;
-            }
-        }
-        return false;
-    }
 }

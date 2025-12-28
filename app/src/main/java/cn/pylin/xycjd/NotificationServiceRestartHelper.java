@@ -17,11 +17,6 @@ public class NotificationServiceRestartHelper {
      * 尝试重启通知监听服务
      */
     public static void restartNotificationListenerService(Context context) {
-        // 检查权限
-        if (!NotificationListenerManager.isNotificationListenerEnabled(context)) {
-            return;
-        }
-        
         Handler handler = new Handler(Looper.getMainLooper());
         
         // 先停止服务
