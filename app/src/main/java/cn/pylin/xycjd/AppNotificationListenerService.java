@@ -1,30 +1,25 @@
 package cn.pylin.xycjd;
 
-import android.content.Context;
-import android.content.SharedPreferences;
+import android.content.Intent;
 import android.os.Handler;
 import android.os.Looper;
-import android.preference.PreferenceManager;
 import android.service.notification.NotificationListenerService;
 import android.service.notification.StatusBarNotification;
 
+/**
+ * 应用通知监听服务
+ * 重构后：主要职责是接收通知并委托给 NotificationProcessor 处理
+ */
 public class AppNotificationListenerService extends NotificationListenerService {
     
-    private static final String PREFS_NAME = "app_checkboxes";
-    private static final String PREFS_MODEL_FILTER_NAME = "app_model_filter";
-    private static final String PREFS_AUTO_EXPAND_NAME = "app_auto_expand";
-    private static final String PREFS_NOTIFICATION_VIBRATION_NAME = "app_notification_vibration";
-    private static final String PREFS_NOTIFICATION_SOUND_NAME = "app_notification_sound";
-    
-    private static final String PREF_NOTIFICATION_MODE = "pref_notification_mode";
-    private static final String MODE_SUPER_ISLAND_ONLY = "mode_super_island_only";
-    private static final String MODE_NOTIFICATION_BAR_ONLY = "mode_notification_bar_only";
-    private static final String MODE_BOTH = "mode_both";
-    
-    // 用于跟踪已提醒过的通知key
-    private static java.util.Set<String> remindedKeys = new java.util.HashSet<>();
-
     private static AppNotificationListenerService instance;
+    private NotificationProcessor processor;
+    private NotificationServiceHeartbeat heartbeat;
+    
+    // 心跳上报定时器（被检测部分）
+    private Handler heartbeatHandler;
+    private Runnable heartbeatRunnable;
+    private static final long HEARTBEAT_REPORT_INTERVAL_MS = 20000; // 20秒上报一次心跳
 
     public static AppNotificationListenerService getInstance() {
         return instance;
@@ -34,319 +29,169 @@ public class AppNotificationListenerService extends NotificationListenerService 
     public void onListenerConnected() {
         super.onListenerConnected();
         instance = this;
+        // 初始化处理器
+        processor = new NotificationProcessor(this);
+        
+        // 获取心跳管理器
+        heartbeat = NotificationServiceHeartbeat.getInstance();
+        
+        // 启动心跳上报定时器（被检测部分：不断上报心跳）
+        startHeartbeatReporter();
     }
 
     @Override
     public void onListenerDisconnected() {
         super.onListenerDisconnected();
+        // 停止心跳上报
+        stopHeartbeatReporter();
         instance = null;
+        processor = null;
+        heartbeat = null;
     }
     
     @Override
     public void onNotificationPosted(StatusBarNotification sbn) {
         super.onNotificationPosted(sbn);
         
-        String packageName = sbn.getPackageName();
-        boolean isSelected = isAppSelected(packageName);
-        
-        logNotification(sbn, isSelected);
-        
-        if (isSelected) {
-            String mode = SharedPreferencesManager.getInstance(this).getNotificationMode();
-
-            if (MODE_SUPER_ISLAND_ONLY.equals(mode)) {
-                cancelNotification(sbn.getKey());
-            }
-
-            handleNotification(sbn);
-
-            if (isAppAutoExpandSelected(packageName)) {
-                new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                    FloatingWindowService service = FloatingWindowService.getInstance();
-                    if (service != null) {
-                        service.performThreeCircleClick();
-                    }
-                }, 300);
-            }
+        // 委托给处理器处理
+        if (processor != null) {
+            processor.processNotification(sbn);
         }
+        
+        // 记录通知日志（保留原有功能）
+        logNotification(sbn);
     }
     
     @Override
     public void onNotificationRemoved(StatusBarNotification sbn) {
         super.onNotificationRemoved(sbn);
+        // 处理通知移除（如果需要）
         handleNotificationRemoved(sbn);
     }
     
     @Override
     public void onNotificationRemoved(StatusBarNotification sbn, NotificationListenerService.RankingMap rankingMap, int reason) {
         String packageName = sbn.getPackageName();
-        if (isAppSelected(packageName)) {
-             String mode = SharedPreferencesManager.getInstance(this).getNotificationMode();
-             
-             if (MODE_SUPER_ISLAND_ONLY.equals(mode)) {
-                 // REASON_LISTENER_CANCEL = 10 (Listener cancelled it)
-                 if (reason == 10) {
-                     return;
-                 }
-             }
+        SharedPreferencesManager manager = SharedPreferencesManager.getInstance(this);
+        String mode = manager.getNotificationMode();
+        
+        // 如果是超级岛模式且是监听器主动取消，跳过处理
+        if ("mode_super_island_only".equals(mode) && reason == 10) {
+            return;
         }
+        
         super.onNotificationRemoved(sbn, rankingMap, reason);
     }
     
     /**
-     * 检查应用是否被选中监听
-     * @param packageName 应用包名
-     * @return 是否被选中
-     */
-    private boolean isAppSelected(String packageName) {
-        SharedPreferencesManager manager = SharedPreferencesManager.getInstance(this);
-        return manager.isAppEnabled(packageName);
-    }
-
-    private boolean isAppModelFilterSelected(String packageName) {
-        SharedPreferencesManager manager = SharedPreferencesManager.getInstance(this);
-        return manager.isAppModelFilterEnabled(packageName);
-    }
-
-    private boolean isAppAutoExpandSelected(String packageName) {
-        SharedPreferencesManager manager = SharedPreferencesManager.getInstance(this);
-        return manager.isAppAutoExpandEnabled(packageName);
-    }
-    
-    /**
-     * 处理选中的应用通知
-     * @param sbn 状态栏通知
-     */
-    private void handleNotification(StatusBarNotification sbn) {
-        String packageName = sbn.getPackageName();
-        android.app.Notification notification = sbn.getNotification();
-        android.os.Bundle extras = notification.extras;
-
-        String title = extras.getString("android.title");
-        String text = extras.getString("android.text");
-        String predictionText = (text != null ? text : "");
-
-        // 1. 准备基础环境
-        SharedPreferencesManager manager = SharedPreferencesManager.getInstance(this);
-        String mode = manager.getNotificationMode();
-        
-        // 检查是否为媒体通知
-        String template = extras.getString(android.app.Notification.EXTRA_TEMPLATE);
-        boolean isMediaNotification = template != null && (template.contains("MediaStyle") || template.contains("media"));
-        android.media.session.MediaSession.Token token = null;
-        if (isMediaNotification) {
-            token = extras.getParcelable(android.app.Notification.EXTRA_MEDIA_SESSION);
-        }
-        final android.media.session.MediaSession.Token finalToken = token;
-
-        // 2. 处理震动和声音（不再限制仅超级岛模式）
-        handleVibrationAndSound(sbn);
-
-        // 3. 确定模型策略 (根据模型类型优先判断)
-        boolean isModelFilteringEnabled = manager.isModelFilteringEnabled();
-        boolean isSelectedApp = isAppModelFilterSelected(packageName);
-        String modelType = manager.getFilterModel();
-        
-        // 定义具体的策略标志
-        boolean useLocalModel = isModelFilteringEnabled && isSelectedApp && !isMediaNotification && SettingsFragment.MODEL_LOCAL.equals(modelType);
-        boolean useOnlineModel = isModelFilteringEnabled && isSelectedApp && !isMediaNotification && SettingsFragment.MODEL_ONLINE.equals(modelType);
-
-        // 4. 执行分流策略
-        if (useLocalModel) {
-            // 策略 A: 本地模型 -> 阻断式检查 (Check then Show)
-            // 防止闪烁，只有检查通过后才显示
-            new Thread(() -> {
-                float score = NotificationMLManager.getInstance(this).predict(title, predictionText);
-                float filteringDegree = manager.getFilteringDegree();
-                
-                boolean shouldFilter = score <= filteringDegree;
-                String resultStr = shouldFilter ? getString(R.string.log_result_filtered) : getString(R.string.log_result_allowed);
-                String logMsg = getString(R.string.log_local_check, title, score, filteringDegree, resultStr, predictionText);
-                NotificationLogManager.getInstance().log(logMsg);
-                
-                if (shouldFilter) {
-                    new Handler(Looper.getMainLooper()).post(() -> applyFilter(sbn, title, predictionText));
-                } else {
-                    // 允许显示
-                    showNotificationInIsland(sbn, packageName, title, text, notification.contentIntent, finalToken, mode);
-                }
-            }).start();
-
-        } else if (useOnlineModel) {
-            // 策略 B: 在线模型 -> 乐观展示 + 异步检查 (Show then Check)
-            // 网络请求较慢，为了体验先显示，后续如果判断为垃圾则移除
-            
-            // 先显示
-            showNotificationInIsland(sbn, packageName, title, text, notification.contentIntent, finalToken, mode);
-
-            // 后检查
-            OnlineModelManager.getInstance(this).checkFilter(title, predictionText, (shouldFilter, score) -> {
-                // 获取过滤程度用于日志记录
-                float filteringDegree = manager.getOnlineFilteringDegree();
-                String resultStr = shouldFilter ? getString(R.string.log_result_filtered) : getString(R.string.log_result_allowed);
-                String logMsg = getString(R.string.log_online_check, title, score, filteringDegree, resultStr, predictionText);
-                NotificationLogManager.getInstance().log(logMsg);
-
-                if (shouldFilter) {
-                    applyFilter(sbn, title, predictionText);
-                }
-            });
-
-        } else {
-            // 策略 C: 无模型/媒体/未启用 -> 直接显示 (Direct Show)
-            showNotificationInIsland(sbn, packageName, title, text, notification.contentIntent, finalToken, mode);
-        }
-    }
-
-    /**
-     * 处理震动和声音
-     * 对于同一key只提醒第一次
-     * 只使用应用级别的设置
-     */
-    private void handleVibrationAndSound(StatusBarNotification sbn) {
-        String key = sbn.getKey();
-        String packageName = sbn.getPackageName();
-        
-        // 检查是否已经提醒过
-        if (remindedKeys.contains(key)) {
-            return;
-        }
-        
-        // 获取应用级别的震动和声音设置
-        boolean appVibration = isAppVibrationEnabled(packageName);
-        boolean appSound = isAppSoundEnabled(packageName);
-        
-        // 检查是否有任何需要执行的提醒
-        if (appVibration || appSound) {
-            // 标记为已提醒
-            remindedKeys.add(key);
-            
-            // 在主线程执行震动和声音
-            new Handler(Looper.getMainLooper()).post(() -> {
-                android.media.AudioManager audioManager = (android.media.AudioManager) getSystemService(Context.AUDIO_SERVICE);
-                
-                if (appVibration) {
-                    // 震动
-                    android.os.Vibrator vibrator = (android.os.Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
-                    if (vibrator != null && vibrator.hasVibrator()) {
-                        vibrator.vibrate(200); // 震动200毫秒
-                    }
-                }
-                
-                if (appSound) {
-                    // 播放默认通知声音
-                    if (audioManager != null && audioManager.getRingerMode() == android.media.AudioManager.RINGER_MODE_NORMAL) {
-                        try {
-                            android.media.Ringtone ringtone = android.media.RingtoneManager.getRingtone(
-                                this, 
-                                android.media.RingtoneManager.getDefaultUri(android.media.RingtoneManager.TYPE_NOTIFICATION)
-                            );
-                            if (ringtone != null) {
-                                ringtone.play();
-                            }
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                    }
-                }
-            });
-        }
-    }
-
-    /**
-     * 检查应用是否启用了震动
-     */
-    private boolean isAppVibrationEnabled(String packageName) {
-        SharedPreferencesManager manager = SharedPreferencesManager.getInstance(this);
-        return manager.isAppNotificationVibrationEnabled(packageName);
-    }
-
-    /**
-     * 检查应用是否启用了声音
-     */
-    private boolean isAppSoundEnabled(String packageName) {
-        SharedPreferencesManager manager = SharedPreferencesManager.getInstance(this);
-        return manager.isAppNotificationSoundEnabled(packageName);
-    }
-
-    /**
-     * 辅助方法：显示通知到灵动岛
-     */
-    private void showNotificationInIsland(StatusBarNotification sbn, String packageName, String title, String text, android.app.PendingIntent contentIntent, android.media.session.MediaSession.Token token, String mode) {
-        if (!MODE_NOTIFICATION_BAR_ONLY.equals(mode)) {
-            new Handler(Looper.getMainLooper()).post(() -> {
-                FloatingWindowService service = FloatingWindowService.getInstance();
-                if (service != null) {
-                    service.addNotification(sbn.getKey(), packageName, title, text, contentIntent, token);
-                }
-            });
-        }
-    }
-    
-    private void applyFilter(StatusBarNotification sbn, String title, String text) {
-        // 将过滤的通知存入列表
-        FilteredNotificationManager.getInstance(this).addNotification(
-            sbn.getKey(), 
-            sbn.getPackageName(), 
-            title, 
-            text
-        );
-        
-        // 从超级岛移除
-        FloatingWindowService service = FloatingWindowService.getInstance();
-        if (service != null) {
-            service.removeNotification(sbn.getKey());
-        }
-        
-        // 从系统通知栏移除
-        cancelNotification(sbn.getKey());
-    }
-    
-    /**
-     * 处理选中的应用通知移除
-     * @param sbn 状态栏通知
+     * 处理通知移除
      */
     private void handleNotificationRemoved(StatusBarNotification sbn) {
-        // 移除通知
+        // 从超级岛移除通知
         FloatingWindowService service = FloatingWindowService.getInstance();
         if (service != null) {
             service.removeNotification(sbn.getKey());
         }
     }
 
-    private void logNotification(StatusBarNotification sbn, boolean isSelected) {
+    /**
+     * 启动心跳上报定时器（被检测部分：不断上报心跳）
+     */
+    private void startHeartbeatReporter() {
+        if (heartbeatHandler == null) {
+            heartbeatHandler = new Handler(Looper.getMainLooper());
+        }
+        
+        heartbeatRunnable = new Runnable() {
+            @Override
+            public void run() {
+                // 上报心跳
+                if (heartbeat != null) {
+                    heartbeat.reportHeartbeat();
+                }
+                
+                // 记录心跳日志
+                logHeartbeat();
+                
+                // 继续下一次上报
+                if (heartbeatHandler != null && heartbeatRunnable != null) {
+                    heartbeatHandler.postDelayed(this, HEARTBEAT_REPORT_INTERVAL_MS);
+                }
+            }
+        };
+        
+        // 立即开始第一次上报，然后按间隔继续
+        heartbeatHandler.postDelayed(heartbeatRunnable, HEARTBEAT_REPORT_INTERVAL_MS);
+    }
+    
+    /**
+     * 记录心跳日志
+     */
+    private void logHeartbeat() {
+        try {
+            String logMessage = getString(R.string.heartbeat_log_heartbeat_normal);
+            NotificationLogManager.getInstance(this).log(logMessage);
+            
+            // 心跳正常时，重置重启计数
+            if (heartbeat != null) {
+                heartbeat.resetRestartCount();
+            }
+        } catch (Exception e) {
+            // 日志记录失败不影响心跳
+        }
+    }
+    
+    /**
+     * 停止心跳上报定时器
+     */
+    private void stopHeartbeatReporter() {
+        if (heartbeatHandler != null && heartbeatRunnable != null) {
+            heartbeatHandler.removeCallbacks(heartbeatRunnable);
+        }
+        heartbeatHandler = null;
+        heartbeatRunnable = null;
+    }
+    
+    /**
+     * 记录通知日志（保留原有功能）
+     */
+    private void logNotification(StatusBarNotification sbn) {
+        // 检查应用是否被选中
+        SharedPreferencesManager manager = SharedPreferencesManager.getInstance(this);
+        boolean isSelected = manager.isAppEnabled(sbn.getPackageName());
+        
         StringBuilder sb = new StringBuilder();
-        sb.append("Package: ").append(sbn.getPackageName()).append("\n");
-        sb.append("ID: ").append(sbn.getId()).append("\n");
-        sb.append("Tag: ").append(sbn.getTag()).append("\n");
-        sb.append("PostTime: ").append(new java.util.Date(sbn.getPostTime())).append("\n");
-        sb.append("IsClearable: ").append(sbn.isClearable()).append("\n");
-        sb.append("IsOngoing: ").append(sbn.isOngoing()).append("\n");
-        sb.append("Selected: ").append(isSelected).append("\n");
-        sb.append("Key: ").append(sbn.getKey()).append("\n");
-        sb.append("GroupKey: ").append(sbn.getGroupKey()).append("\n");
-        sb.append("OverrideGroupKey: ").append(sbn.getOverrideGroupKey()).append("\n");
+        sb.append("\n").append(getString(R.string.log_notification_label)).append("\n");
+        sb.append(getString(R.string.log_package_name)).append(" ").append(sbn.getPackageName()).append("\n");
+        sb.append(getString(R.string.log_notification_id)).append(" ").append(sbn.getId()).append("\n");
+        sb.append(getString(R.string.log_tag)).append(" ").append(sbn.getTag()).append("\n");
+        sb.append(getString(R.string.log_time)).append(" ").append(new java.util.Date(sbn.getPostTime())).append("\n");
+        sb.append(getString(R.string.log_clearable)).append(" ").append(sbn.isClearable()).append("\n");
+        sb.append(getString(R.string.log_ongoing)).append(" ").append(sbn.isOngoing()).append("\n");
+        sb.append(getString(R.string.log_key)).append(" ").append(sbn.getKey()).append("\n");
+        sb.append(getString(R.string.log_group_key)).append(" ").append(sbn.getGroupKey()).append("\n");
+        sb.append(getString(R.string.log_override_group_key)).append(" ").append(sbn.getOverrideGroupKey()).append("\n");
 
         android.app.Notification notification = sbn.getNotification();
         if (notification != null) {
-            sb.append("ChannelId: ").append(notification.getChannelId()).append("\n");
-            sb.append("Category: ").append(notification.category).append("\n");
-            sb.append("Ticker: ").append(notification.tickerText).append("\n");
-            sb.append("ContentIntent: ").append(notification.contentIntent).append("\n");           
-            sb.append("When: ").append(new java.util.Date(notification.when)).append("\n");
-            sb.append("Flags: ").append(notification.flags).append("\n");
-            sb.append("Priority: ").append(notification.priority).append("\n");
+            sb.append(getString(R.string.log_channel_id)).append(" ").append(notification.getChannelId()).append("\n");
+            sb.append(getString(R.string.log_category)).append(" ").append(notification.category).append("\n");
+            sb.append(getString(R.string.log_ticker_text)).append(" ").append(notification.tickerText).append("\n");
+            sb.append(getString(R.string.log_content_intent)).append(" ").append(notification.contentIntent).append("\n");           
+            sb.append(getString(R.string.log_time)).append(" ").append(new java.util.Date(notification.when)).append("\n");
+            sb.append(getString(R.string.log_flags)).append(" ").append(notification.flags).append("\n");
+            sb.append(getString(R.string.log_priority)).append(" ").append(notification.priority).append("\n");
             
             if (notification.extras != null) {
-                sb.append("\n--- Extras ---\n");
+                sb.append("\n").append(getString(R.string.log_extras_header)).append("\n");
                 for (String key : notification.extras.keySet()) {
                     Object value = notification.extras.get(key);
                     sb.append(key).append(": ").append(value).append("\n");
                 }
-                sb.append("----------------\n");
+                sb.append(getString(R.string.log_extras_footer)).append("\n");
             }
         }
 
-        NotificationLogManager.getInstance().log(sb.toString());
+        NotificationLogManager.getInstance(this).log(sb.toString());
     }
 }

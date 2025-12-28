@@ -187,6 +187,13 @@
     <!-- Log Page -->
     <string name="log_return">Return</string>
     <string name="log_exit">Exit</string>
+    <string name="log_export">Export</string>
+    <string name="log_export_success">Log exported to: %s</string>
+    <string name="log_export_success_title">Export Successful</string>
+    <string name="log_export_failed">Export failed, please check storage permissions</string>
+    <string name="log_export_empty">No logs available for export</string>
+    <string name="log_share_file">Share notification log files</string>
+    <string name="log_share_failed">Share failed, please try again</string>
 
     <!-- Online Model Warning -->
     <string name="warning_title">Warning</string>
@@ -213,4 +220,49 @@
     <string name="appsettings_app_enabled">Status: Enabled</string>
     <string name="appsettings_app_disabled">Status: Disabled</string>
     <string name="log_recording_hint">Logging. Click here to view</string>
+    <string name="log_notification_label">------[Notification Label]------</string>
+    <string name="log_package_name">"Package name: "</string>
+    <string name="log_tag">"Tag: "</string>
+    <string name="log_time">"Time: "</string>
+    <string name="log_clearable">"Clearable: "</string>
+    <string name="log_ongoing">"Ongoing: "</string>
+    <string name="log_key">"Key: "</string>
+    <string name="log_group_key">"Group Key: "</string>
+    <string name="log_override_group_key">"Override Group Key: "</string>
+    <string name="log_channel_id">"Channel Id: "</string>
+    <string name="log_category">"Category: "</string>
+    <string name="log_ticker_text">"Ticker Text: "</string>
+    <string name="log_content_intent">"Content Intent: "</string>
+    <string name="log_flags">"Flags: "</string>
+    <string name="log_priority">"Priority: "</string>
+    <string name="log_extras_header">------[Extras]------</string>
+    <string name="log_model_check_header">------[%s Check]------</string>
+    <string name="log_package_name_colon">"Package Name: "</string>
+    <string name="log_score_colon">"Score: "</string>
+    <string name="log_threshold_colon">"Threshold: "</string>
+    <string name="log_result_colon">"Result: "</string>
+    <string name="log_title_colon">"Title: "</string>
+    <string name="log_content_colon">"Content: "</string>
+    <string name="log_model_local">Local Model</string>
+    <string name="log_model_online">Online Model</string>
+    <string name="log_result_filtered">Filtered</string>
+    <string name="log_result_allowed">Allowed</string>
+    <string name="log_notification_processed">Notification Processed</string>
+    <string name="log_notification_ignored">Notification Ignored</string>
+    <string name="log_notification_updated">Notification Updated</string>
+    <string name="log_notification_shown_island">Notification Shown Island</string>
+    <string name="log_notification_removed_system">Notification Removed System</string>
+    <string name="log_notification_filtered">Notification Filtered</string>
+    <string name="log_behavior_vibration">Behavior Vibration</string>
+    <string name="log_behavior_sound">Behavior Sound</string>
+    <string name="log_behavior_expand">Behavior Expand</string>
+    <string name="log_error_failed_cancel">Failed Cancel</string>
+    <string name="log_error_failed_play_sound">Failed Play Sound</string>
+    <string name="heartbeat_channel_name">Notification of abnormal monitoring service alerts</string>
+    <string name="heartbeat_channel_desc">Notify the user to reauthorize when the monitoring service fails</string>
+    <string name="heartbeat_notification_title">Notification listening service error</string>
+    <string name="heartbeat_notification_content">Notification listening service is not working. Turn off notification listening permissions and then turn them back on.</string>
+    <string name="heartbeat_log_heartbeat_normal">[Heartbeat Check] Normal Heartbeat</string>
+    <string name="heartbeat_log_service_death">[Heartbeat Check] Service Disconnected</string>
+    <string name="heartbeat_log_restart_completed">[Heartbeat Check] The notification listener service has automatically restarted</string>
 </resources>

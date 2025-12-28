@@ -76,6 +76,10 @@ public class SharedPreferencesManager {
     private static final String PREF_APP_VIBRATION = "app_notification_vibration";
     private static final String PREF_APP_SOUND = "app_notification_sound";
     
+    // 通知日志记录状态
+    private static final String PREF_NOTIFICATION_LOG_RECORDING = "notification_log_recording";
+    private boolean notificationLogRecording;
+    
     private SharedPreferencesManager(Context context) {
         // 初始化全局SharedPreferences
         globalPrefs = PreferenceManager.getDefaultSharedPreferences(context);
@@ -124,31 +128,7 @@ public class SharedPreferencesManager {
         floatingX = globalPrefs.getInt(PREF_FLOATING_X, 0);
         floatingY = globalPrefs.getInt(PREF_FLOATING_Y, -100);
         introVersion = globalPrefs.getInt(PREF_INTRO_VERSION, 0);
-    }
-    
-    /**
-     * 保存所有全局设置到SharedPreferences（用于需要持久化的场景）
-     */
-    public void saveGlobalSettings() {
-        globalEditor.putString(PREF_LANGUAGE, language);
-        globalEditor.putInt(PREF_THEME, theme);
-        globalEditor.putString(PREF_NOTIFICATION_MODE, notificationMode);
-        globalEditor.putBoolean(PREF_MODEL_FILTERING_ENABLED, modelFilteringEnabled);
-        globalEditor.putString(PREF_FILTER_MODEL, filterModel);
-        globalEditor.putFloat(PREF_FILTERING_DEGREE, filteringDegree);
-        globalEditor.putFloat(PREF_LEARNING_DEGREE, learningDegree);
-        globalEditor.putFloat(PREF_ONLINE_FILTERING_DEGREE, onlineFilteringDegree);
-        globalEditor.putFloat(PREF_TEMPERATURE, temperature);
-        globalEditor.putString(PREF_ONLINE_API_URL, onlineApiUrl);
-        globalEditor.putString(PREF_ONLINE_API_KEY, onlineApiKey);
-        globalEditor.putString(PREF_ONLINE_MODEL_NAME, onlineModelName);
-        globalEditor.putString(PREF_ONLINE_MODEL_PROMPT, onlineModelPrompt);
-        globalEditor.putFloat(PREF_ANIMATION_SPEED, animationSpeed);
-        globalEditor.putInt(PREF_FLOATING_SIZE, floatingSize);
-        globalEditor.putInt(PREF_FLOATING_X, floatingX);
-        globalEditor.putInt(PREF_FLOATING_Y, floatingY);
-        globalEditor.putInt(PREF_INTRO_VERSION, introVersion);
-        globalEditor.apply();
+        notificationLogRecording = globalPrefs.getBoolean(PREF_NOTIFICATION_LOG_RECORDING, false);
     }
     
     // ==================== 全局设置读写方法 ====================
@@ -315,6 +295,17 @@ public class SharedPreferencesManager {
         globalEditor.putInt(PREF_INTRO_VERSION, introVersion).apply();
     }
     
+    // ==================== 通知日志记录状态方法 ====================
+    
+    public boolean isNotificationLogRecording() {
+        return notificationLogRecording;
+    }
+    
+    public void setNotificationLogRecording(boolean recording) {
+        this.notificationLogRecording = recording;
+        globalEditor.putBoolean(PREF_NOTIFICATION_LOG_RECORDING, recording).apply();
+    }
+    
     // ==================== 应用包特定设置读写方法 ====================
     
     /**
@@ -440,77 +431,4 @@ public class SharedPreferencesManager {
         }
         editor.apply();
     }
-    
-    /**
-     * 获取所有应用包名及其特定设置
-     * 返回Map<包名, Map<设置类型, 值>>
-     */
-    public Map<String, Map<String, Boolean>> getAllAppSettings() {
-        Map<String, Map<String, Boolean>> allSettings = new HashMap<>();
-        
-        // 获取所有有设置的应用包名
-        java.util.Set<String> allPackages = new java.util.HashSet<>();
-        allPackages.addAll(appEnabledPrefs.getAll().keySet());
-        allPackages.addAll(appModelFilterPrefs.getAll().keySet());
-        allPackages.addAll(appAutoExpandPrefs.getAll().keySet());
-        allPackages.addAll(appVibrationPrefs.getAll().keySet());
-        allPackages.addAll(appSoundPrefs.getAll().keySet());
-        
-        for (String packageName : allPackages) {
-            Map<String, Boolean> settings = new HashMap<>();
-            settings.put("enabled", isAppEnabled(packageName));
-            settings.put("modelFilter", isAppModelFilterEnabled(packageName));
-            settings.put("autoExpand", isAppAutoExpandEnabled(packageName));
-            settings.put("vibration", isAppNotificationVibrationEnabled(packageName));
-            settings.put("sound", isAppNotificationSoundEnabled(packageName));
-            allSettings.put(packageName, settings);
-        }
-        
-        return allSettings;
-    }
-    
-    /**
-     * 清除所有应用特定设置
-     */
-    public void clearAllAppSettings() {
-        appEnabledPrefs.edit().clear().apply();
-        appModelFilterPrefs.edit().clear().apply();
-        appAutoExpandPrefs.edit().clear().apply();
-        appVibrationPrefs.edit().clear().apply();
-        appSoundPrefs.edit().clear().apply();
-    }
-    
-    /**
-     * 导出所有设置（用于备份或调试）
-     */
-    public Map<String, Object> exportAllSettings() {
-        Map<String, Object> allSettings = new HashMap<>();
-        
-        // 全局设置
-        Map<String, Object> globalSettings = new HashMap<>();
-        globalSettings.put(PREF_LANGUAGE, language);
-        globalSettings.put(PREF_THEME, theme);
-        globalSettings.put(PREF_NOTIFICATION_MODE, notificationMode);
-        globalSettings.put(PREF_MODEL_FILTERING_ENABLED, modelFilteringEnabled);
-        globalSettings.put(PREF_FILTER_MODEL, filterModel);
-        globalSettings.put(PREF_FILTERING_DEGREE, filteringDegree);
-        globalSettings.put(PREF_LEARNING_DEGREE, learningDegree);
-        globalSettings.put(PREF_ONLINE_FILTERING_DEGREE, onlineFilteringDegree);
-        globalSettings.put(PREF_TEMPERATURE, temperature);
-        globalSettings.put(PREF_ONLINE_API_URL, onlineApiUrl);
-        globalSettings.put(PREF_ONLINE_API_KEY, onlineApiKey);
-        globalSettings.put(PREF_ONLINE_MODEL_NAME, onlineModelName);
-        globalSettings.put(PREF_ONLINE_MODEL_PROMPT, onlineModelPrompt);
-        globalSettings.put(PREF_ANIMATION_SPEED, animationSpeed);
-        globalSettings.put(PREF_FLOATING_SIZE, floatingSize);
-        globalSettings.put(PREF_FLOATING_X, floatingX);
-        globalSettings.put(PREF_FLOATING_Y, floatingY);
-        globalSettings.put(PREF_INTRO_VERSION, introVersion);
-        
-        allSettings.put("global", globalSettings);
-        allSettings.put("appSettings", getAllAppSettings());
-        
-        return allSettings;
-    }
-    
 }

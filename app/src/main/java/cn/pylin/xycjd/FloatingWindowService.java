@@ -49,12 +49,12 @@ public class FloatingWindowService extends Service {
     private View floatingView;
     private WindowManager.LayoutParams params;
     
-    private View floatingIslandView;
+    public View floatingIslandView;
     private WindowManager.LayoutParams islandParams;
     
     private View floatingThreeCircleView;
     private WindowManager.LayoutParams threeCircleParams;
-    private NotificationAdapter notificationAdapter;
+    public NotificationAdapter notificationAdapter;
     
     private boolean isClosingIsland = false;
 
@@ -825,7 +825,7 @@ public class FloatingWindowService extends Service {
         }
     }
 
-    private class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapter.ViewHolder> {
+    public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapter.ViewHolder> {
 
         NotificationAdapter() {
             setHasStableIds(true);
