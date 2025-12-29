@@ -211,13 +211,6 @@
     <string name="log_behavior_expand">自動展開</string>
     <string name="log_error_failed_cancel">取消繫統通知失敗</string>
     <string name="log_error_failed_play_sound">播放通知聲音失敗</string>
-    <string name="heartbeat_channel_name">通知監聽服務異常提醒</string>
-    <string name="heartbeat_channel_desc">通知監聽服務異常時提醒用戶重新授權</string>
-    <string name="heartbeat_notification_title">通知監聽服務異常</string>
-    <string name="heartbeat_notification_content">通知監聽服務異常，請將通知監聽權限先關閉後再重新開啟！</string>
-    <string name="heartbeat_log_heartbeat_normal">【心跳檢查】心跳正常</string>
-    <string name="heartbeat_log_service_death">【心跳檢查】檢測到服務失聯</string>
-    <string name="heartbeat_log_restart_completed">【心跳檢查】通知監聽服務已自動重啟</string>
     <string name="log_export_failed">導齣失敗，請檢查存儲權限</string>
     <string name="log_export_empty">暫無日誌可導齣</string>
     <string name="log_share_file">分享通知日誌文件</string>

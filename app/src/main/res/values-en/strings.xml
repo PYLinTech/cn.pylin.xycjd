@@ -260,13 +260,6 @@
     <string name="log_behavior_expand">Behavior Expand</string>
     <string name="log_error_failed_cancel">Failed Cancel</string>
     <string name="log_error_failed_play_sound">Failed Play Sound</string>
-    <string name="heartbeat_channel_name">Notification of abnormal monitoring service alerts</string>
-    <string name="heartbeat_channel_desc">Notify the user to reauthorize when the monitoring service fails</string>
-    <string name="heartbeat_notification_title">Notification listening service error</string>
-    <string name="heartbeat_notification_content">Notification listening service is not working. Turn off notification listening permissions and then turn them back on.</string>
-    <string name="heartbeat_log_heartbeat_normal">[Heartbeat Check] Normal Heartbeat</string>
-    <string name="heartbeat_log_service_death">[Heartbeat Check] Service Disconnected</string>
-    <string name="heartbeat_log_restart_completed">[Heartbeat Check] The notification listener service has automatically restarted</string>
     <string name="api_testing">Testing API connection...</string>
     <string name="api_test_success">API connection succeeded. Configuration saved</string>
     <string name="online_model_process_mode">Online model processing flow</string>
