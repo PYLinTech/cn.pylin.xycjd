@@ -164,6 +164,7 @@
     <string name="model_online">Online Model</string>
     <string name="online_model_config_title">Online Model Configuration</string>
     <string name="online_model_config_desc">Higher filtering degree means stricter filtering of irrelevant notifications. The higher the temperature, the more random the model output becomes; the lower the temperature, the more deterministic the output becomes.</string>
+    <string name="process_mode_check_first">Check before display</string>
     <string name="custom_prompt_btn">Set Custom Prompt</string>
     <string name="custom_prompt_title">Custom Prompt</string>
     <string name="custom_prompt_hint">Enter custom prompt</string>
@@ -268,4 +269,6 @@
     <string name="heartbeat_log_restart_completed">[Heartbeat Check] The notification listener service has automatically restarted</string>
     <string name="api_testing">Testing API connection...</string>
     <string name="api_test_success">API connection succeeded. Configuration saved</string>
+    <string name="online_model_process_mode">Online model processing flow</string>
+    <string name="process_mode_show_first">Show first, then check</string>
 </resources>

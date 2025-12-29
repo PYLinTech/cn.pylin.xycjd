@@ -39,32 +39,11 @@ public class NotificationContext {
         this.modelScore = 10.0f; // 默认满分
         this.filterReason = "";
     }
-    
-    /**
-     * 获取用于训练的文本
-     */
-    public String getTrainingText() {
-        return (title != null ? title : "") + " " + (content != null ? content : "");
-    }
-    
+
     /**
      * 判断是否为媒体通知
      */
     public boolean isMediaNotification() {
         return config.isMedia;
-    }
-    
-    /**
-     * 判断是否需要显示到超级岛
-     */
-    public boolean shouldShowToIsland() {
-        return config.shouldShowIsland() && !shouldFilter;
-    }
-    
-    /**
-     * 判断是否需要删除系统通知
-     */
-    public boolean shouldRemoveFromSystem() {
-        return config.shouldRemoveSystemNotification() && !shouldFilter;
     }
 }

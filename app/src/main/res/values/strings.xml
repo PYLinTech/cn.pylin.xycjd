@@ -181,6 +181,9 @@
     <string name="online_model_config_desc">过滤程度越高，越严格地过滤无关通知；温度越高，模型输出越随机；温度越低，输出越确定。</string>
     <string name="temperature">温度</string>
     <string name="default_temperature" translatable="false">0.5</string>
+    <string name="online_model_process_mode">在线模型处理流程</string>
+    <string name="process_mode_show_first">先显示再检查</string>
+    <string name="process_mode_check_first">先检查再显示</string>
     <string name="custom_prompt_btn">设置自定义提示词</string>
     <string name="custom_prompt_title">自定义提示词</string>
     <string name="custom_prompt_hint">请输入自定义提示词</string>

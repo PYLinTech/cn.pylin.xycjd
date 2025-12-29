@@ -107,6 +107,11 @@ public class SettingsFragment extends Fragment {
     private SeekBar seekBarTemperature;
     private Button btnResetOnlineFilteringDegreeConfig;
     private Button btnApiConfig;
+    
+    // 在线模型流程控制相关控件
+    private RadioGroup radioGroupOnlineModelProcess;
+    private RadioButton radioBtnShowFirst;
+    private RadioButton radioBtnCheckFirst;
 
     // 测试通知相关控件
     private CardView cardTestNotification;
@@ -275,6 +280,11 @@ public class SettingsFragment extends Fragment {
         btnSpeedDecrease = view.findViewById(R.id.btn_speed_decrease);
         btnSpeedIncrease = view.findViewById(R.id.btn_speed_increase);
         btnResetSpeed = view.findViewById(R.id.btn_reset_speed);
+        
+        // 初始化在线模型流程控制相关控件
+        radioGroupOnlineModelProcess = view.findViewById(R.id.radio_group_online_model_process);
+        radioBtnShowFirst = view.findViewById(R.id.radio_btn_show_first);
+        radioBtnCheckFirst = view.findViewById(R.id.radio_btn_check_first);
         
     }
 
@@ -891,6 +901,32 @@ public class SettingsFragment extends Fragment {
 
         // API配置按钮点击事件
         btnApiConfig.setOnClickListener(v -> showApiConfigDialog());
+        
+        // 设置在线模型流程控制
+        setupOnlineModelProcessControls();
+    }
+    
+    private void setupOnlineModelProcessControls() {
+        // 从SharedPreferences管理器获取在线模型处理流程设置
+        String processMode = SharedPreferencesManager.getInstance(requireContext()).getOnlineModelProcessMode();
+        
+        // 设置选中状态，默认是"先显示再检查"
+        if (SharedPreferencesManager.PROCESS_MODE_CHECK_FIRST.equals(processMode)) {
+            radioBtnCheckFirst.setChecked(true);
+        } else {
+            radioBtnShowFirst.setChecked(true); // 默认值
+        }
+        
+        // 设置监听器
+        radioGroupOnlineModelProcess.setOnCheckedChangeListener((group, checkedId) -> {
+            if (checkedId == R.id.radio_btn_show_first) {
+                SharedPreferencesManager.getInstance(requireContext()).setOnlineModelProcessMode(
+                    SharedPreferencesManager.PROCESS_MODE_SHOW_FIRST);
+            } else if (checkedId == R.id.radio_btn_check_first) {
+                SharedPreferencesManager.getInstance(requireContext()).setOnlineModelProcessMode(
+                    SharedPreferencesManager.PROCESS_MODE_CHECK_FIRST);
+            }
+        });
     }
     
     private void showApiConfigDialog() {

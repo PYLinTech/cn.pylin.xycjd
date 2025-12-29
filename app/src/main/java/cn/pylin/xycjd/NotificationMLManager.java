@@ -23,6 +23,7 @@ import java.util.concurrent.Executors;
  * 优化：支持中文 Unigram + Bigram 分词，提升中文语义理解能力
  */
 public class NotificationMLManager {
+    private static final String TAG = "NotificationMLManager";
 
     private static NotificationMLManager instance;
     private static final String MODEL_FILE_NAME = "ml_weights.json";
@@ -133,6 +134,46 @@ public class NotificationMLManager {
             return DEFAULT_WEIGHT;
         }
         return calculateScore(tokens);
+    }
+
+    /**
+     * 检查是否需要过滤 - 与在线模型保持一致的接口
+     * @param title 输入标题
+     * @param text 输入文本
+     * @param callback 回调接口，接收(是否过滤, 分数)
+     */
+    public void checkFilter(String title, String text, OnlineModelManager.FilterCallback callback) {
+        executor.execute(() -> {
+            try {
+                ensureLoaded();
+                String combinedText = (title == null ? "" : title) + " " + (text == null ? "" : text);
+                float score;
+                
+                if (combinedText.trim().isEmpty()) {
+                    score = DEFAULT_WEIGHT;
+                } else {
+                    String[] tokens = tokenize(combinedText);
+                    if (tokens.length == 0) {
+                        score = DEFAULT_WEIGHT;
+                    } else {
+                        score = calculateScore(tokens);
+                    }
+                }
+                
+                // 获取过滤阈值
+                float filteringDegree = SharedPreferencesManager.getInstance(context).getFilteringDegree();
+                boolean shouldFilter = score <= filteringDegree;
+                
+                if (callback != null) {
+                    callback.onResult(shouldFilter, score);
+                }
+            } catch (Exception e) {
+                // 出错时不过滤，返回高分
+                if (callback != null) {
+                    callback.onResult(false, 10.0f);
+                }
+            }
+        });
     }
 
     /**

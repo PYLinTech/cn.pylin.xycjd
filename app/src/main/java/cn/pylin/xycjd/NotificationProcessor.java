@@ -8,8 +8,12 @@ import android.service.notification.StatusBarNotification;
 import android.util.Log;
 
 /**
- * 通知处理器
- * 负责所有通知的接收、配置读取、过滤和执行逻辑
+ * 通知处理器 - 重构版本
+ * 逻辑流程：
+ * 1. 接收通知
+ * 2. 前置检查（空消息、媒体、已经在超级岛的重复通知）
+ * 3. 逻辑匹配（显示逻辑与模型过滤逻辑）
+ * 4. 执行方法（自动展开、声音、震动）
  */
 public class NotificationProcessor {
     private static final String TAG = "NotificationProcessor";
@@ -30,27 +34,24 @@ public class NotificationProcessor {
     public void processNotification(StatusBarNotification sbn) {
         if (sbn == null) return;
         
-        String packageName = sbn.getPackageName();
-        
-        // 1. 读取配置并构建上下文
-        NotificationContext context = buildContext(sbn);
-        
-        // 如果上下文为null（标题和内容都为空），直接返回
-        if (context == null) {
+        // 步骤1：接收通知并构建上下文
+        NotificationContext notificationContext = buildContext(sbn);
+        if (notificationContext == null) {
+            // 前置检查失败：空消息
             return;
         }
         
-        // 2. 预处理检查
-        if (!preProcessCheck(context)) {
+        // 步骤2：前置检查
+        if (!preCheck(notificationContext)) {
             return;
         }
         
-        // 3. 执行模式逻辑
-        executeByMode(context);
+        // 步骤3：逻辑匹配（显示逻辑与模型过滤逻辑）
+        executeLogicMatching(notificationContext);
     }
-
+    
     /**
-     * 步骤1：构建处理上下文
+     * 步骤1：构建通知上下文
      */
     private NotificationContext buildContext(StatusBarNotification sbn) {
         android.app.Notification notification = sbn.getNotification();
@@ -59,7 +60,7 @@ public class NotificationProcessor {
         String title = extras.getString("android.title");
         String text = extras.getString("android.text");
         
-        // 检查标题和内容是否都为空，如果是就丢弃
+        // 前置检查：空消息
         if ((title == null || title.isEmpty()) && (text == null || text.isEmpty())) {
             return null;
         }
@@ -87,7 +88,7 @@ public class NotificationProcessor {
     }
     
     /**
-     * 步骤2：填充应用配置
+     * 填充应用配置
      */
     private void fillAppConfig(NotificationContext context, String packageName) {
         AppNotificationConfig config = context.config;
@@ -114,25 +115,28 @@ public class NotificationProcessor {
     }
     
     /**
-     * 步骤3：预处理检查
+     * 步骤2：前置检查
      * 返回true继续处理，false终止处理
      */
-    private boolean preProcessCheck(NotificationContext context) {
+    private boolean preCheck(NotificationContext context) {
         // 1. 检查是否启用
         if (!context.config.enabled) {
             return false;
         }
         
-        // 2. 检查是否已存在（存在则更新，不向后执行）
+        // 2. 重复通知检查
         if (context.config.isExisting) {
             updateExistingNotification(context);
             return false;
         }
         
-        // 3. 媒体通知特殊处理（媒体通知不进行模型过滤，但不执行行为）
+        // 3. 媒体通知特殊处理
         if (context.config.isMedia) {
-            // 媒体通知只更新内容，不执行行为
-            updateExistingNotification(context);
+            // 媒体通知：直接显示到超级岛并执行行为，然后终止处理
+            if (context.config.appMode.equals("mode_super_island_only")) {
+                showInIsland(context);
+                executeBehaviors(context);
+            }
             return false;
         }
         
@@ -140,115 +144,125 @@ public class NotificationProcessor {
     }
     
     /**
-     * 步骤4：根据模式执行逻辑
+     * 步骤3：逻辑匹配（先匹配显示逻辑，再执行过滤）
      */
-    private void executeByMode(NotificationContext context) {
+    private void executeLogicMatching(NotificationContext context) {
         String mode = context.config.appMode;
         
-        // 执行模型过滤（如果需要）
-        if (context.config.needsModelFiltering()) {
-            applyModelFiltering(context);
-            
-            // 如果是本地模型，同步检查过滤结果
-            if (context.config.modelType.equals("model_local")) {
-                if (context.shouldFilter) {
-                    handleFilteredNotification(context);
-                    return;
-                }
-                // 继续执行显示逻辑
-                executeDisplayLogic(context, mode);
-            }
-            // 如果是在线模型，异步处理，这里直接返回，由回调处理后续逻辑
-            else if (context.config.modelType.equals("model_online")) {
-                // 在线模型的异步回调会处理过滤或显示逻辑
-                executeDisplayLogic(context, mode);
-            }
-        } else {
-            // 不需要模型过滤，直接执行显示逻辑
-            executeDisplayLogic(context, mode);
-        }
-    }
-    
-    /**
-     * 执行显示逻辑（根据模式）
-     */
-    private void executeDisplayLogic(NotificationContext context, String mode) {
+        // 根据显示模式执行不同的过滤逻辑
         if (mode.equals("mode_super_island_only")) {
-            executeSuperIslandMode(context);
+            executeSuperIslandModeWithFilter(context);
         } else if (mode.equals("mode_notification_bar_only")) {
-            executeNotificationBarMode(context);
+            executeNotificationBarModeWithFilter(context);
         } else if (mode.equals("mode_both")) {
-            executeBothMode(context);
+            executeBothModeWithFilter(context);
         }
     }
     
     /**
-     * 模式：仅超级岛
+     * 模式：仅超级岛 + 过滤逻辑
+     * 逻辑：先移除系统通知，再过滤决定是否显示
      */
-    private void executeSuperIslandMode(NotificationContext context) {
-        // 显示到超级岛
-        if (context.config.shouldShowIsland()) {
-            showInIsland(context);
-        }
+    private void executeSuperIslandModeWithFilter(NotificationContext context) {
+        // 1. 先移除系统通知
+        removeFromSystem(context);
         
-        // 删除系统通知
-        if (context.config.shouldRemoveSystemNotification()) {
-            removeFromSystem(context);
-        }
-        
-        // 执行行为
-        executeBehaviors(context);
-    }
-    
-    /**
-     * 模式：仅通知栏
-     */
-    private void executeNotificationBarMode(NotificationContext context) {
-        // 不显示超级岛，仅保留系统通知
-        executeBehaviors(context);
-    }
-    
-    /**
-     * 模式：双显
-     */
-    private void executeBothMode(NotificationContext context) {
-        // 显示到超级岛
-        if (context.config.shouldShowIsland()) {
+        // 2. 再过滤决定是否显示
+        if (context.config.needsModelFiltering()) {
+            applyFiltering(context, true); // true = 需要显示超级岛
+        } else {
             showInIsland(context);
+            executeBehaviors(context);
         }
-
-        // 执行行为
-        executeBehaviors(context);
     }
     
     /**
-     * 步骤5：应用模型过滤
+     * 模式：仅通知栏 + 过滤逻辑
+     * 逻辑：过滤决定是否保留系统通知（不执行行为）
      */
-    private void applyModelFiltering(NotificationContext context) {
+    private void executeNotificationBarModeWithFilter(NotificationContext context) {
+        // 1. 过滤决定是否保留
+        if (context.config.needsModelFiltering()) {
+            applyFiltering(context, false); // false = 不显示超级岛
+        }
+    }
+    
+    /**
+     * 模式：双显 + 过滤逻辑
+     * 逻辑：过滤决定是否移除还是显示
+     */
+    private void executeBothModeWithFilter(NotificationContext context) {
+        // 1. 过滤决定是否显示
+        if (context.config.needsModelFiltering()) {
+            applyFiltering(context, true); // true = 需要显示超级岛
+        } else {
+            showInIsland(context);
+            executeBehaviors(context);
+        }
+    }
+    
+    /**
+     * 统一的过滤应用方法
+     * @param context 通知上下文
+     * @param shouldShowIsland 根据显示逻辑决定是否需要在超级岛显示
+     */
+    private void applyFiltering(NotificationContext context, boolean shouldShowIsland) {
         if (context.config.modelType.equals("model_local")) {
-            // 本地模型：同步执行
-            float score = NotificationMLManager.getInstance(this.context).predict(
-                context.title, context.content);
-            context.modelScore = score;
-            
-            float filteringDegree = prefsManager.getFilteringDegree();
-            context.shouldFilter = score <= filteringDegree;
-            
-            String result = context.shouldFilter ? this.context.getString(R.string.log_result_filtered) : this.context.getString(R.string.log_result_allowed);
-            logModelCheck(context, this.context.getString(R.string.log_model_local), score, filteringDegree, result);
-            
-        } else if (context.config.modelType.equals("model_online")) {
-            // 在线模型：异步执行
-            applyOnlineModelFiltering(context);
+            // 本地模型：异步执行
+            applyLocalModelFilteringAsync(context, shouldShowIsland);
+        }
+        else if (context.config.modelType.equals("model_online")) {
+            // 在线模型：根据流程设置决定
+            String processMode = prefsManager.getOnlineModelProcessMode();
+            if (SharedPreferencesManager.PROCESS_MODE_CHECK_FIRST.equals(processMode)) {
+                // 先检查再显示：异步执行，检查后再决定
+                applyOnlineModelFilteringSync(context, shouldShowIsland);
+            } else {
+                // 先显示再检查（默认）：异步执行，先显示，检查后决定是否移除
+                applyOnlineModelFilteringAsync(context, shouldShowIsland);
+            }
         }
     }
     
     /**
-     * 在线模型过滤（异步）
-     * 检查完毕后，对需要过滤的只要执行handleFilteredNotification方法就可以了，
-     * 不需要过滤的通知不需要继续任何操作
+     * 本地模型过滤 - 异步执行
      */
-    private void applyOnlineModelFiltering(NotificationContext context) {
+    private void applyLocalModelFilteringAsync(NotificationContext context, boolean shouldShowIsland) {
+        // 使用与在线模型一致的接口
+        NotificationMLManager.getInstance(this.context).checkFilter(
+            context.title, 
+            context.content, 
+            (shouldFilter, score) -> {
+                context.modelScore = score;
+                context.shouldFilter = shouldFilter;
+
+                // 只记录日志，不做判断（由调用方根据shouldFilter决定后续操作）
+                float filteringDegree = prefsManager.getFilteringDegree();
+                String result = shouldFilter ? this.context.getString(R.string.log_result_filtered) : this.context.getString(R.string.log_result_allowed);
+                logModelCheck(context, this.context.getString(R.string.log_model_local), score, filteringDegree, result);
+                
+                // 在主线程中根据结果执行相应逻辑
+                mainHandler.post(() -> {
+                    if (shouldFilter) {
+                        // 需要过滤：移除通知
+                        handleFilteredNotification(context);
+                    } else {
+                        // 不需要过滤：显示通知
+                        if (shouldShowIsland) {
+                            showInIsland(context);
+                            executeBehaviors(context);
+                        }
+                    }
+                });
+            }
+        );
+    }
+    
+    /**
+     * 在线模型过滤 - 先检查再显示（异步）
+     */
+    private void applyOnlineModelFilteringSync(NotificationContext context, boolean shouldShowIsland) {
+        // 异步执行检查，不阻塞主线程
         OnlineModelManager.getInstance(this.context).checkFilter(
             context.title, 
             context.content, 
@@ -260,18 +274,54 @@ public class NotificationProcessor {
                 String result = shouldFilter ? this.context.getString(R.string.log_result_filtered) : this.context.getString(R.string.log_result_allowed);
                 logModelCheck(context, this.context.getString(R.string.log_model_online), score, filteringDegree, result);
                 
-                // 在线模型过滤完成后，根据结果执行后续逻辑
-                if (shouldFilter) {
-                    // 需要过滤：执行过滤处理
-                    handleFilteredNotification(context);
-                }
-                // 不需要过滤：不执行任何操作，通知已经显示过了
+                // 在主线程中根据检查结果执行相应逻辑
+                mainHandler.post(() -> {
+                    if (shouldFilter) {
+                        // 需要过滤：移除通知
+                        handleFilteredNotification(context);
+                    } else {
+                        // 不需要过滤：显示通知
+                        if (shouldShowIsland) {
+                            showInIsland(context);
+                            executeBehaviors(context);
+                        }
+                    }
+                });
             }
         );
     }
     
     /**
-     * 步骤6：执行行为（震动、声音、自动展开）
+     * 在线模型过滤 - 先显示再检查（异步）
+     */
+    private void applyOnlineModelFilteringAsync(NotificationContext context, boolean shouldShowIsland) {
+        // 先执行显示逻辑
+        if (shouldShowIsland) {
+            showInIsland(context);
+            executeBehaviors(context);
+        }
+        // 异步检查，如果需要过滤则移除
+        OnlineModelManager.getInstance(this.context).checkFilter(
+            context.title, 
+            context.content, 
+            (shouldFilter, score) -> {
+                context.modelScore = score;
+                context.shouldFilter = shouldFilter;
+                
+                float filteringDegree = prefsManager.getOnlineFilteringDegree();
+                String result = shouldFilter ? this.context.getString(R.string.log_result_filtered) : this.context.getString(R.string.log_result_allowed);
+                logModelCheck(context, this.context.getString(R.string.log_model_online), score, filteringDegree, result);
+                
+                // 如果检查结果是需要过滤，则移除通知
+                if (shouldFilter) {
+                    handleFilteredNotification(context);
+                }
+            }
+        );
+    }
+    
+    /**
+     * 步骤4：执行方法（自动展开、声音、震动）
      */
     private void executeBehaviors(NotificationContext context) {
         // 检查是否有任何行为需要执行
@@ -315,14 +365,12 @@ public class NotificationProcessor {
     
     /**
      * 更新已存在的通知
-     * 只更新内容，不执行任何动画或行为
      */
     private void updateExistingNotification(NotificationContext context) {
         // 更新超级岛中的内容（无动画）
         updateIslandContentNoAnimation(context);
-        
         // 如果是超级岛模式，删除系统通知
-        if (context.config.shouldRemoveSystemNotification()) {
+        if (context.config.appMode.equals("mode_super_island_only")) {
             removeFromSystem(context);
         }
     }
@@ -426,7 +474,7 @@ public class NotificationProcessor {
             }
         }
     }
-    
+
     /**
      * 执行震动
      */
