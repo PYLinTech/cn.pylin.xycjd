@@ -81,6 +81,7 @@ public class NotificationServiceHeartbeat extends Service {
         lastHeartbeatTime = System.currentTimeMillis();
         // 成功收到心跳，重置失败计数
         failureCount = 0;
+        restartCount = 0;
     }
     
     /**

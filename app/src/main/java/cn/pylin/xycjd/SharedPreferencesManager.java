@@ -84,6 +84,11 @@ public class SharedPreferencesManager {
     private static final String PREF_FLOATING_WINDOW_ENABLED = "floating_window_enabled";
     private boolean floatingWindowEnabled;
     
+    private static final String PREF_ONLINE_MODEL_PROCESS_MODE = "online_model_process_mode";
+    private String onlineModelProcessMode;
+    public static final String PROCESS_MODE_SHOW_FIRST = "show_first"; // 先显示再检查
+    public static final String PROCESS_MODE_CHECK_FIRST = "check_first"; // 先检查再显示
+    
     private SharedPreferencesManager(Context context) {
         // 初始化全局SharedPreferences
         globalPrefs = PreferenceManager.getDefaultSharedPreferences(context);
@@ -134,6 +139,7 @@ public class SharedPreferencesManager {
         introVersion = globalPrefs.getInt(PREF_INTRO_VERSION, 0);
         notificationLogRecording = globalPrefs.getBoolean(PREF_NOTIFICATION_LOG_RECORDING, false);
         floatingWindowEnabled = globalPrefs.getBoolean(PREF_FLOATING_WINDOW_ENABLED, false);
+        onlineModelProcessMode = globalPrefs.getString(PREF_ONLINE_MODEL_PROCESS_MODE, PROCESS_MODE_SHOW_FIRST);
     }
     
     // ==================== 全局设置读写方法 ====================
@@ -320,6 +326,25 @@ public class SharedPreferencesManager {
     public void setFloatingWindowEnabled(boolean enabled) {
         this.floatingWindowEnabled = enabled;
         globalEditor.putBoolean(PREF_FLOATING_WINDOW_ENABLED, enabled).apply();
+    }
+    
+    // ==================== 在线模型处理流程方法 ====================
+    
+    public String getOnlineModelProcessMode() {
+        return onlineModelProcessMode != null ? onlineModelProcessMode : PROCESS_MODE_SHOW_FIRST;
+    }
+    
+    public void setOnlineModelProcessMode(String processMode) {
+        this.onlineModelProcessMode = processMode;
+        globalEditor.putString(PREF_ONLINE_MODEL_PROCESS_MODE, processMode).apply();
+    }
+    
+    public boolean isShowFirstMode() {
+        return PROCESS_MODE_SHOW_FIRST.equals(getOnlineModelProcessMode());
+    }
+    
+    public boolean isCheckFirstMode() {
+        return PROCESS_MODE_CHECK_FIRST.equals(getOnlineModelProcessMode());
     }
     
     // ==================== 应用包特定设置读写方法 ====================

@@ -6,7 +6,6 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.graphics.PixelFormat;
 import android.graphics.Canvas;
 import android.graphics.LinearGradient;
@@ -18,7 +17,6 @@ import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
-import android.preference.PreferenceManager;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -38,9 +36,6 @@ import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.recyclerview.widget.ItemTouchHelper;
-import androidx.recyclerview.widget.SimpleItemAnimator;
-
-import java.util.List;
 
 public class FloatingWindowService extends Service {
 
@@ -371,10 +366,6 @@ public class FloatingWindowService extends Service {
                 .setDuration(getScaledDuration(500))
                 .setInterpolator(new OvershootInterpolator(1.2f)) // 轻微弹跳
                 .start();
-    }
-    
-    public void addNotification(String key, String packageName, String title, String content, PendingIntent pendingIntent) {
-        addNotification(key, packageName, title, content, pendingIntent, null);
     }
 
     public void addNotification(String key, String packageName, String title, String content, PendingIntent pendingIntent, android.media.session.MediaSession.Token mediaToken) {
@@ -1088,10 +1079,6 @@ public class FloatingWindowService extends Service {
         }
     }
 
-    public void showThreeCircleIsland(String packageName) {
-        showThreeCircleIsland();
-    }
-
     public void performThreeCircleClick() {
         if (notificationQueue.isEmpty()) return;
         NotificationInfo info = notificationQueue.getFirst();
@@ -1391,38 +1378,10 @@ public class FloatingWindowService extends Service {
         });
         animator.start();
     }
-    
-    /**
-     * 更新三圆灵动岛内容
-     * @param packageName 应用包名
-     */
-    private void updateThreeCircleContent(String packageName) {
-        if (floatingThreeCircleView == null) {
-            return;
-        }
-        
-        // 获取应用图标
-        CircleImageView appIcon = floatingThreeCircleView.findViewById(R.id.circle_app_icon);
-        try {
-            // 使用PackageManager获取应用图标
-            appIcon.setImageDrawable(getPackageManager().getApplicationIcon(packageName));
-        } catch (Exception e) {
-            // 如果获取失败，使用默认图标
-            appIcon.setImageResource(android.R.mipmap.sym_def_app_icon);
-        }
-    }
-    
+
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
         return null;
-    }
-    
-    /**
-     * 在通知队列发生变化时自动保存 - 已废弃
-     */
-    @Deprecated
-    private void onNotificationQueueChanged() {
-        // 已完全移除本地存储功能，不再保存通知队列
     }
 }

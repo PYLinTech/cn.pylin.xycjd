@@ -34,21 +34,7 @@ public class AppNotificationConfig {
         vibration = false;
         sound = false;
     }
-    
-    /**
-     * 检查是否应该显示超级岛
-     */
-    public boolean shouldShowIsland() {
-        return !appMode.equals("mode_notification_bar_only");
-    }
-    
-    /**
-     * 检查是否应该删除系统通知
-     */
-    public boolean shouldRemoveSystemNotification() {
-        return appMode.equals("mode_super_island_only");
-    }
-    
+
     /**
      * 检查是否需要模型过滤
      */

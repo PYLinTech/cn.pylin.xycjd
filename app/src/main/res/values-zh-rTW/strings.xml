@@ -128,6 +128,7 @@
     <string name="model_online">在線模型</string>
     <string name="online_model_config_title">在線模型配置</string>
     <string name="online_model_config_desc">過濾程度越高，越嚴格地過濾無關通知；溫度越高，模型輸齣越隨機；溫度越低，輸齣越確定。</string>
+    <string name="process_mode_check_first">先檢查再顯示</string>
     <string name="custom_prompt_btn">設置自定義提示詞</string>
     <string name="custom_prompt_title">自定義提示詞</string>
     <string name="custom_prompt_hint">請輸入自定義提示詞</string>
@@ -226,4 +227,6 @@
     <string name="log_share_failed">分享失敗，請重試</string>
     <string name="api_testing">正在測試API連接...</string>
     <string name="api_test_success">API連接成功，配置已保存</string>
+    <string name="online_model_process_mode">在線模型處理流程</string>
+    <string name="process_mode_show_first">先顯示再檢查</string>
 </resources>

@@ -422,6 +422,56 @@
                         android:progressBackgroundTint="?android:attr/textColorSecondary" />
                 </LinearLayout>
 
+                <!-- 在线模型流程控制 -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginTop="8dp"
+                    android:layout_marginBottom="8dp">
+                    
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/online_model_process_mode"
+                        android:textSize="14sp"
+                        android:textColor="?android:attr/textColorSecondary"
+                        android:layout_marginBottom="8dp" />
+                    
+                    <RadioGroup
+                        android:id="@+id/radio_group_online_model_process"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+                        
+                        <RadioButton
+                            android:id="@+id/radio_btn_show_first"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/process_mode_show_first"
+                            android:textSize="12sp"
+                            android:textColor="?android:attr/textColorSecondary"
+                            android:buttonTint="@color/colorPrimary"
+                            android:padding="12dp"
+                            android:layout_marginHorizontal="8dp"
+                            android:gravity="center" />
+                        
+                        <RadioButton
+                            android:id="@+id/radio_btn_check_first"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/process_mode_check_first"
+                            android:textSize="12sp"
+                            android:textColor="?android:attr/textColorSecondary"
+                            android:buttonTint="@color/colorPrimary"
+                            android:padding="12dp"
+                            android:layout_marginHorizontal="8dp"
+                            android:gravity="center" />
+                    </RadioGroup>
+                </LinearLayout>
+
                 <!-- API配置按钮 -->
                 <Button
                     android:id="@+id/btn_api_config"
