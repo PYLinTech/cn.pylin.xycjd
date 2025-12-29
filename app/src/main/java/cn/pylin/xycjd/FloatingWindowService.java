@@ -753,9 +753,11 @@ public class FloatingWindowService extends Service {
                 if (position != RecyclerView.NO_POSITION && position < notificationQueue.size()) {
                         NotificationInfo removedInfo = notificationQueue.remove(position);
 
-                        // 使用标题和内容进行训练
-                        String trainingText = (removedInfo.content != null ? removedInfo.content : "");
-                        if (manager.isModelFilteringEnabled() && isModelFilterEnabled(removedInfo.packageName)) {
+                        
+                        // 条件：总过滤开启 + 包名过滤开启 + 是本地模型
+                        if (manager.isModelFilteringEnabled() && isModelFilterEnabled(removedInfo.packageName) && manager.getFilterModel().equals("model_local")) {
+                            // 负向反馈到本地模型 - 使用新的分离接口，参数false表示负向
+                            String trainingText = (removedInfo.content != null ? removedInfo.content : "");
                             NotificationMLManager.getInstance(FloatingWindowService.this).process(removedInfo.title, trainingText, false);
                         }
 
@@ -929,9 +931,10 @@ public class FloatingWindowService extends Service {
             });
 
             holder.container.setOnClickListener(v -> {
-                // 使用标题和内容进行训练
-                String trainingText = (info.content != null ? info.content : "");
-                if (manager.isModelFilteringEnabled() && isModelFilterEnabled(info.packageName)) {
+                // 条件：总过滤开启 + 包名过滤开启 + 是本地模型
+                if (manager.isModelFilteringEnabled() && isModelFilterEnabled(info.packageName) && manager.getFilterModel().equals("model_local")) {
+                    // 正向反馈到本地模型 - 使用新的分离接口，参数true表示正向
+                    String trainingText = (info.title != null ? info.content : "");
                     NotificationMLManager.getInstance(FloatingWindowService.this).process(info.title, trainingText, true);
                 }
                 try {
