@@ -13,12 +13,6 @@ public class AppNotificationListenerService extends NotificationListenerService 
     
     private static AppNotificationListenerService instance;
     private NotificationProcessor processor;
-    private NotificationServiceHeartbeat heartbeat;
-    
-    // 心跳上报定时器（被检测部分）
-    private Handler heartbeatHandler;
-    private Runnable heartbeatRunnable;
-    private static final long HEARTBEAT_REPORT_INTERVAL_MS = 20000; // 20秒上报一次心跳（由待检测对象发送）
 
     public static AppNotificationListenerService getInstance() {
         return instance;
@@ -30,22 +24,13 @@ public class AppNotificationListenerService extends NotificationListenerService 
         instance = this;
         // 初始化处理器
         processor = new NotificationProcessor(this);
-        
-        // 获取心跳管理器
-        heartbeat = NotificationServiceHeartbeat.getInstance();
-        
-        // 启动心跳上报定时器（被检测部分：不断上报心跳）
-        startHeartbeatReporter();
     }
 
     @Override
     public void onListenerDisconnected() {
         super.onListenerDisconnected();
-        // 停止心跳上报
-        stopHeartbeatReporter();
         instance = null;
         processor = null;
-        heartbeat = null;
     }
     
     @Override
@@ -93,58 +78,6 @@ public class AppNotificationListenerService extends NotificationListenerService 
         }
     }
 
-    /**
-     * 启动心跳上报定时器（被检测部分：不断上报心跳）
-     */
-    private void startHeartbeatReporter() {
-        if (heartbeatHandler == null) {
-            heartbeatHandler = new Handler(Looper.getMainLooper());
-        }
-        
-        heartbeatRunnable = new Runnable() {
-            @Override
-            public void run() {
-                // 上报心跳
-                if (heartbeat != null) {
-                    heartbeat.reportHeartbeat();
-                }
-                
-                // 记录心跳日志
-                logHeartbeat();
-                
-                // 继续下一次上报
-                if (heartbeatHandler != null && heartbeatRunnable != null) {
-                    heartbeatHandler.postDelayed(this, HEARTBEAT_REPORT_INTERVAL_MS);
-                }
-            }
-        };
-        
-        // 立即开始第一次上报，然后按间隔继续
-        heartbeatHandler.postDelayed(heartbeatRunnable, HEARTBEAT_REPORT_INTERVAL_MS);
-    }
-    
-    /**
-     * 记录心跳日志
-     */
-    private void logHeartbeat() {
-        try {
-            String logMessage = getString(R.string.heartbeat_log_heartbeat_normal);
-            NotificationLogManager.getInstance(this).log(logMessage);
-        } catch (Exception e) {
-            // 日志记录失败不影响心跳
-        }
-    }
-    
-    /**
-     * 停止心跳上报定时器
-     */
-    private void stopHeartbeatReporter() {
-        if (heartbeatHandler != null && heartbeatRunnable != null) {
-            heartbeatHandler.removeCallbacks(heartbeatRunnable);
-        }
-        heartbeatHandler = null;
-        heartbeatRunnable = null;
-    }
     
     /**
      * 记录通知日志（保留原有功能）

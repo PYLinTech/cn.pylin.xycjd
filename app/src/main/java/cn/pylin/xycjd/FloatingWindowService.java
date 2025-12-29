@@ -125,33 +125,6 @@ public class FloatingWindowService extends Service {
                 windowManager.removeView(floatingThreeCircleView);
             }
         }
-        
-        // 停止心跳服务
-        stopHeartbeatService();
-    }
-    
-    /**
-     * 启动心跳服务
-     */
-    private void startHeartbeatService() {
-        try {
-            Intent intent = new Intent(this, NotificationServiceHeartbeat.class);
-            startService(intent);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-    
-    /**
-     * 停止心跳服务
-     */
-    private void stopHeartbeatService() {
-        try {
-            Intent intent = new Intent(this, NotificationServiceHeartbeat.class);
-            stopService(intent);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
     }
     
     public static FloatingWindowService getInstance() {
@@ -176,8 +149,6 @@ public class FloatingWindowService extends Service {
         } else {
             // 创建新的悬浮窗
             createFloatingWindow();
-            // 启动心跳服务
-            startHeartbeatService();
         }
         return START_STICKY;
     }
