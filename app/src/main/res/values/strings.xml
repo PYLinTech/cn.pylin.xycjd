@@ -124,7 +124,7 @@
     <string name="filtering_degree">过滤程度</string>
     <string name="learning_degree">学习程度</string>
     <string name="model_filtering_stopped">模型过滤已关闭</string>
-    <string name="model_filtering_running">模型过滤运行中，已拦截%d条通知</string>
+    <string name="model_filtering_running">过滤中，已拦截%d条</string>
     <string name="start_filtering">开启过滤</string>
     <string name="stop_filtering">关闭过滤</string>
 
@@ -306,4 +306,19 @@
     <string name="heartbeat_log_heartbeat_normal">【心跳检查】心跳正常</string>
     <string name="heartbeat_log_service_death">【心跳检查】检测到服务失联</string>
     <string name="heartbeat_log_restart_completed">【心跳检查】通知监听服务已自动重启</string>
+    
+    <!-- 声音与震动设置相关字符串 -->
+    <string name="sound_vibration_setting">声音与震动</string>
+    <string name="sound_vibration_desc">配置通知的声音和震动效果</string>
+    <string name="vibration_intensity">震动强度</string>
+    <string name="vibration_intensity_value">%d 毫秒</string>
+    <string name="default_vibration_intensity" translatable="false">160</string>
+    <string name="sound_enabled">声音已开启</string>
+    <string name="sound_disabled">声音已关闭</string>
+    <string name="vibration_enabled">震动已开启</string>
+    <string name="vibration_disabled">震动已关闭</string>
+    <string name="enable_sound">开启声音</string>
+    <string name="disable_sound">关闭声音</string>
+    <string name="enable_vibration">开启震动</string>
+    <string name="disable_vibration">关闭震动</string>
 </resources>
