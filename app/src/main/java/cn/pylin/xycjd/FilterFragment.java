@@ -240,13 +240,12 @@ public class FilterFragment extends Fragment {
         
         for (FilteredNotificationManager.FilteredNotification notification : filteredNotificationList) {
             if (notification.isChecked) {
-                // 只有在启用模型过滤且使用本地模型时才进行训练
-                if (modelFilteringEnabled && SettingsFragment.MODEL_LOCAL.equals(filterModel)) {
-                    // 正向反馈到模型 (分数 10)
-                    // 使用 10.0f 的强学习率，确保手动标记能立即将分数提升至接近目标值
-                    String trainingText = (notification.content != null ? notification.content : "");
-                    mlManager.process(notification.title, trainingText, true, 10.0f);
-                }
+                    // 只有在启用模型过滤且使用本地模型时才进行训练
+                    if (modelFilteringEnabled && filterModel.equals("model_local")) {
+                        // 正向反馈到本地模型 - 使用新的分离接口
+                        String trainingText = (notification.content != null ? notification.content : "");
+                        mlManager.processPositive(notification.title, trainingText);
+                    }
                 toRemove.add(notification);
             }
         }
