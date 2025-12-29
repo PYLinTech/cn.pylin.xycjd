@@ -52,6 +52,12 @@ public class FloatingWindowService extends Service {
     public NotificationAdapter notificationAdapter;
     
     private boolean isClosingIsland = false;
+    private boolean isPositionAdjusting = false;
+    private Handler adjustmentHandler = new Handler(Looper.getMainLooper());
+    private Runnable adjustmentTimeoutRunnable = null;
+    private int lastX = 0;
+    private int lastY = 0;
+    private int lastSize = 0;
 
     public static class NotificationInfo {
         String key;
@@ -102,6 +108,12 @@ public class FloatingWindowService extends Service {
     public void onDestroy() {
         super.onDestroy();
         instance = null;
+        
+        // 清理调整相关的handler
+        if (adjustmentHandler != null && adjustmentTimeoutRunnable != null) {
+            adjustmentHandler.removeCallbacks(adjustmentTimeoutRunnable);
+        }
+        
         if (windowManager != null) {
             if (floatingView != null && floatingView.getParent() != null) {
                 windowManager.removeView(floatingView);
@@ -272,6 +284,15 @@ public class FloatingWindowService extends Service {
     
     public void updateFloatingWindow(int size, int x, int y) {
         if (windowManager != null && floatingView != null && params != null) {
+            // 检测位置或大小是否发生变化
+            boolean positionChanged = (x != lastX) || (y != lastY) || (size != lastSize);
+            
+            // 更新当前值
+            lastX = x;
+            lastY = y;
+            lastSize = size;
+            
+            // 更新基础悬浮窗
             params.width = size;
             params.height = size;
             params.gravity = Gravity.TOP | Gravity.CENTER_HORIZONTAL;
@@ -284,7 +305,52 @@ public class FloatingWindowService extends Service {
             manager.setFloatingSize(size);
             manager.setFloatingX(x);
             manager.setFloatingY(y);
+            
+            // 如果位置或大小发生变化，执行特殊动画逻辑
+            if (positionChanged) {
+                handlePositionChange();
+            }
         }
+    }
+    
+    /**
+     * 处理位置/大小变化的特殊逻辑
+     */
+    private void handlePositionChange() {
+        // 设置调整状态
+        isPositionAdjusting = true;
+        
+        // 取消之前的超时计时器
+        if (adjustmentTimeoutRunnable != null) {
+            adjustmentHandler.removeCallbacks(adjustmentTimeoutRunnable);
+        }
+        
+        // 1. 移除三圆岛和标准岛视图
+        if (floatingThreeCircleView != null && floatingThreeCircleView.getParent() != null) {
+            windowManager.removeView(floatingThreeCircleView);
+            floatingThreeCircleView = null;
+        }
+        
+        if (floatingIslandView != null && floatingIslandView.getParent() != null) {
+            windowManager.removeView(floatingIslandView);
+            floatingIslandView = null;
+            notificationAdapter = null;
+        }
+        
+        // 2. 实时显示第一圆圈悬浮窗（基础悬浮窗已经存在，无需额外操作）
+        
+        // 3. 启动2秒超时计时器
+        adjustmentTimeoutRunnable = new Runnable() {
+            @Override
+            public void run() {
+                if (isPositionAdjusting && !notificationQueue.isEmpty()) {
+                    // 1秒后如果还有通知，重新显示
+                    showThreeCircleIsland();
+                }
+                isPositionAdjusting = false;
+            }
+        };
+        adjustmentHandler.postDelayed(adjustmentTimeoutRunnable, 1000);
     }
     
     public void updateAnimationConfiguration() {
@@ -443,10 +509,10 @@ public class FloatingWindowService extends Service {
                 lastNotificationContent = latest.content;
             }
 
-            // 显示或更新三圆悬浮窗
-            showThreeCircleIsland();
-            
-            // 已完全移除本地存储功能，不再保存通知队列
+            if (!isPositionAdjusting) {
+                // 显示或更新三圆悬浮窗
+                showThreeCircleIsland();
+            }
         });
     }
 

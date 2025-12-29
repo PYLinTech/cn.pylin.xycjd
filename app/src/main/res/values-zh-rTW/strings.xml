@@ -87,7 +87,7 @@
     <string name="filtering_degree">過濾程度</string>
     <string name="learning_degree">學習程度</string>
     <string name="model_filtering_stopped">模型過濾已關閉</string>
-    <string name="model_filtering_running">模型過濾運行中，已攔截%d條通知</string>
+    <string name="model_filtering_running">過濾中，已攔截%d條</string>
     <string name="start_filtering">開啟過濾</string>
     <string name="stop_filtering">關閉過濾</string>
     <string name="permission_all_granted">全部權限已開啟</string>
@@ -229,4 +229,16 @@
     <string name="api_test_success">API連接成功，配置已保存</string>
     <string name="online_model_process_mode">在線模型處理流程</string>
     <string name="process_mode_show_first">先顯示再檢查</string>
+    <string name="sound_vibration_setting">聲音與震動</string>
+    <string name="sound_vibration_desc">配置通知的聲音和震動效果</string>
+    <string name="vibration_intensity">震動強度</string>
+    <string name="vibration_intensity_value">%d 毫秒</string>
+    <string name="sound_enabled">聲音已開啟</string>
+    <string name="sound_disabled">聲音已關閉</string>
+    <string name="vibration_enabled">震動已開啟</string>
+    <string name="vibration_disabled">震動已關閉</string>
+    <string name="enable_sound">開啟聲音</string>
+    <string name="disable_sound">關閉聲音</string>
+    <string name="enable_vibration">開啟震動</string>
+    <string name="disable_vibration">關閉震動</string>
 </resources>

@@ -14,10 +14,10 @@ import android.os.Looper;
 public class NotificationServiceHeartbeat extends Service {
     
     private static final String TAG = "NotificationServiceHeartbeat";
-    private static final long HEARTBEAT_CHECK_INTERVAL_MS = 30000; // 30秒检查间隔
-    private static final long HEARTBEAT_TIMEOUT_MS = 25000;  // 25秒超时时间（比心跳间隔稍长）
-    private static final int MAX_FAILURE_COUNT = 2;  // 最大失败次数，超过则重启
-    private static final int MAX_RESTART_COUNT = 2;  // 最大重启次数，超过则通知
+    private static final long HEARTBEAT_CHECK_INTERVAL_MS = 60000; // 60秒检查间隔
+    private static final long HEARTBEAT_TIMEOUT_MS = 60000;  // 60秒超时时间
+    private static final int MAX_FAILURE_COUNT = 3;  // 最大失败次数，超过则重启
+    private static final int MAX_RESTART_COUNT = 3;  // 最大重启次数，超过则通知
     
     // 内存中存储的心跳状态（无需IO存储）
     private static volatile long lastHeartbeatTime = 0;
@@ -85,7 +85,7 @@ public class NotificationServiceHeartbeat extends Service {
     }
     
     /**
-     * 开始心跳检查（检测部分，30秒检查一次）
+     * 开始心跳检查（检测部分，60秒检查一次）
      */
     public void startHeartbeatCheck() {
         if (isChecking) {
@@ -116,7 +116,7 @@ public class NotificationServiceHeartbeat extends Service {
             failureCount++;
             logServiceDeath();
             
-            // 当不正常计数大于2时进入重启阶段
+            // 当不正常计数大于3时进入重启阶段
             if (failureCount > MAX_FAILURE_COUNT) {
                 attemptRestartService();
             }
@@ -143,9 +143,10 @@ public class NotificationServiceHeartbeat extends Service {
         restartCount++;
 
         if (restartCount > MAX_RESTART_COUNT) {
-            // 重启服务计数超过2时通知提示
+            // 重启服务计数超过3时通知提示
             sendPermissionReminderNotification();
             // 重置重启计数，避免重复发送通知
+            failureCount = 0;
             restartCount = 0;
             return;
         }

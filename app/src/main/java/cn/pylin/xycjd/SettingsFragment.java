@@ -117,6 +117,17 @@ public class SettingsFragment extends Fragment {
     private CardView cardTestNotification;
     private Button btnSendTestNotification;
     
+    // 声音与震动相关控件
+    private CardView cardSoundVibration;
+    private TextView tvSoundStatus;
+    private Button btnSoundToggle;
+    private TextView tvVibrationStatus;
+    private Button btnVibrationToggle;
+    private TextView tvVibrationIntensityValue;
+    private SeekBar seekBarVibrationIntensity;
+    private ImageButton btnVibrationIntensityDecrease;
+    private ImageButton btnVibrationIntensityIncrease;
+    
     // 动画速率相关控件
     private CardView cardAnimationSpeed;
     private TextView tvSpeedValue;
@@ -192,6 +203,9 @@ public class SettingsFragment extends Fragment {
         
         // 设置动画速率相关
         setupAnimationSpeedControls();
+        
+        // 设置声音与震动相关
+        setupSoundVibrationControls();
         
         return view;
     }
@@ -285,6 +299,17 @@ public class SettingsFragment extends Fragment {
         radioGroupOnlineModelProcess = view.findViewById(R.id.radio_group_online_model_process);
         radioBtnShowFirst = view.findViewById(R.id.radio_btn_show_first);
         radioBtnCheckFirst = view.findViewById(R.id.radio_btn_check_first);
+        
+        // 初始化声音与震动相关控件
+        cardSoundVibration = view.findViewById(R.id.card_sound_vibration);
+        tvSoundStatus = view.findViewById(R.id.tv_sound_status);
+        btnSoundToggle = view.findViewById(R.id.btn_sound_toggle);
+        tvVibrationStatus = view.findViewById(R.id.tv_vibration_status);
+        btnVibrationToggle = view.findViewById(R.id.btn_vibration_toggle);
+        tvVibrationIntensityValue = view.findViewById(R.id.tv_vibration_intensity_value);
+        seekBarVibrationIntensity = view.findViewById(R.id.seekbar_vibration_intensity);
+        btnVibrationIntensityDecrease = view.findViewById(R.id.btn_vibration_intensity_decrease);
+        btnVibrationIntensityIncrease = view.findViewById(R.id.btn_vibration_intensity_increase);
         
     }
 
@@ -1327,6 +1352,111 @@ public class SettingsFragment extends Fragment {
                 scrollView.post(() -> scrollView.scrollTo(0, scrollY));
             }
             preferences.edit().remove("scroll_y").apply();
+        }
+    }
+    
+    /**
+     * 设置声音与震动相关控件
+     */
+    private void setupSoundVibrationControls() {
+        // 从SharedPreferences管理器获取声音与震动设置
+        boolean soundEnabled = SharedPreferencesManager.getInstance(requireContext()).isSoundEnabled();
+        boolean vibrationEnabled = SharedPreferencesManager.getInstance(requireContext()).isVibrationEnabled();
+        int vibrationIntensity = SharedPreferencesManager.getInstance(requireContext()).getVibrationIntensity();
+        
+        // 更新声音状态显示
+        updateSoundUI(soundEnabled);
+        
+        // 更新震动状态显示
+        updateVibrationUI(vibrationEnabled);
+        
+        // 设置震动强度初始值
+        seekBarVibrationIntensity.setProgress(vibrationIntensity);
+        tvVibrationIntensityValue.setText(getString(R.string.vibration_intensity_value, vibrationIntensity));
+        
+        // 声音开关点击事件
+        btnSoundToggle.setOnClickListener(v -> {
+            boolean currentState = SharedPreferencesManager.getInstance(requireContext()).isSoundEnabled();
+            SharedPreferencesManager.getInstance(requireContext()).setSoundEnabled(!currentState);
+            updateSoundUI(!currentState);
+        });
+        
+        // 震动开关点击事件
+        btnVibrationToggle.setOnClickListener(v -> {
+            boolean currentState = SharedPreferencesManager.getInstance(requireContext()).isVibrationEnabled();
+            SharedPreferencesManager.getInstance(requireContext()).setVibrationEnabled(!currentState);
+            updateVibrationUI(!currentState);
+        });
+        
+        // 震动强度滑块监听器
+        seekBarVibrationIntensity.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                tvVibrationIntensityValue.setText(getString(R.string.vibration_intensity_value, progress));
+                if (fromUser) {
+                    SharedPreferencesManager.getInstance(requireContext()).setVibrationIntensity(progress);
+                }
+            }
+            
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {}
+            
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {}
+        });
+        
+        // 震动强度减小按钮
+        btnVibrationIntensityDecrease.setOnClickListener(v -> {
+            int currentProgress = seekBarVibrationIntensity.getProgress();
+            if (currentProgress > 30) { // 设置最小值为30毫秒
+                seekBarVibrationIntensity.setProgress(currentProgress - 1);
+                tvVibrationIntensityValue.setText(getString(R.string.vibration_intensity_value, currentProgress - 1));
+                SharedPreferencesManager.getInstance(requireContext()).setVibrationIntensity(currentProgress - 1);
+            }
+        });
+        
+        // 震动强度增加按钮
+        btnVibrationIntensityIncrease.setOnClickListener(v -> {
+            int currentProgress = seekBarVibrationIntensity.getProgress();
+            if (currentProgress < 1000) { // 设置最大值为1000毫秒
+                seekBarVibrationIntensity.setProgress(currentProgress + 1);
+                tvVibrationIntensityValue.setText(getString(R.string.vibration_intensity_value, currentProgress + 1));
+                SharedPreferencesManager.getInstance(requireContext()).setVibrationIntensity(currentProgress + 1);
+            }
+        });
+    }
+    
+    /**
+     * 更新声音UI状态
+     */
+    private void updateSoundUI(boolean enabled) {
+        if (enabled) {
+            tvSoundStatus.setText(getString(R.string.sound_enabled));
+            tvSoundStatus.setTextColor(getResources().getColor(R.color.colorSuccess, null));
+            btnSoundToggle.setText(getString(R.string.disable_sound));
+            btnSoundToggle.setBackgroundResource(R.drawable.btn_error_background);
+        } else {
+            tvSoundStatus.setText(getString(R.string.sound_disabled));
+            tvSoundStatus.setTextColor(getResources().getColor(R.color.colorError, null));
+            btnSoundToggle.setText(getString(R.string.enable_sound));
+            btnSoundToggle.setBackgroundResource(R.drawable.btn_primary_background);
+        }
+    }
+    
+    /**
+     * 更新震动UI状态
+     */
+    private void updateVibrationUI(boolean enabled) {
+        if (enabled) {
+            tvVibrationStatus.setText(getString(R.string.vibration_enabled));
+            tvVibrationStatus.setTextColor(getResources().getColor(R.color.colorSuccess, null));
+            btnVibrationToggle.setText(getString(R.string.disable_vibration));
+            btnVibrationToggle.setBackgroundResource(R.drawable.btn_error_background);
+        } else {
+            tvVibrationStatus.setText(getString(R.string.vibration_disabled));
+            tvVibrationStatus.setTextColor(getResources().getColor(R.color.colorError, null));
+            btnVibrationToggle.setText(getString(R.string.enable_vibration));
+            btnVibrationToggle.setBackgroundResource(R.drawable.btn_primary_background);
         }
     }
     

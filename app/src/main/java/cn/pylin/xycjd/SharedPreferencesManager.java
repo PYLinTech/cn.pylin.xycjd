@@ -84,6 +84,17 @@ public class SharedPreferencesManager {
     private static final String PREF_FLOATING_WINDOW_ENABLED = "floating_window_enabled";
     private boolean floatingWindowEnabled;
     
+    // 声音与震动全局开关
+    private static final String PREF_SOUND_ENABLED = "sound_enabled";
+    private boolean soundEnabled;
+    
+    private static final String PREF_VIBRATION_ENABLED = "vibration_enabled";
+    private boolean vibrationEnabled;
+    
+    // 震动强度
+    private static final String PREF_VIBRATION_INTENSITY = "vibration_intensity";
+    private int vibrationIntensity;
+    
     private static final String PREF_ONLINE_MODEL_PROCESS_MODE = "online_model_process_mode";
     private String onlineModelProcessMode;
     public static final String PROCESS_MODE_SHOW_FIRST = "show_first"; // 先显示再检查
@@ -140,6 +151,11 @@ public class SharedPreferencesManager {
         notificationLogRecording = globalPrefs.getBoolean(PREF_NOTIFICATION_LOG_RECORDING, false);
         floatingWindowEnabled = globalPrefs.getBoolean(PREF_FLOATING_WINDOW_ENABLED, false);
         onlineModelProcessMode = globalPrefs.getString(PREF_ONLINE_MODEL_PROCESS_MODE, PROCESS_MODE_SHOW_FIRST);
+        
+        // 加载声音与震动设置（默认开启）
+        soundEnabled = globalPrefs.getBoolean(PREF_SOUND_ENABLED, true);
+        vibrationEnabled = globalPrefs.getBoolean(PREF_VIBRATION_ENABLED, true);
+        vibrationIntensity = globalPrefs.getInt(PREF_VIBRATION_INTENSITY, 160);
     }
     
     // ==================== 全局设置读写方法 ====================
@@ -326,6 +342,35 @@ public class SharedPreferencesManager {
     public void setFloatingWindowEnabled(boolean enabled) {
         this.floatingWindowEnabled = enabled;
         globalEditor.putBoolean(PREF_FLOATING_WINDOW_ENABLED, enabled).apply();
+    }
+    
+    // ==================== 声音与震动全局开关方法 ====================
+    
+    public boolean isSoundEnabled() {
+        return soundEnabled;
+    }
+    
+    public void setSoundEnabled(boolean enabled) {
+        this.soundEnabled = enabled;
+        globalEditor.putBoolean(PREF_SOUND_ENABLED, enabled).apply();
+    }
+    
+    public boolean isVibrationEnabled() {
+        return vibrationEnabled;
+    }
+    
+    public void setVibrationEnabled(boolean enabled) {
+        this.vibrationEnabled = enabled;
+        globalEditor.putBoolean(PREF_VIBRATION_ENABLED, enabled).apply();
+    }
+    
+    public int getVibrationIntensity() {
+        return vibrationIntensity;
+    }
+    
+    public void setVibrationIntensity(int intensity) {
+        this.vibrationIntensity = intensity;
+        globalEditor.putInt(PREF_VIBRATION_INTENSITY, intensity).apply();
     }
     
     // ==================== 在线模型处理流程方法 ====================

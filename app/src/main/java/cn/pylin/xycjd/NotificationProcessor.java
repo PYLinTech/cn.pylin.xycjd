@@ -479,9 +479,15 @@ public class NotificationProcessor {
      * 执行震动
      */
     private void performVibration() {
+        // 检查全局震动开关
+        if (!prefsManager.isVibrationEnabled()) {
+            return;
+        }
+        
         android.os.Vibrator vibrator = (android.os.Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
         if (vibrator != null && vibrator.hasVibrator()) {
-            vibrator.vibrate(200); // 震动200毫秒
+            int intensity = prefsManager.getVibrationIntensity();
+            vibrator.vibrate(intensity); // 使用设置的震动强度
         }
     }
     
@@ -489,6 +495,11 @@ public class NotificationProcessor {
      * 播放通知声音
      */
     private void playNotificationSound() {
+        // 检查全局声音开关
+        if (!prefsManager.isSoundEnabled()) {
+            return;
+        }
+        
         android.media.AudioManager audioManager = (android.media.AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
         if (audioManager != null && audioManager.getRingerMode() == android.media.AudioManager.RINGER_MODE_NORMAL) {
             try {
