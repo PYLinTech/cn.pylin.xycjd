@@ -14,7 +14,7 @@
 
     <!-- Circles Layer -->
     <!-- Circle 1 (Topmost) -->
-    <cn.pylin.xycjd.CircleImageView
+    <cn.pylin.xycjd.ui.view.CircleImageView
         android:id="@+id/circle_app_icon"
         android:layout_width="96dp"
         android:layout_height="96dp"

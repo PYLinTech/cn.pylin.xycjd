@@ -28,7 +28,7 @@
         android:theme="@style/AppTheme"
         tools:targetApi="31">
         <activity
-            android:name=".MainActivity"
+            android:name=".ui.activity.MainActivity"
             android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize"
             android:exported="true">
             <intent-filter>
@@ -37,16 +37,16 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".IntroActivity"
+            android:name=".ui.activity.IntroActivity"
             android:exported="false" />
         <activity
-            android:name=".LogActivity"
+            android:name=".ui.activity.LogActivity"
             android:exported="false"
             android:label="@string/log_activity_title" />
         
         <!-- 通知监听器服务 -->
         <service
-            android:name=".AppNotificationListenerService"
+            android:name=".service.AppNotificationListenerService"
             android:label="@string/notification_listener_service_label"
             android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE"
             android:exported="true">
@@ -57,13 +57,13 @@
         
         <!-- 悬浮窗服务 -->
         <service
-            android:name=".FloatingWindowService"
+            android:name=".service.FloatingWindowService"
             android:enabled="true"
             android:exported="false" />
 
         <!-- 无障碍服务 -->
         <service
-            android:name=".AppAccessibilityService"
+            android:name=".service.AppAccessibilityService"
             android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE"
             android:exported="true"
             android:label="@string/app_name">
