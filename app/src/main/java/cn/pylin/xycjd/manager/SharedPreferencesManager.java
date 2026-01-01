@@ -115,7 +115,11 @@ public class SharedPreferencesManager {
     
     // 透明度存储值（0-100%）
     private static final String PREF_OPACITY = "pref_opacity";
+    private static final String PREF_MEDIUM_OPACITY = "pref_medium_opacity";
+    private static final String PREF_LARGE_OPACITY = "pref_large_opacity";
     private int opacity;
+    private int mediumOpacity;
+    private int largeOpacity;
     
     private SharedPreferencesManager(Context context) {
         // 初始化全局SharedPreferences
@@ -187,6 +191,8 @@ public class SharedPreferencesManager {
         
         // 加载透明度（默认值：0% - 不透明，100% - 完全透明，但默认值为0表示不透明，符合用户要求的默认0）
         opacity = globalPrefs.getInt(PREF_OPACITY, 0);
+        mediumOpacity = globalPrefs.getInt(PREF_MEDIUM_OPACITY, 0);
+        largeOpacity = globalPrefs.getInt(PREF_LARGE_OPACITY, 0);
     }
     
     // ==================== 全局设置读写方法 ====================
@@ -609,5 +615,23 @@ public class SharedPreferencesManager {
     public void setOpacity(int opacity) {
         this.opacity = opacity;
         globalEditor.putInt(PREF_OPACITY, opacity).apply();
+    }
+    
+    public int getMediumOpacity() {
+        return mediumOpacity;
+    }
+    
+    public void setMediumOpacity(int mediumOpacity) {
+        this.mediumOpacity = mediumOpacity;
+        globalEditor.putInt(PREF_MEDIUM_OPACITY, mediumOpacity).apply();
+    }
+    
+    public int getLargeOpacity() {
+        return largeOpacity;
+    }
+    
+    public void setLargeOpacity(int largeOpacity) {
+        this.largeOpacity = largeOpacity;
+        globalEditor.putInt(PREF_LARGE_OPACITY, largeOpacity).apply();
     }
 }

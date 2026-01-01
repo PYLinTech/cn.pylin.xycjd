@@ -326,8 +326,8 @@ public class FloatingWindowService extends Service {
 
         windowManager.addView(floatingView, params);
         
-        // 应用透明度设置
-        updateOpacity(opacity);
+        // 应用透明度设置（包括基础悬浮窗、三圆岛和标准岛）
+        updateOpacity();
     }
     
     public void updateFloatingWindow(int size, int x, int y) {
@@ -1049,6 +1049,11 @@ public class FloatingWindowService extends Service {
                 recyclerView.scrollBy(0, 0);
             }
         });
+        
+        // 应用超大岛透明度设置
+        int largeOpacity = manager.getLargeOpacity();
+        float largeAlpha = 1.0f - (largeOpacity / 100.0f);
+        floatingIslandView.setAlpha(largeAlpha);
     }
     
     /**
@@ -1609,17 +1614,61 @@ public class FloatingWindowService extends Service {
     
     /**
      * 更新悬浮窗透明度
-     * @param opacity 透明度值（0-100%，0表示不透明，100表示完全透明）
+     * 从管理器读取所有透明度设置并应用到对应的悬浮窗层级
      */
-    public void updateOpacity(int opacity) {
-        // 如果基础悬浮窗存在，更新其透明度
+    public void updateOpacity() {
+        // 如果基础悬浮窗存在，更新其透明度（超小岛）
         if (floatingView != null && params != null) {
-            // 将0-100的透明度转换为0.0-1.0的alpha值
+            int opacity = manager.getOpacity();
             float alpha = 1.0f - (opacity / 100.0f);
             floatingView.setAlpha(alpha);
         }
+        
+        // 如果三圆岛存在，更新其透明度（超中岛）
+        if (floatingThreeCircleView != null) {
+            int mediumOpacity = manager.getMediumOpacity();
+            float mediumAlpha = 1.0f - (mediumOpacity / 100.0f);
+            floatingThreeCircleView.setAlpha(mediumAlpha);
+        }
+        
+        // 如果标准岛存在，更新其透明度（超大岛）
+        if (floatingIslandView != null) {
+            int largeOpacity = manager.getLargeOpacity();
+            float largeAlpha = 1.0f - (largeOpacity / 100.0f);
+            floatingIslandView.setAlpha(largeAlpha);
+        }
     }
     
+    /**
+     * 更新指定悬浮窗层级的透明度
+     * @param level 1=基础悬浮窗(超小岛), 2=三圆岛(超中岛), 3=标准岛(超大岛)
+     */
+    public void updateOpacity(int level) {
+        switch (level) {
+            case 1: // 基础悬浮窗（超小岛）
+                if (floatingView != null && params != null) {
+                    int opacity = manager.getOpacity();
+                    float alpha = 1.0f - (opacity / 100.0f);
+                    floatingView.setAlpha(alpha);
+                }
+                break;
+            case 2: // 三圆岛（超中岛）
+                if (floatingThreeCircleView != null) {
+                    int mediumOpacity = manager.getMediumOpacity();
+                    float mediumAlpha = 1.0f - (mediumOpacity / 100.0f);
+                    floatingThreeCircleView.setAlpha(mediumAlpha);
+                }
+                break;
+            case 3: // 标准岛（超大岛）
+                if (floatingIslandView != null) {
+                    int largeOpacity = manager.getLargeOpacity();
+                    float largeAlpha = 1.0f - (largeOpacity / 100.0f);
+                    floatingIslandView.setAlpha(largeAlpha);
+                }
+                break;
+        }
+    }
+
     /**
      * 处理岛屿列表距离变化的特殊逻辑
      * @param verticalDistance 垂直距离值（dp）
@@ -1898,6 +1947,11 @@ public class FloatingWindowService extends Service {
                 showNotificationIsland(info.packageName, info.title, info.content);
             }
         });
+        
+        // 应用超中岛透明度设置
+        int mediumOpacity = manager.getMediumOpacity();
+        float mediumAlpha = 1.0f - (mediumOpacity / 100.0f);
+        floatingThreeCircleView.setAlpha(mediumAlpha);
     }
 
     /**

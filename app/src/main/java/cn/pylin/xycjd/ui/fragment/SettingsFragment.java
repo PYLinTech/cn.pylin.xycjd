@@ -147,6 +147,16 @@ public class SettingsFragment extends Fragment {
     private SeekBar seekBarOpacity;
     private ImageButton btnOpacityDecrease;
     private ImageButton btnOpacityIncrease;
+    // 超中岛透明度控件
+    private TextView tvMediumOpacityValue;
+    private SeekBar seekBarMediumOpacity;
+    private ImageButton btnMediumOpacityDecrease;
+    private ImageButton btnMediumOpacityIncrease;
+    // 超大岛透明度控件
+    private TextView tvLargeOpacityValue;
+    private SeekBar seekBarLargeOpacity;
+    private ImageButton btnLargeOpacityDecrease;
+    private ImageButton btnLargeOpacityIncrease;
     private TextView tvCornerRadius1Value;
     private TextView tvCornerRadius2Value;
     private TextView tvCornerRadius3Value;
@@ -160,6 +170,7 @@ public class SettingsFragment extends Fragment {
     private ImageButton btnCornerRadius3Decrease;
     private ImageButton btnCornerRadius3Increase;
     private Button btnResetSuperIslandCorners;
+    private Button btnResetOpacity;
     
     // 悬浮窗相关控件 - 超大岛列表相对距离
     private TextView tvListDistanceValue;
@@ -364,6 +375,16 @@ public class SettingsFragment extends Fragment {
         seekBarOpacity = view.findViewById(R.id.seekbar_opacity);
         btnOpacityDecrease = view.findViewById(R.id.btn_opacity_decrease);
         btnOpacityIncrease = view.findViewById(R.id.btn_opacity_increase);
+        // 初始化超中岛透明度控件
+        tvMediumOpacityValue = view.findViewById(R.id.tv_medium_opacity_value);
+        seekBarMediumOpacity = view.findViewById(R.id.seekbar_medium_opacity);
+        btnMediumOpacityDecrease = view.findViewById(R.id.btn_medium_opacity_decrease);
+        btnMediumOpacityIncrease = view.findViewById(R.id.btn_medium_opacity_increase);
+        // 初始化超大岛透明度控件
+        tvLargeOpacityValue = view.findViewById(R.id.tv_large_opacity_value);
+        seekBarLargeOpacity = view.findViewById(R.id.seekbar_large_opacity);
+        btnLargeOpacityDecrease = view.findViewById(R.id.btn_large_opacity_decrease);
+        btnLargeOpacityIncrease = view.findViewById(R.id.btn_large_opacity_increase);
         tvCornerRadius1Value = view.findViewById(R.id.tv_corner_radius_1_value);
         tvCornerRadius2Value = view.findViewById(R.id.tv_corner_radius_2_value);
         tvCornerRadius3Value = view.findViewById(R.id.tv_corner_radius_3_value);
@@ -377,6 +398,7 @@ public class SettingsFragment extends Fragment {
         btnCornerRadius3Decrease = view.findViewById(R.id.btn_corner_radius_3_decrease);
         btnCornerRadius3Increase = view.findViewById(R.id.btn_corner_radius_3_increase);
         btnResetSuperIslandCorners = view.findViewById(R.id.btn_reset_super_island_corners);
+        btnResetOpacity = view.findViewById(R.id.btn_reset_opacity);
         
         // 初始化超大岛列表相对距离相关控件
         tvListDistanceValue = view.findViewById(R.id.tv_list_distance_value);
@@ -1497,12 +1519,22 @@ public class SettingsFragment extends Fragment {
     private void setupSuperIslandStyleControls() {
         // 从SharedPreferences管理器获取透明度设置
         int opacity = SharedPreferencesManager.getInstance(requireContext()).getOpacity();
+        int mediumOpacity = SharedPreferencesManager.getInstance(requireContext()).getMediumOpacity();
+        int largeOpacity = SharedPreferencesManager.getInstance(requireContext()).getLargeOpacity();
         
         // 设置透明度初始值
         seekBarOpacity.setProgress(opacity);
         tvOpacityValue.setText(getString(R.string.super_island_corner_value, opacity));
         
-        // 设置透明度滑块监听器（实时保存和生效）
+        // 设置超中岛透明度初始值
+        seekBarMediumOpacity.setProgress(mediumOpacity);
+        tvMediumOpacityValue.setText(getString(R.string.super_island_corner_value, mediumOpacity));
+        
+        // 设置超大岛透明度初始值
+        seekBarLargeOpacity.setProgress(largeOpacity);
+        tvLargeOpacityValue.setText(getString(R.string.super_island_corner_value, largeOpacity));
+        
+        // 设置超小岛透明度滑块监听器（实时保存和生效）
         seekBarOpacity.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
@@ -1510,8 +1542,8 @@ public class SettingsFragment extends Fragment {
                 if (fromUser) {
                     // 实时保存到SharedPreferences
                     SharedPreferencesManager.getInstance(requireContext()).setOpacity(progress);
-                    // 实时更新悬浮窗透明度（如果服务正在运行）
-                    updateFloatingWindowOpacity(progress);
+                    // 实时更新超小岛透明度（如果服务正在运行）
+                    updateFloatingWindowOpacity(1); // 1表示超小岛
                 }
             }
 
@@ -1522,7 +1554,47 @@ public class SettingsFragment extends Fragment {
             public void onStopTrackingTouch(SeekBar seekBar) {}
         });
 
-        // 设置透明度加减按钮点击事件（每次调整1%）
+        // 设置超中岛透明度滑块监听器（实时保存和生效）
+        seekBarMediumOpacity.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                tvMediumOpacityValue.setText(getString(R.string.super_island_corner_value, progress));
+                if (fromUser) {
+                    // 实时保存到SharedPreferences
+                    SharedPreferencesManager.getInstance(requireContext()).setMediumOpacity(progress);
+                    // 实时更新超中岛透明度（如果服务正在运行）
+                    updateFloatingWindowOpacity(2); // 2表示超中岛
+                }
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {}
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {}
+        });
+
+        // 设置超大岛透明度滑块监听器（实时保存和生效）
+        seekBarLargeOpacity.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                tvLargeOpacityValue.setText(getString(R.string.super_island_corner_value, progress));
+                if (fromUser) {
+                    // 实时保存到SharedPreferences
+                    SharedPreferencesManager.getInstance(requireContext()).setLargeOpacity(progress);
+                    // 实时更新超大岛透明度（如果服务正在运行）
+                    updateFloatingWindowOpacity(3); // 3表示超大岛
+                }
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {}
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {}
+        });
+
+        // 设置超小岛透明度加减按钮点击事件（每次调整1%）
         btnOpacityDecrease.setOnClickListener(v -> {
             int currentProgress = seekBarOpacity.getProgress();
             if (currentProgress > 0) {
@@ -1530,7 +1602,7 @@ public class SettingsFragment extends Fragment {
                 seekBarOpacity.setProgress(newProgress);
                 tvOpacityValue.setText(getString(R.string.super_island_corner_value, newProgress));
                 SharedPreferencesManager.getInstance(requireContext()).setOpacity(newProgress);
-                updateFloatingWindowOpacity(newProgress);
+                updateFloatingWindowOpacity(1); // 1表示超小岛
             }
         });
 
@@ -1541,7 +1613,53 @@ public class SettingsFragment extends Fragment {
                 seekBarOpacity.setProgress(newProgress);
                 tvOpacityValue.setText(getString(R.string.super_island_corner_value, newProgress));
                 SharedPreferencesManager.getInstance(requireContext()).setOpacity(newProgress);
-                updateFloatingWindowOpacity(newProgress);
+                updateFloatingWindowOpacity(1); // 1表示超小岛
+            }
+        });
+
+        // 设置超中岛透明度加减按钮点击事件（每次调整1%）
+        btnMediumOpacityDecrease.setOnClickListener(v -> {
+            int currentProgress = seekBarMediumOpacity.getProgress();
+            if (currentProgress > 0) {
+                int newProgress = currentProgress - 1;
+                seekBarMediumOpacity.setProgress(newProgress);
+                tvMediumOpacityValue.setText(getString(R.string.super_island_corner_value, newProgress));
+                SharedPreferencesManager.getInstance(requireContext()).setMediumOpacity(newProgress);
+                updateFloatingWindowOpacity(2); // 2表示超中岛
+            }
+        });
+
+        btnMediumOpacityIncrease.setOnClickListener(v -> {
+            int currentProgress = seekBarMediumOpacity.getProgress();
+            if (currentProgress < 100) {
+                int newProgress = currentProgress + 1;
+                seekBarMediumOpacity.setProgress(newProgress);
+                tvMediumOpacityValue.setText(getString(R.string.super_island_corner_value, newProgress));
+                SharedPreferencesManager.getInstance(requireContext()).setMediumOpacity(newProgress);
+                updateFloatingWindowOpacity(2); // 2表示超中岛
+            }
+        });
+
+        // 设置超大岛透明度加减按钮点击事件（每次调整1%）
+        btnLargeOpacityDecrease.setOnClickListener(v -> {
+            int currentProgress = seekBarLargeOpacity.getProgress();
+            if (currentProgress > 0) {
+                int newProgress = currentProgress - 1;
+                seekBarLargeOpacity.setProgress(newProgress);
+                tvLargeOpacityValue.setText(getString(R.string.super_island_corner_value, newProgress));
+                SharedPreferencesManager.getInstance(requireContext()).setLargeOpacity(newProgress);
+                updateFloatingWindowOpacity(3); // 3表示超大岛
+            }
+        });
+
+        btnLargeOpacityIncrease.setOnClickListener(v -> {
+            int currentProgress = seekBarLargeOpacity.getProgress();
+            if (currentProgress < 100) {
+                int newProgress = currentProgress + 1;
+                seekBarLargeOpacity.setProgress(newProgress);
+                tvLargeOpacityValue.setText(getString(R.string.super_island_corner_value, newProgress));
+                SharedPreferencesManager.getInstance(requireContext()).setLargeOpacity(newProgress);
+                updateFloatingWindowOpacity(3); // 3表示超大岛
             }
         });
 
@@ -1620,7 +1738,38 @@ public class SettingsFragment extends Fragment {
         // 设置加减按钮点击事件（每次调整1%）
         setupSuperIslandStyleButtons();
 
-        // 设置重置按钮点击事件
+        // 设置还原默认透明度按钮点击事件
+        btnResetOpacity.setOnClickListener(v -> {
+            // 恢复默认透明度值：0, 0, 0
+            int defaultOpacity = 0;
+            int defaultMediumOpacity = 0;
+            int defaultLargeOpacity = 0;
+
+            // 更新滑块位置
+            seekBarOpacity.setProgress(defaultOpacity);
+            seekBarMediumOpacity.setProgress(defaultMediumOpacity);
+            seekBarLargeOpacity.setProgress(defaultLargeOpacity);
+
+            // 更新显示值
+            tvOpacityValue.setText(getString(R.string.super_island_corner_value, defaultOpacity));
+            tvMediumOpacityValue.setText(getString(R.string.super_island_corner_value, defaultMediumOpacity));
+            tvLargeOpacityValue.setText(getString(R.string.super_island_corner_value, defaultLargeOpacity));
+
+            // 保存到SharedPreferences
+            SharedPreferencesManager manager = SharedPreferencesManager.getInstance(requireContext());
+            manager.setOpacity(defaultOpacity);
+            manager.setMediumOpacity(defaultMediumOpacity);
+            manager.setLargeOpacity(defaultLargeOpacity);
+            
+            // 触发透明度更新（如果服务正在运行）
+            if (FloatingWindowService.isServiceRunning(requireContext())) {
+                updateFloatingWindowOpacity(1); // 超小岛
+                updateFloatingWindowOpacity(2); // 超中岛
+                updateFloatingWindowOpacity(3); // 超大岛
+            }
+        });
+
+        // 设置重置圆角按钮点击事件
         btnResetSuperIslandCorners.setOnClickListener(v -> {
             // 恢复默认值：100, 100, 45
             int defaultRadius1 = 100;
@@ -1973,14 +2122,15 @@ public class SettingsFragment extends Fragment {
     
     /**
      * 更新悬浮窗透明度（实时生效）
+     * @param level 1=基础悬浮窗(超小岛), 2=三圆岛(超中岛), 3=标准岛(超大岛)
      */
-    private void updateFloatingWindowOpacity(int opacity) {
+    private void updateFloatingWindowOpacity(int level) {
         // 如果服务正在运行，通知服务更新透明度
         if (FloatingWindowService.isServiceRunning(requireContext())) {
             FloatingWindowService service = FloatingWindowService.getInstance();
             if (service != null) {
                 // 调用服务的透明度更新方法
-                service.updateOpacity(opacity);
+                service.updateOpacity(level);
             }
         }
     }

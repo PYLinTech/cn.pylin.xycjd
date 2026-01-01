@@ -90,13 +90,10 @@
     <string name="welcome_icon">Welcome Icon</string>
     
     <!-- Floating Window -->
-    <string name="floating_window_setting">Floating Window Settings</string>
-    <string name="floating_window_size">Floating Window Size</string>
-    <string name="floating_window_position_x">Horizontal Position</string>
-    <string name="floating_window_position_y">Vertical Position</string>
+    <string name="floating_window_position_y">Super Small Island vertical position</string>
     <string name="floating_window_permission_denied">Floating window permission denied, please enable in settings</string>
-    <string name="service_status">Floating Window Status</string>
-    <string name="service_status_desc">Manage floating window service status</string>
+    <string name="service_status">Super Island Status</string>
+    <string name="service_status_desc">Manage Super Island service status</string>
     <string name="service_running">Service Running</string>
     <string name="service_stopped">Service Stopped</string>
     <string name="start_service">Start Service</string>
@@ -280,11 +277,17 @@
     <!-- Super Island Style Configuration -->
     <string name="super_island_style_title">Super Island Style Configuration</string>
     <string name="super_island_style_desc">Personalize your Super Island</string>
-    <string name="super_island_corner_small">Small Island Corner</string>
-    <string name="super_island_corner_medium">Medium Island Corner</string>
-    <string name="super_island_corner_large">Large Island Corner</string>
+    <string name="super_island_corner_small">Super Small Island Corner</string>
+    <string name="super_island_corner_medium">Super Medium Island Corner</string>
+    <string name="super_island_corner_large">Super Large Island Corner</string>
+    <string name="reset_opacity">Restore default transparency</string>
     <string name="super_island_corner_reset">Reset Default Corner Configuration</string>
-    <string name="super_island_list_distance">Vertical Relative Distance of Mega Island List</string>
-    <string name="basic_floating_window_opacity">Small Island Transparency</string>
-    <string name="super_island_list_horizontal_distance">Horizontal Relative Distance of Mega Island List</string>
+    <string name="super_island_list_distance">Vertical Relative Distance of Super Large Island</string>
+    <string name="basic_floating_window_opacity">Super Small Island Transparency</string>
+    <string name="super_island_list_horizontal_distance">Horizontal Relative Distance of Super Large Island</string>
+    <string name="medium_floating_window_opacity">Super Medium Island Transparency</string>
+    <string name="large_floating_window_opacity">Super Large Island Transparency</string>
+    <string name="floating_window_setting">Super Island Location Configuration</string>
+    <string name="floating_window_size">Super Small Island Size</string>
+    <string name="floating_window_position_x">Super Small Island horizontal position</string>
 </resources>

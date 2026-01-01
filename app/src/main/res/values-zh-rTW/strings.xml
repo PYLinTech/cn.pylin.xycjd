@@ -69,13 +69,10 @@
     <string name="notification_listener_service_label">小雨超級島通知監聽器</string>
     <string name="app_icon">應用圖標</string>
     <string name="welcome_icon">歡迎圖標</string>
-    <string name="floating_window_setting">懸浮窗設置</string>
-    <string name="floating_window_size">懸浮窗大小</string>
-    <string name="floating_window_position_x">水平位置</string>
-    <string name="floating_window_position_y">垂直位置</string>
+    <string name="floating_window_position_y">超小島垂直位置</string>
     <string name="floating_window_permission_denied">懸浮窗權限被拒絶，請在設置中開啟</string>
-    <string name="service_status">懸浮窗狀態</string>
-    <string name="service_status_desc">管理懸浮窗服務狀態</string>
+    <string name="service_status">超級島狀態</string>
+    <string name="service_status_desc">管理超級島服務狀態</string>
     <string name="service_running">服務正在運行</string>
     <string name="service_stopped">服務已停止</string>
     <string name="start_service">啟動服務</string>
@@ -241,8 +238,14 @@
     <string name="super_island_corner_small">超小島圓角</string>
     <string name="super_island_corner_medium">超中島圓角</string>
     <string name="super_island_corner_large">超大島圓角</string>
+    <string name="reset_opacity">還原默認透明度設置</string>
     <string name="super_island_corner_reset">還原默認圓角配置</string>
-    <string name="super_island_list_distance">超大島列錶垂直相對距離</string>
+    <string name="super_island_list_distance">超大島垂直相對距離</string>
+    <string name="super_island_list_horizontal_distance">超大島水平相對距離</string>
     <string name="basic_floating_window_opacity">超小島透明度</string>
-    <string name="super_island_list_horizontal_distance">超大島列錶水平相對距離</string>
+    <string name="medium_floating_window_opacity">超中島透明度</string>
+    <string name="large_floating_window_opacity">超大島透明度</string>
+    <string name="floating_window_setting">超級島位置配置</string>
+    <string name="floating_window_size">超小島大小</string>
+    <string name="floating_window_position_x">超小島水平位置</string>
 </resources>

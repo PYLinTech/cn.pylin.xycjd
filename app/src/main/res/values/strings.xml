@@ -104,13 +104,13 @@
     <string name="welcome_icon">欢迎图标</string>
     
     <!-- 悬浮窗相关字符串 -->
-    <string name="floating_window_setting">悬浮窗设置</string>
-    <string name="floating_window_size">悬浮窗大小</string>
-    <string name="floating_window_position_x">水平位置</string>
-    <string name="floating_window_position_y">垂直位置</string>
+    <string name="floating_window_setting">超级岛位置配置</string>
+    <string name="floating_window_size">超小岛大小</string>
+    <string name="floating_window_position_x">超小岛水平位置</string>
+    <string name="floating_window_position_y">超小岛垂直位置</string>
     <string name="floating_window_permission_denied">悬浮窗权限被拒绝，请在设置中开启</string>
-    <string name="service_status">悬浮窗状态</string>
-    <string name="service_status_desc">管理悬浮窗服务状态</string>
+    <string name="service_status">超级岛状态</string>
+    <string name="service_status_desc">管理超级岛服务状态</string>
     <string name="service_running">服务正在运行</string>
     <string name="service_stopped">服务已停止</string>
     <string name="start_service">启动服务</string>
@@ -319,15 +319,17 @@
     <string name="super_island_corner_small">超小岛圆角</string>
     <string name="super_island_corner_medium">超中岛圆角</string>
     <string name="super_island_corner_large">超大岛圆角</string>
+    <string name="reset_opacity">还原默认透明度设置</string>
     <string name="super_island_corner_reset">还原默认圆角配置</string>
     <string name="super_island_corner_value" translatable="false">%d%%</string>
     
     <!-- 超大岛列表垂直相对距离 -->
-    <string name="super_island_list_distance">超大岛列表垂直相对距离</string>
-    <string name="super_island_list_horizontal_distance">超大岛列表水平相对距离</string>
+    <string name="super_island_list_distance">超大岛垂直相对距离</string>
+    <string name="super_island_list_horizontal_distance">超大岛水平相对距离</string>
     <string name="default_list_distance" translatable="false">0</string>
     
     <!-- 基础悬浮窗透明度 -->
     <string name="basic_floating_window_opacity">超小岛透明度</string>
-    <string name="default_opacity" translatable="false">0</string>
+    <string name="medium_floating_window_opacity">超中岛透明度</string>
+    <string name="large_floating_window_opacity">超大岛透明度</string>
 </resources>
