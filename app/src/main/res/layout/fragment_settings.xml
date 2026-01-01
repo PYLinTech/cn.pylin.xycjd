@@ -865,150 +865,213 @@
                             app:tint="?android:attr/textColorSecondary" />
                     </LinearLayout>
                 </LinearLayout>
+
+                <!-- 水平位置调整 -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginBottom="16dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginBottom="8dp">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/floating_window_position_x"
+                            android:textSize="14sp"
+                            android:textColor="?android:attr/textColorSecondary" />
+
+                        <TextView
+                            android:id="@+id/tv_x_value"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="0dp"
+                            android:textSize="14sp"
+                            android:textColor="?android:attr/textColorPrimary" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical">
+
+                        <ImageButton
+                            android:id="@+id/btn_x_decrease"
+                            android:layout_width="36dp"
+                            android:layout_height="36dp"
+                            android:src="@drawable/ic_remove"
+                            android:background="?attr/selectableItemBackgroundBorderless"
+                            android:contentDescription="@string/decrease"
+                            app:tint="?android:attr/textColorSecondary" />
+
+                        <SeekBar
+                            android:id="@+id/seekbar_x"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:layout_marginStart="8dp"
+                            android:layout_marginEnd="8dp"
+                            android:max="1000"
+                            android:progress="500"
+                            android:progressTint="@color/colorPrimary"
+                            android:thumbTint="@color/colorPrimary"
+                            android:progressBackgroundTint="?android:attr/textColorSecondary" />
+
+                        <ImageButton
+                            android:id="@+id/btn_x_increase"
+                            android:layout_width="36dp"
+                            android:layout_height="36dp"
+                            android:src="@drawable/ic_add"
+                            android:background="?attr/selectableItemBackgroundBorderless"
+                            android:contentDescription="@string/increase"
+                            app:tint="?android:attr/textColorSecondary" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <!-- 垂直位置调整 -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginBottom="16dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginBottom="8dp">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/floating_window_position_y"
+                            android:textSize="14sp"
+                            android:textColor="?android:attr/textColorSecondary" />
+
+                        <TextView
+                            android:id="@+id/tv_y_value"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/default_y"
+                            android:textSize="14sp"
+                            android:textColor="?android:attr/textColorPrimary" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical">
+
+                        <ImageButton
+                            android:id="@+id/btn_y_decrease"
+                            android:layout_width="36dp"
+                            android:layout_height="36dp"
+                            android:src="@drawable/ic_remove"
+                            android:background="?attr/selectableItemBackgroundBorderless"
+                            android:contentDescription="@string/decrease"
+                            app:tint="?android:attr/textColorSecondary" />
+
+                        <SeekBar
+                            android:id="@+id/seekbar_y"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:layout_marginStart="8dp"
+                            android:layout_marginEnd="8dp"
+                            android:max="2000"
+                            android:progress="300"
+                            android:progressTint="@color/colorPrimary"
+                            android:thumbTint="@color/colorPrimary"
+                            android:progressBackgroundTint="?android:attr/textColorSecondary" />
+
+                        <ImageButton
+                            android:id="@+id/btn_y_increase"
+                            android:layout_width="36dp"
+                            android:layout_height="36dp"
+                            android:src="@drawable/ic_add"
+                            android:background="?attr/selectableItemBackgroundBorderless"
+                            android:contentDescription="@string/increase"
+                            app:tint="?android:attr/textColorSecondary" />
+                    </LinearLayout>
+                </LinearLayout>
                 
-                <!-- 悬浮窗位置调整 -->
+                <!-- 超大岛列表相对距离 -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical">
 
-                    <!-- 水平位置调整 -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:layout_marginBottom="16dp">
-                        
-                        <LinearLayout
-                            android:layout_width="match_parent"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginBottom="8dp">
+
+                        <TextView
+                            android:layout_width="0dp"
                             android:layout_height="wrap_content"
-                            android:orientation="horizontal"
-                            android:gravity="center_vertical"
-                            android:layout_marginBottom="8dp">
-                            
-                            <TextView
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:text="@string/floating_window_position_x"
-                                android:textSize="14sp"
-                                android:textColor="?android:attr/textColorSecondary" />
-                            
-                            <TextView
-                                android:id="@+id/tv_x_value"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="0dp"
-                                android:textSize="14sp"
-                                android:textColor="?android:attr/textColorPrimary" />
-                        </LinearLayout>
-                        
-                        <LinearLayout
-                            android:layout_width="match_parent"
+                            android:layout_weight="1"
+                            android:text="@string/super_island_list_distance"
+                            android:textSize="14sp"
+                            android:textColor="?android:attr/textColorSecondary" />
+
+                        <TextView
+                            android:id="@+id/tv_list_distance_value"
+                            android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:orientation="horizontal"
-                            android:gravity="center_vertical">
-                            
-                            <ImageButton
-                                android:id="@+id/btn_x_decrease"
-                                android:layout_width="36dp"
-                                android:layout_height="36dp"
-                                android:src="@drawable/ic_remove"
-                                android:background="?attr/selectableItemBackgroundBorderless"
-                                android:contentDescription="@string/decrease"
-                                app:tint="?android:attr/textColorSecondary" />
-                            
-                            <SeekBar
-                                android:id="@+id/seekbar_x"
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:layout_marginStart="8dp"
-                                android:layout_marginEnd="8dp"
-                                android:max="1000"
-                                android:progress="500"
-                                android:progressTint="@color/colorPrimary"
-                                android:thumbTint="@color/colorPrimary"
-                                android:progressBackgroundTint="?android:attr/textColorSecondary" />
-                            
-                            <ImageButton
-                                android:id="@+id/btn_x_increase"
-                                android:layout_width="36dp"
-                                android:layout_height="36dp"
-                                android:src="@drawable/ic_add"
-                                android:background="?attr/selectableItemBackgroundBorderless"
-                                android:contentDescription="@string/increase"
-                                app:tint="?android:attr/textColorSecondary" />
-                        </LinearLayout>
+                            android:text="20dp"
+                            android:textSize="14sp"
+                            android:textColor="?android:attr/textColorPrimary" />
                     </LinearLayout>
-                    
-                    <!-- 垂直位置调整 -->
+
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="vertical">
-                        
-                        <LinearLayout
-                            android:layout_width="match_parent"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical">
+
+                        <ImageButton
+                            android:id="@+id/btn_list_distance_decrease"
+                            android:layout_width="36dp"
+                            android:layout_height="36dp"
+                            android:src="@drawable/ic_remove"
+                            android:background="?attr/selectableItemBackgroundBorderless"
+                            android:contentDescription="@string/decrease"
+                            app:tint="?android:attr/textColorSecondary" />
+
+                        <SeekBar
+                            android:id="@+id/seekbar_list_distance"
+                            android:layout_width="0dp"
                             android:layout_height="wrap_content"
-                            android:orientation="horizontal"
-                            android:gravity="center_vertical"
-                            android:layout_marginBottom="8dp">
-                            
-                            <TextView
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:text="@string/floating_window_position_y"
-                                android:textSize="14sp"
-                                android:textColor="?android:attr/textColorSecondary" />
-                            
-                            <TextView
-                                android:id="@+id/tv_y_value"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="@string/default_y"
-                                android:textSize="14sp"
-                                android:textColor="?android:attr/textColorPrimary" />
-                        </LinearLayout>
-                        
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:orientation="horizontal"
-                            android:gravity="center_vertical">
-                            
-                            <ImageButton
-                                android:id="@+id/btn_y_decrease"
-                                android:layout_width="36dp"
-                                android:layout_height="36dp"
-                                android:src="@drawable/ic_remove"
-                                android:background="?attr/selectableItemBackgroundBorderless"
-                                android:contentDescription="@string/decrease"
-                                app:tint="?android:attr/textColorSecondary" />
-                            
-                            <SeekBar
-                                android:id="@+id/seekbar_y"
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:layout_marginStart="8dp"
-                                android:layout_marginEnd="8dp"
-                                android:max="2000"
-                                android:progress="300"
-                                android:progressTint="@color/colorPrimary"
-                                android:thumbTint="@color/colorPrimary"
-                                android:progressBackgroundTint="?android:attr/textColorSecondary" />
-                            
-                            <ImageButton
-                                android:id="@+id/btn_y_increase"
-                                android:layout_width="36dp"
-                                android:layout_height="36dp"
-                                android:src="@drawable/ic_add"
-                                android:background="?attr/selectableItemBackgroundBorderless"
-                                android:contentDescription="@string/increase"
-                                app:tint="?android:attr/textColorSecondary" />
-                        </LinearLayout>
+                            android:layout_weight="1"
+                            android:layout_marginStart="8dp"
+                            android:layout_marginEnd="8dp"
+                            android:max="200"
+                            android:progress="20"
+                            android:progressTint="@color/colorPrimary"
+                            android:thumbTint="@color/colorPrimary"
+                            android:progressBackgroundTint="?android:attr/textColorSecondary" />
+
+                        <ImageButton
+                            android:id="@+id/btn_list_distance_increase"
+                            android:layout_width="36dp"
+                            android:layout_height="36dp"
+                            android:src="@drawable/ic_add"
+                            android:background="?attr/selectableItemBackgroundBorderless"
+                            android:contentDescription="@string/increase"
+                            app:tint="?android:attr/textColorSecondary" />
                     </LinearLayout>
                 </LinearLayout>
                 

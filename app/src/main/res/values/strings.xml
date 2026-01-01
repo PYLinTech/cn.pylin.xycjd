@@ -321,4 +321,8 @@
     <string name="super_island_corner_large">超大岛圆角</string>
     <string name="super_island_corner_reset">还原默认圆角配置</string>
     <string name="super_island_corner_value" translatable="false">%d%%</string>
+    
+    <!-- 超大岛列表相对距离 -->
+    <string name="super_island_list_distance">超大岛列表相对距离</string>
+    <string name="default_list_distance" translatable="false">0</string>
 </resources>

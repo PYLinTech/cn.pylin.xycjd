@@ -119,8 +119,9 @@ public class FloatingWindowService extends Service {
     private static final int DEFAULT_X = 0;
     private static final int DEFAULT_Y = -100;
     
-    // 第二个悬浮窗与第一个悬浮窗的垂直间距（dp）
-    private static final int ISLAND_MARGIN_TOP = 20;
+
+    // 超大岛列表相对距离（可配置的，默认0dp）
+    private int islandListDistance = 0;
 
     @Override
     public void onCreate() {
@@ -778,8 +779,9 @@ public class FloatingWindowService extends Service {
         int x = manager.getFloatingX();
         int y = manager.getFloatingY();
         int size = manager.getFloatingSize();
-        
-        int islandY = y + size + dpToPx(ISLAND_MARGIN_TOP);
+        // 加载列表距离参数
+        islandListDistance = manager.getIslandListDistance();
+        int islandY = y + size + dpToPx(islandListDistance);
 
         RecyclerView recyclerView = floatingIslandView.findViewById(R.id.notification_recycler_view);
         
@@ -1238,6 +1240,25 @@ public class FloatingWindowService extends Service {
         if (notificationQueue.isEmpty()) return;
         NotificationInfo info = notificationQueue.getFirst();
         showNotificationIsland(info.packageName, info.title, info.content);
+    }
+    
+    /**
+     * 更新超大岛列表相对距离
+     * @param distance 新的距离值（dp）
+     */
+    public void updateIslandListDistance(int distance) {
+        // 更新内部变量
+        islandListDistance = distance;
+        
+        // 如果标准岛正在显示，需要重新创建以应用新的距离
+        if (floatingIslandView != null && floatingIslandView.getParent() != null) {
+            // 先移除当前视图
+            if (windowManager != null) {
+                windowManager.removeView(floatingIslandView);
+                floatingIslandView = null;
+                notificationAdapter = null;
+            }
+        }
     }
 
         /**

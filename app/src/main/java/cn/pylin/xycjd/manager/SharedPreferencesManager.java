@@ -105,6 +105,10 @@ public class SharedPreferencesManager {
     private int floatingCornerRadius2;
     private int floatingCornerRadius3;
     
+    // 超大岛列表相对距离存储值（0-200dp）
+    private static final String PREF_ISLAND_LIST_DISTANCE = "island_list_distance";
+    private int islandListDistance;
+    
     private SharedPreferencesManager(Context context) {
         // 初始化全局SharedPreferences
         globalPrefs = PreferenceManager.getDefaultSharedPreferences(context);
@@ -166,6 +170,9 @@ public class SharedPreferencesManager {
         floatingCornerRadius1 = globalPrefs.getInt(PREF_FLOATING_CORNER_RADIUS_1, 100);
         floatingCornerRadius2 = globalPrefs.getInt(PREF_FLOATING_CORNER_RADIUS_2, 100);
         floatingCornerRadius3 = globalPrefs.getInt(PREF_FLOATING_CORNER_RADIUS_3, 45);
+        
+        // 加载超大岛列表相对距离（默认值：20dp）
+        islandListDistance = globalPrefs.getInt(PREF_ISLAND_LIST_DISTANCE, 0);
     }
     
     // ==================== 全局设置读写方法 ====================
@@ -555,5 +562,16 @@ public class SharedPreferencesManager {
     public void setFloatingCornerRadius3(int radius) {
         this.floatingCornerRadius3 = radius;
         globalEditor.putInt(PREF_FLOATING_CORNER_RADIUS_3, radius).apply();
+    }
+    
+    // ==================== 超大岛列表相对距离方法 ====================
+    
+    public int getIslandListDistance() {
+        return islandListDistance;
+    }
+    
+    public void setIslandListDistance(int distance) {
+        this.islandListDistance = distance;
+        globalEditor.putInt(PREF_ISLAND_LIST_DISTANCE, distance).apply();
     }
 }
