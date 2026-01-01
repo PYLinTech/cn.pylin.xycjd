@@ -168,7 +168,7 @@
     <string name="custom_prompt_btn">Set Custom Prompt</string>
     <string name="custom_prompt_title">Custom Prompt</string>
     <string name="custom_prompt_hint">Enter custom prompt</string>
-    <string name="save">Save</string>
+    <string name="save">Saved</string>
     <string name="reset_to_default_prompt">Reset Default Prompt</string>
     <string name="default_prompt_content">You are an intelligent notification scoring system, only output numbers from 0.0 to 10.0, 0.0-3.0 indicates harassment/spam content (such as deceptive ads), 3.1-5.0 is low-value useless notifications, 5.1-7.0 is ordinary possibly useful notifications, 7.1-9.0 is important notifications (such as courier payment life scenarios), 9.1-10.0 is key notifications (QQ WeChat verification codes)</string>
     <string name="reset_to_default_online_filtering_degree_config">Restore Filter Level Configuration</string>
@@ -272,10 +272,10 @@
     <string name="sound_disabled">Voice is off</string>
     <string name="vibration_enabled">Vibration is on</string>
     <string name="vibration_disabled">Vibration is off</string>
-    <string name="enable_sound">Turn on sound</string>
-    <string name="disable_sound">Turn off sound</string>
-    <string name="enable_vibration">Enable vibration</string>
-    <string name="disable_vibration">Turn off vibration</string>
+    <string name="enable_sound">ON</string>
+    <string name="disable_sound">OFF</string>
+    <string name="enable_vibration">ON</string>
+    <string name="disable_vibration">OFF</string>
 
     <!-- Super Island Style Configuration -->
     <string name="super_island_style_title">Super Island Style Configuration</string>
@@ -284,5 +284,4 @@
     <string name="super_island_corner_medium">Medium Island Corner</string>
     <string name="super_island_corner_large">Large Island Corner</string>
     <string name="super_island_corner_reset">Reset Default Corner Configuration</string>
-    <string name="super_island_corner_value" translatable="false">%d%%</string>
 </resources>
