@@ -284,6 +284,7 @@
     <string name="super_island_corner_medium">Medium Island Corner</string>
     <string name="super_island_corner_large">Large Island Corner</string>
     <string name="super_island_corner_reset">Reset Default Corner Configuration</string>
-    <string name="super_island_list_distance">Relative distance of mega island list</string>
+    <string name="super_island_list_distance">Vertical Relative Distance of Mega Island List</string>
     <string name="basic_floating_window_opacity">Small Island Transparency</string>
+    <string name="super_island_list_horizontal_distance">Horizontal Relative Distance of Mega Island List</string>
 </resources>

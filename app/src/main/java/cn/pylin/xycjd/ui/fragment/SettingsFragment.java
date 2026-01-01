@@ -167,6 +167,12 @@ public class SettingsFragment extends Fragment {
     private ImageButton btnListDistanceDecrease;
     private ImageButton btnListDistanceIncrease;
     
+    // 悬浮窗相关控件 - 超大岛列表水平相对距离
+    private TextView tvListHorizontalDistanceValue;
+    private SeekBar seekBarListHorizontalDistance;
+    private ImageButton btnListHorizontalDistanceDecrease;
+    private ImageButton btnListHorizontalDistanceIncrease;
+    
     // 透明度相关常量
     private static final String PREF_OPACITY = "pref_opacity";
     private static final int DEFAULT_OPACITY = 0;
@@ -377,6 +383,12 @@ public class SettingsFragment extends Fragment {
         seekBarListDistance = view.findViewById(R.id.seekbar_list_distance);
         btnListDistanceDecrease = view.findViewById(R.id.btn_list_distance_decrease);
         btnListDistanceIncrease = view.findViewById(R.id.btn_list_distance_increase);
+        
+        // 初始化超大岛列表水平相对距离相关控件
+        tvListHorizontalDistanceValue = view.findViewById(R.id.tv_list_horizontal_distance_value);
+        seekBarListHorizontalDistance = view.findViewById(R.id.seekbar_list_horizontal_distance);
+        btnListHorizontalDistanceDecrease = view.findViewById(R.id.btn_list_horizontal_distance_decrease);
+        btnListHorizontalDistanceIncrease = view.findViewById(R.id.btn_list_horizontal_distance_increase);
 
     }
 
@@ -527,16 +539,20 @@ public class SettingsFragment extends Fragment {
             seekBarSize.setProgress(100); // 默认大小
             seekBarX.setProgress(500); // 默认水平位置(0)
             seekBarY.setProgress(100); // 默认垂直位置(-100)
-            seekBarListDistance.setProgress(0); // 默认列表距离0dp
+            seekBarListDistance.setProgress(0); // 默认列表垂直距离0dp
+            seekBarListHorizontalDistance.setProgress(200); // 默认列表水平距离200（映射为0dp居中）
             
             // 更新显示值
             tvSizeValue.setText(getString(R.string.default_size));
             tvXValue.setText(getString(R.string.default_x));
             tvYValue.setText(getString(R.string.default_y));
             tvListDistanceValue.setText(getString(R.string.value_dp, 0));
+            tvListHorizontalDistanceValue.setText(getString(R.string.value_dp, 0));
             
-            // 保存列表距离到SharedPreferences
-            SharedPreferencesManager.getInstance(requireContext()).setIslandListDistance(0);
+            // 保存距离到SharedPreferences
+            SharedPreferencesManager manager = SharedPreferencesManager.getInstance(requireContext());
+            manager.setIslandListDistance(0);
+            manager.setIslandListHorizontalDistance(200);
             
             // 如果悬浮窗已启用，立即更新
             if (isFloatingWindowEnabled) {
@@ -1857,13 +1873,66 @@ public class SettingsFragment extends Fragment {
     private void setupListDistanceControls() {
         // 从SharedPreferences管理器获取列表距离设置
         int listDistance = SharedPreferencesManager.getInstance(requireContext()).getIslandListDistance();
+        int listHorizontalDistance = SharedPreferencesManager.getInstance(requireContext()).getIslandListHorizontalDistance();
         
         // 设置初始值
         seekBarListDistance.setProgress(listDistance);
         tvListDistanceValue.setText(getString(R.string.value_dp, listDistance));
         
+        // 设置水平距离初始值
+        seekBarListHorizontalDistance.setProgress(listHorizontalDistance);
+        int horizontalValue = listHorizontalDistance - 200; // 映射为-200到200
+        tvListHorizontalDistanceValue.setText(getString(R.string.value_dp, horizontalValue));
+        
+        // 设置水平距离滑块监听器
+        seekBarListHorizontalDistance.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                int value = progress - 200; // 映射为-200到200
+                tvListHorizontalDistanceValue.setText(getString(R.string.value_dp, value));
+                if (fromUser) {
+                    // 实时保存到SharedPreferences
+                    SharedPreferencesManager.getInstance(requireContext()).setIslandListHorizontalDistance(progress);
+                    // 触发水平距离更新
+                    updateIslandListHorizontalDistance();
+                }
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {}
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {}
+        });
+
+        // 设置水平距离加减按钮点击事件（每次调整1dp）
+        btnListHorizontalDistanceDecrease.setOnClickListener(v -> {
+            int currentProgress = seekBarListHorizontalDistance.getProgress();
+            if (currentProgress > 0) {
+                int newProgress = currentProgress - 1;
+                seekBarListHorizontalDistance.setProgress(newProgress);
+                int value = newProgress - 200;
+                tvListHorizontalDistanceValue.setText(getString(R.string.value_dp, value));
+                SharedPreferencesManager.getInstance(requireContext()).setIslandListHorizontalDistance(newProgress);
+                updateIslandListHorizontalDistance();
+            }
+        });
+
+        btnListHorizontalDistanceIncrease.setOnClickListener(v -> {
+            int currentProgress = seekBarListHorizontalDistance.getProgress();
+            if (currentProgress < seekBarListHorizontalDistance.getMax()) {
+                int newProgress = currentProgress + 1;
+                seekBarListHorizontalDistance.setProgress(newProgress);
+                int value = newProgress - 200;
+                tvListHorizontalDistanceValue.setText(getString(R.string.value_dp, value));
+                SharedPreferencesManager.getInstance(requireContext()).setIslandListHorizontalDistance(newProgress);
+                updateIslandListHorizontalDistance();
+            }
+        });
+        
         // 如果服务正在运行，通知服务更新距离
         updateIslandListDistance();
+        updateIslandListHorizontalDistance();
     }
     
     /**
@@ -1876,9 +1945,28 @@ public class SettingsFragment extends Fragment {
             if (service != null) {
                 // 获取当前的距离设置
                 int listDistance = SharedPreferencesManager.getInstance(requireContext()).getIslandListDistance();
+                int listHorizontalDistance = SharedPreferencesManager.getInstance(requireContext()).getIslandListHorizontalDistance();
                 
                 // 调用服务的距离更新方法（需要在FloatingWindowService中实现）
-                service.updateIslandListDistance(listDistance);
+                service.updateIslandListDistance(listDistance, listHorizontalDistance);
+            }
+        }
+    }
+    
+    /**
+     * 更新超大岛列表水平相对距离
+     */
+    private void updateIslandListHorizontalDistance() {
+        // 如果服务正在运行，通知服务更新水平距离
+        if (FloatingWindowService.isServiceRunning(requireContext())) {
+            FloatingWindowService service = FloatingWindowService.getInstance();
+            if (service != null) {
+                // 获取当前的距离设置
+                int listDistance = SharedPreferencesManager.getInstance(requireContext()).getIslandListDistance();
+                int listHorizontalDistance = SharedPreferencesManager.getInstance(requireContext()).getIslandListHorizontalDistance();
+                
+                // 调用服务的距离更新方法
+                service.updateIslandListDistance(listDistance, listHorizontalDistance);
             }
         }
     }

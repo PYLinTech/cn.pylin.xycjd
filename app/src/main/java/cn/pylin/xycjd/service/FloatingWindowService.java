@@ -148,6 +148,9 @@ public class FloatingWindowService extends Service {
 
     // 超大岛列表相对距离（可配置的，默认0dp）
     private int islandListDistance = 0;
+    
+    // 超大岛列表水平相对距离（可配置的，默认200，映射为0dp居中）
+    private int islandListHorizontalDistance = 200;
 
     @Override
     public void onCreate() {
@@ -844,7 +847,11 @@ public class FloatingWindowService extends Service {
         int size = manager.getFloatingSize();
         // 加载列表距离参数
         islandListDistance = manager.getIslandListDistance();
+        islandListHorizontalDistance = manager.getIslandListHorizontalDistance();
         int islandY = y + size + dpToPx(islandListDistance);
+        
+        // 计算水平偏移：将0-400的SeekBar值映射为-200到200dp
+        int horizontalOffset = islandListHorizontalDistance - 200;
 
         RecyclerView recyclerView = floatingIslandView.findViewById(R.id.notification_recycler_view);
         
@@ -1015,7 +1022,8 @@ public class FloatingWindowService extends Service {
         containerParams.topMargin = islandY;
         containerParams.height = visibleHeight; // 设置 RecyclerView 高度
         recyclerView.setLayoutParams(containerParams);
-        recyclerView.setTranslationX(x);
+        // 应用水平偏移：基础位置x + 水平偏移量
+        recyclerView.setTranslationX(x + dpToPx(horizontalOffset));
         
         // 5. 点击卡片以外的区域收起
         // 将 Window 设置为全屏，并监听根布局点击事件
@@ -1574,25 +1582,28 @@ public class FloatingWindowService extends Service {
     
     /**
      * 更新超大岛列表相对距离
-     * @param distance 新的距离值（dp）
+     * @param verticalDistance 垂直距离值（dp）
+     * @param horizontalDistance 水平距离值（映射后的实际值，0-400映射为-200到200）
      */
-    public void updateIslandListDistance(int distance) {
+    public void updateIslandListDistance(int verticalDistance, int horizontalDistance) {
         // 检测距离是否发生变化
-        boolean distanceChanged = (distance != islandListDistance);
+        boolean distanceChanged = (verticalDistance != islandListDistance) || (horizontalDistance != islandListHorizontalDistance);
         
         if (!distanceChanged) {
             return;
         }
         
         // 更新内部变量
-        islandListDistance = distance;
+        islandListDistance = verticalDistance;
+        islandListHorizontalDistance = horizontalDistance;
         
         // 使用管理器保存配置
-        manager.setIslandListDistance(distance);
+        manager.setIslandListDistance(verticalDistance);
+        manager.setIslandListHorizontalDistance(horizontalDistance);
         
         // 如果标准岛正在显示，应用特殊处理逻辑
         if (floatingIslandView != null && floatingIslandView.getParent() != null || floatingThreeCircleView != null && floatingThreeCircleView.getParent() != null) {
-            handleIslandListDistanceChange(distance);
+            handleIslandListDistanceChange(verticalDistance, horizontalDistance);
         }
     }
     
@@ -1611,9 +1622,10 @@ public class FloatingWindowService extends Service {
     
     /**
      * 处理岛屿列表距离变化的特殊逻辑
-     * @param newDistance 新的距离值（dp）
+     * @param verticalDistance 垂直距离值（dp）
+     * @param horizontalDistance 水平距离值（映射后的实际值，0-400映射为-200到200）
      */
-    private void handleIslandListDistanceChange(int newDistance) {
+    private void handleIslandListDistanceChange(int verticalDistance, int horizontalDistance) {
         // 设置调整状态（与位置调节共用）
         isPositionAdjusting = true;
         

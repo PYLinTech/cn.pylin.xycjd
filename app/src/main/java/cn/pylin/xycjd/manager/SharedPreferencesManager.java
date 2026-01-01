@@ -109,6 +109,10 @@ public class SharedPreferencesManager {
     private static final String PREF_ISLAND_LIST_DISTANCE = "island_list_distance";
     private int islandListDistance;
     
+    // 超大岛列表水平相对距离存储值（0-400，映射为-200到200dp）
+    private static final String PREF_ISLAND_LIST_HORIZONTAL_DISTANCE = "island_list_horizontal_distance";
+    private int islandListHorizontalDistance;
+    
     // 透明度存储值（0-100%）
     private static final String PREF_OPACITY = "pref_opacity";
     private int opacity;
@@ -175,8 +179,11 @@ public class SharedPreferencesManager {
         floatingCornerRadius2 = globalPrefs.getInt(PREF_FLOATING_CORNER_RADIUS_2, 100);
         floatingCornerRadius3 = globalPrefs.getInt(PREF_FLOATING_CORNER_RADIUS_3, 45);
         
-        // 加载超大岛列表相对距离（默认值：20dp）
+        // 加载超大岛列表相对距离（默认值：0dp）
         islandListDistance = globalPrefs.getInt(PREF_ISLAND_LIST_DISTANCE, 0);
+        
+        // 加载超大岛列表水平相对距离（默认值：200，映射为0dp居中）
+        islandListHorizontalDistance = globalPrefs.getInt(PREF_ISLAND_LIST_HORIZONTAL_DISTANCE, 200);
         
         // 加载透明度（默认值：0% - 不透明，100% - 完全透明，但默认值为0表示不透明，符合用户要求的默认0）
         opacity = globalPrefs.getInt(PREF_OPACITY, 0);
@@ -580,6 +587,17 @@ public class SharedPreferencesManager {
     public void setIslandListDistance(int distance) {
         this.islandListDistance = distance;
         globalEditor.putInt(PREF_ISLAND_LIST_DISTANCE, distance).apply();
+    }
+    
+    // ==================== 超大岛列表水平相对距离方法 ====================
+    
+    public int getIslandListHorizontalDistance() {
+        return islandListHorizontalDistance;
+    }
+    
+    public void setIslandListHorizontalDistance(int distance) {
+        this.islandListHorizontalDistance = distance;
+        globalEditor.putInt(PREF_ISLAND_LIST_HORIZONTAL_DISTANCE, distance).apply();
     }
     
     // ==================== 透明度方法 ====================
