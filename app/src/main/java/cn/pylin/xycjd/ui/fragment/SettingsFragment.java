@@ -1421,6 +1421,8 @@ public class SettingsFragment extends Fragment {
                 if (fromUser) {
                     // 实时保存到SharedPreferences
                     SharedPreferencesManager.getInstance(requireContext()).setFloatingCornerRadius1(progress);
+                    // 实时更新基本悬浮窗圆角（实时生效）
+                    updateBasicFloatingWindowCornerRadius(progress);
                 }
             }
 
@@ -1438,6 +1440,8 @@ public class SettingsFragment extends Fragment {
                 if (fromUser) {
                     // 实时保存到SharedPreferences
                     SharedPreferencesManager.getInstance(requireContext()).setFloatingCornerRadius2(progress);
+                    // 触发岛屿圆角变化处理（共用位置调节的逻辑）
+                    updateIslandCornerRadius();
                 }
             }
 
@@ -1455,6 +1459,8 @@ public class SettingsFragment extends Fragment {
                 if (fromUser) {
                     // 实时保存到SharedPreferences
                     SharedPreferencesManager.getInstance(requireContext()).setFloatingCornerRadius3(progress);
+                    // 触发岛屿圆角变化处理（共用位置调节的逻辑）
+                    updateIslandCornerRadius();
                 }
             }
 
@@ -1490,6 +1496,10 @@ public class SettingsFragment extends Fragment {
             manager.setFloatingCornerRadius1(defaultRadius1);
             manager.setFloatingCornerRadius2(defaultRadius2);
             manager.setFloatingCornerRadius3(defaultRadius3);
+            
+            // 触发圆角更新（包括基本悬浮窗和岛屿）
+            updateBasicFloatingWindowCornerRadius(defaultRadius1);
+            updateIslandCornerRadius();
         });
     }
 
@@ -1505,6 +1515,8 @@ public class SettingsFragment extends Fragment {
                 seekBarCornerRadius1.setProgress(newProgress);
                 tvCornerRadius1Value.setText(getString(R.string.super_island_corner_value, newProgress));
                 SharedPreferencesManager.getInstance(requireContext()).setFloatingCornerRadius1(newProgress);
+                // 实时更新基本悬浮窗圆角
+                updateBasicFloatingWindowCornerRadius(newProgress);
             }
         });
 
@@ -1515,6 +1527,8 @@ public class SettingsFragment extends Fragment {
                 seekBarCornerRadius1.setProgress(newProgress);
                 tvCornerRadius1Value.setText(getString(R.string.super_island_corner_value, newProgress));
                 SharedPreferencesManager.getInstance(requireContext()).setFloatingCornerRadius1(newProgress);
+                // 实时更新基本悬浮窗圆角
+                updateBasicFloatingWindowCornerRadius(newProgress);
             }
         });
 
@@ -1526,6 +1540,8 @@ public class SettingsFragment extends Fragment {
                 seekBarCornerRadius2.setProgress(newProgress);
                 tvCornerRadius2Value.setText(getString(R.string.super_island_corner_value, newProgress));
                 SharedPreferencesManager.getInstance(requireContext()).setFloatingCornerRadius2(newProgress);
+                // 触发岛屿圆角变化处理
+                updateIslandCornerRadius();
             }
         });
 
@@ -1536,6 +1552,8 @@ public class SettingsFragment extends Fragment {
                 seekBarCornerRadius2.setProgress(newProgress);
                 tvCornerRadius2Value.setText(getString(R.string.super_island_corner_value, newProgress));
                 SharedPreferencesManager.getInstance(requireContext()).setFloatingCornerRadius2(newProgress);
+                // 触发岛屿圆角变化处理
+                updateIslandCornerRadius();
             }
         });
 
@@ -1547,6 +1565,8 @@ public class SettingsFragment extends Fragment {
                 seekBarCornerRadius3.setProgress(newProgress);
                 tvCornerRadius3Value.setText(getString(R.string.super_island_corner_value, newProgress));
                 SharedPreferencesManager.getInstance(requireContext()).setFloatingCornerRadius3(newProgress);
+                // 触发岛屿圆角变化处理
+                updateIslandCornerRadius();
             }
         });
 
@@ -1557,6 +1577,8 @@ public class SettingsFragment extends Fragment {
                 seekBarCornerRadius3.setProgress(newProgress);
                 tvCornerRadius3Value.setText(getString(R.string.super_island_corner_value, newProgress));
                 SharedPreferencesManager.getInstance(requireContext()).setFloatingCornerRadius3(newProgress);
+                // 触发岛屿圆角变化处理
+                updateIslandCornerRadius();
             }
         });
     }
@@ -1659,6 +1681,43 @@ public class SettingsFragment extends Fragment {
             tvVibrationStatus.setTextColor(getResources().getColor(R.color.colorError, null));
             btnVibrationToggle.setText(getString(R.string.enable_vibration));
             btnVibrationToggle.setBackgroundResource(R.drawable.btn_primary_background);
+        }
+    }
+    
+    /**
+     * 更新基本悬浮窗圆角（实时生效）
+     */
+    private void updateBasicFloatingWindowCornerRadius(int cornerRadius1) {
+        // 如果服务正在运行，通知服务更新圆角
+        if (FloatingWindowService.isServiceRunning(requireContext())) {
+            FloatingWindowService service = FloatingWindowService.getInstance();
+            if (service != null) {
+                // 获取当前的圆角设置
+                int cornerRadius2 = SharedPreferencesManager.getInstance(requireContext()).getFloatingCornerRadius2();
+                int cornerRadius3 = SharedPreferencesManager.getInstance(requireContext()).getFloatingCornerRadius3();
+                
+                // 调用服务的圆角变化处理方法
+                service.handleCornerRadiusChange(cornerRadius1, cornerRadius2, cornerRadius3);
+            }
+        }
+    }
+    
+    /**
+     * 更新岛屿圆角（共用位置调节的逻辑）
+     */
+    private void updateIslandCornerRadius() {
+        // 如果服务正在运行，通知服务更新岛屿圆角
+        if (FloatingWindowService.isServiceRunning(requireContext())) {
+            FloatingWindowService service = FloatingWindowService.getInstance();
+            if (service != null) {
+                // 获取当前的圆角设置
+                int cornerRadius1 = SharedPreferencesManager.getInstance(requireContext()).getFloatingCornerRadius1();
+                int cornerRadius2 = SharedPreferencesManager.getInstance(requireContext()).getFloatingCornerRadius2();
+                int cornerRadius3 = SharedPreferencesManager.getInstance(requireContext()).getFloatingCornerRadius3();
+                
+                // 调用服务的圆角变化处理方法
+                service.handleCornerRadiusChange(cornerRadius1, cornerRadius2, cornerRadius3);
+            }
         }
     }
     

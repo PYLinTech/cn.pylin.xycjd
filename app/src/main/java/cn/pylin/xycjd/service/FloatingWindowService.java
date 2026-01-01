@@ -65,6 +65,9 @@ public class FloatingWindowService extends Service {
     private int lastX = 0;
     private int lastY = 0;
     private int lastSize = 0;
+    private int lastCornerRadius1 = 0;
+    private int lastCornerRadius2 = 0;
+    private int lastCornerRadius3 = 0;
 
     public static class NotificationInfo {
         private String key;
@@ -336,7 +339,88 @@ public class FloatingWindowService extends Service {
         
         // 2. 实时显示第一圆圈悬浮窗（基础悬浮窗已经存在，无需额外操作）
         
-        // 3. 启动2秒超时计时器
+        // 3. 启动1秒超时计时器
+        adjustmentTimeoutRunnable = new Runnable() {
+            @Override
+            public void run() {
+                if (isPositionAdjusting && !notificationQueue.isEmpty()) {
+                    // 1秒后如果还有通知，重新显示
+                    showThreeCircleIsland();
+                }
+                isPositionAdjusting = false;
+            }
+        };
+        adjustmentHandler.postDelayed(adjustmentTimeoutRunnable, 1000);
+    }
+    
+    /**
+     * 处理圆角变化的特殊逻辑
+     * @param cornerRadius1 基本悬浮窗圆角百分比
+     * @param cornerRadius2 三圆岛圆角百分比
+     * @param cornerRadius3 卡片圆角百分比
+     */
+    public void handleCornerRadiusChange(int cornerRadius1, int cornerRadius2, int cornerRadius3) {
+        // 检测圆角是否发生变化
+        boolean cornerRadiusChanged = (cornerRadius1 != lastCornerRadius1) || 
+                                     (cornerRadius2 != lastCornerRadius2) || 
+                                     (cornerRadius3 != lastCornerRadius3);
+        
+        if (!cornerRadiusChanged) {
+            return;
+        }
+        
+        // 1. 基本悬浮窗：实时生效（需要重新创建背景）
+        if (floatingView != null && params != null) {
+            int size = manager.getFloatingSize();
+            floatingView.setBackground(FloatingWindowBackgroundHelper.createBasicFloatingWindowBackground(this, size));
+            
+            // 由于背景是Drawable，需要重新设置来刷新图层
+            if (floatingView.getParent() != null) {
+                windowManager.updateViewLayout(floatingView, params);
+            }
+        }
+        
+        // 2. 三圆岛和标准岛：和位置调节一样，先原地消失，1秒无修改后重新显示
+        // 检查岛屿相关圆角是否发生变化
+        boolean islandCornerRadiusChanged = (cornerRadius2 != lastCornerRadius2) || (cornerRadius3 != lastCornerRadius3);
+        
+        if (islandCornerRadiusChanged) {
+            handleIslandCornerRadiusChange();
+        }
+        
+        // 更新当前值（在处理完变化后再更新）
+        lastCornerRadius1 = cornerRadius1;
+        lastCornerRadius2 = cornerRadius2;
+        lastCornerRadius3 = cornerRadius3;
+    }
+    
+    /**
+     * 处理岛屿圆角变化的特殊逻辑
+     */
+    private void handleIslandCornerRadiusChange() {
+        // 设置调整状态（与位置调节共用）
+        isPositionAdjusting = true;
+        
+        // 取消之前的超时计时器
+        if (adjustmentTimeoutRunnable != null) {
+            adjustmentHandler.removeCallbacks(adjustmentTimeoutRunnable);
+        }
+        
+        // 1. 移除三圆岛和标准岛视图
+        if (floatingThreeCircleView != null && floatingThreeCircleView.getParent() != null) {
+            windowManager.removeView(floatingThreeCircleView);
+            floatingThreeCircleView = null;
+        }
+        
+        if (floatingIslandView != null && floatingIslandView.getParent() != null) {
+            windowManager.removeView(floatingIslandView);
+            floatingIslandView = null;
+            notificationAdapter = null;
+        }
+        
+        // 2. 实时显示第一圆圈悬浮窗（基础悬浮窗已经存在，无需额外操作）
+        
+        // 3. 启动1秒超时计时器（与位置调节共用）
         adjustmentTimeoutRunnable = new Runnable() {
             @Override
             public void run() {
