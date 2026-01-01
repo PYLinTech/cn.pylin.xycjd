@@ -312,4 +312,13 @@
     <string name="disable_sound">关闭声音</string>
     <string name="enable_vibration">开启震动</string>
     <string name="disable_vibration">关闭震动</string>
+
+    <!-- 超级岛样式配置 -->
+    <string name="super_island_style_title">超级岛样式配置</string>
+    <string name="super_island_style_desc">个性化你的超级岛</string>
+    <string name="super_island_corner_small">超小岛圆角</string>
+    <string name="super_island_corner_medium">超中岛圆角</string>
+    <string name="super_island_corner_large">超大岛圆角</string>
+    <string name="super_island_corner_reset">还原默认圆角配置</string>
+    <string name="super_island_corner_value" translatable="false">%d%%</string>
 </resources>

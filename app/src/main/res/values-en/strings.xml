@@ -276,4 +276,13 @@
     <string name="disable_sound">Turn off sound</string>
     <string name="enable_vibration">Enable vibration</string>
     <string name="disable_vibration">Turn off vibration</string>
+
+    <!-- Super Island Style Configuration -->
+    <string name="super_island_style_title">Super Island Style Configuration</string>
+    <string name="super_island_style_desc">Personalize your Super Island</string>
+    <string name="super_island_corner_small">Small Island Corner</string>
+    <string name="super_island_corner_medium">Medium Island Corner</string>
+    <string name="super_island_corner_large">Large Island Corner</string>
+    <string name="super_island_corner_reset">Reset Default Corner Configuration</string>
+    <string name="super_island_corner_value" translatable="false">%d%%</string>
 </resources>

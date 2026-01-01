@@ -140,7 +140,23 @@ public class SettingsFragment extends Fragment {
     private ImageButton btnSpeedDecrease;
     private ImageButton btnSpeedIncrease;
     private Button btnResetSpeed;
-    
+
+    // 超级岛样式相关控件
+    private CardView cardSuperIslandStyle;
+    private TextView tvCornerRadius1Value;
+    private TextView tvCornerRadius2Value;
+    private TextView tvCornerRadius3Value;
+    private SeekBar seekBarCornerRadius1;
+    private SeekBar seekBarCornerRadius2;
+    private SeekBar seekBarCornerRadius3;
+    private ImageButton btnCornerRadius1Decrease;
+    private ImageButton btnCornerRadius1Increase;
+    private ImageButton btnCornerRadius2Decrease;
+    private ImageButton btnCornerRadius2Increase;
+    private ImageButton btnCornerRadius3Decrease;
+    private ImageButton btnCornerRadius3Increase;
+    private Button btnResetSuperIslandCorners;
+
     private boolean isFloatingWindowEnabled = false;
     private static final int REQUEST_OVERLAY_PERMISSION = 1001;
     private static final String TEST_NOTIFICATION_CHANNEL_ID = "test_notification_channel";
@@ -211,7 +227,10 @@ public class SettingsFragment extends Fragment {
         
         // 设置声音与震动相关
         setupSoundVibrationControls();
-        
+
+        // 设置超级岛样式相关
+        setupSuperIslandStyleControls();
+
         return view;
     }
 
@@ -315,7 +334,23 @@ public class SettingsFragment extends Fragment {
         seekBarVibrationIntensity = view.findViewById(R.id.seekbar_vibration_intensity);
         btnVibrationIntensityDecrease = view.findViewById(R.id.btn_vibration_intensity_decrease);
         btnVibrationIntensityIncrease = view.findViewById(R.id.btn_vibration_intensity_increase);
-        
+
+        // 初始化超级岛样式相关控件
+        cardSuperIslandStyle = view.findViewById(R.id.card_super_island_style);
+        tvCornerRadius1Value = view.findViewById(R.id.tv_corner_radius_1_value);
+        tvCornerRadius2Value = view.findViewById(R.id.tv_corner_radius_2_value);
+        tvCornerRadius3Value = view.findViewById(R.id.tv_corner_radius_3_value);
+        seekBarCornerRadius1 = view.findViewById(R.id.seekbar_corner_radius_1);
+        seekBarCornerRadius2 = view.findViewById(R.id.seekbar_corner_radius_2);
+        seekBarCornerRadius3 = view.findViewById(R.id.seekbar_corner_radius_3);
+        btnCornerRadius1Decrease = view.findViewById(R.id.btn_corner_radius_1_decrease);
+        btnCornerRadius1Increase = view.findViewById(R.id.btn_corner_radius_1_increase);
+        btnCornerRadius2Decrease = view.findViewById(R.id.btn_corner_radius_2_decrease);
+        btnCornerRadius2Increase = view.findViewById(R.id.btn_corner_radius_2_increase);
+        btnCornerRadius3Decrease = view.findViewById(R.id.btn_corner_radius_3_decrease);
+        btnCornerRadius3Increase = view.findViewById(R.id.btn_corner_radius_3_increase);
+        btnResetSuperIslandCorners = view.findViewById(R.id.btn_reset_super_island_corners);
+
     }
 
     private void setLanguageSelection() {
@@ -1361,6 +1396,172 @@ public class SettingsFragment extends Fragment {
     }
     
     /**
+     * 设置超级岛样式相关控件
+     */
+    private void setupSuperIslandStyleControls() {
+        // 从SharedPreferences管理器获取超级岛圆角设置
+        int cornerRadius1 = SharedPreferencesManager.getInstance(requireContext()).getFloatingCornerRadius1();
+        int cornerRadius2 = SharedPreferencesManager.getInstance(requireContext()).getFloatingCornerRadius2();
+        int cornerRadius3 = SharedPreferencesManager.getInstance(requireContext()).getFloatingCornerRadius3();
+
+        // 设置初始值
+        seekBarCornerRadius1.setProgress(cornerRadius1);
+        seekBarCornerRadius2.setProgress(cornerRadius2);
+        seekBarCornerRadius3.setProgress(cornerRadius3);
+
+        tvCornerRadius1Value.setText(getString(R.string.super_island_corner_value, cornerRadius1));
+        tvCornerRadius2Value.setText(getString(R.string.super_island_corner_value, cornerRadius2));
+        tvCornerRadius3Value.setText(getString(R.string.super_island_corner_value, cornerRadius3));
+
+        // 设置滑块监听器（实时保存）
+        seekBarCornerRadius1.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                tvCornerRadius1Value.setText(getString(R.string.super_island_corner_value, progress));
+                if (fromUser) {
+                    // 实时保存到SharedPreferences
+                    SharedPreferencesManager.getInstance(requireContext()).setFloatingCornerRadius1(progress);
+                }
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {}
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {}
+        });
+
+        seekBarCornerRadius2.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                tvCornerRadius2Value.setText(getString(R.string.super_island_corner_value, progress));
+                if (fromUser) {
+                    // 实时保存到SharedPreferences
+                    SharedPreferencesManager.getInstance(requireContext()).setFloatingCornerRadius2(progress);
+                }
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {}
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {}
+        });
+
+        seekBarCornerRadius3.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                tvCornerRadius3Value.setText(getString(R.string.super_island_corner_value, progress));
+                if (fromUser) {
+                    // 实时保存到SharedPreferences
+                    SharedPreferencesManager.getInstance(requireContext()).setFloatingCornerRadius3(progress);
+                }
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {}
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {}
+        });
+
+        // 设置加减按钮点击事件（每次调整1%）
+        setupSuperIslandStyleButtons();
+
+        // 设置重置按钮点击事件
+        btnResetSuperIslandCorners.setOnClickListener(v -> {
+            // 恢复默认值：100, 100, 45
+            int defaultRadius1 = 100;
+            int defaultRadius2 = 100;
+            int defaultRadius3 = 45;
+
+            // 更新滑块位置
+            seekBarCornerRadius1.setProgress(defaultRadius1);
+            seekBarCornerRadius2.setProgress(defaultRadius2);
+            seekBarCornerRadius3.setProgress(defaultRadius3);
+
+            // 更新显示值
+            tvCornerRadius1Value.setText(getString(R.string.super_island_corner_value, defaultRadius1));
+            tvCornerRadius2Value.setText(getString(R.string.super_island_corner_value, defaultRadius2));
+            tvCornerRadius3Value.setText(getString(R.string.super_island_corner_value, defaultRadius3));
+
+            // 保存到SharedPreferences
+            SharedPreferencesManager manager = SharedPreferencesManager.getInstance(requireContext());
+            manager.setFloatingCornerRadius1(defaultRadius1);
+            manager.setFloatingCornerRadius2(defaultRadius2);
+            manager.setFloatingCornerRadius3(defaultRadius3);
+        });
+    }
+
+    /**
+     * 设置超级岛样式按钮控制（每次调整1%）
+     */
+    private void setupSuperIslandStyleButtons() {
+        // 第一个圆角按钮
+        btnCornerRadius1Decrease.setOnClickListener(v -> {
+            int currentProgress = seekBarCornerRadius1.getProgress();
+            if (currentProgress > 0) {
+                int newProgress = currentProgress - 1;
+                seekBarCornerRadius1.setProgress(newProgress);
+                tvCornerRadius1Value.setText(getString(R.string.super_island_corner_value, newProgress));
+                SharedPreferencesManager.getInstance(requireContext()).setFloatingCornerRadius1(newProgress);
+            }
+        });
+
+        btnCornerRadius1Increase.setOnClickListener(v -> {
+            int currentProgress = seekBarCornerRadius1.getProgress();
+            if (currentProgress < 100) {
+                int newProgress = currentProgress + 1;
+                seekBarCornerRadius1.setProgress(newProgress);
+                tvCornerRadius1Value.setText(getString(R.string.super_island_corner_value, newProgress));
+                SharedPreferencesManager.getInstance(requireContext()).setFloatingCornerRadius1(newProgress);
+            }
+        });
+
+        // 第二个圆角按钮
+        btnCornerRadius2Decrease.setOnClickListener(v -> {
+            int currentProgress = seekBarCornerRadius2.getProgress();
+            if (currentProgress > 0) {
+                int newProgress = currentProgress - 1;
+                seekBarCornerRadius2.setProgress(newProgress);
+                tvCornerRadius2Value.setText(getString(R.string.super_island_corner_value, newProgress));
+                SharedPreferencesManager.getInstance(requireContext()).setFloatingCornerRadius2(newProgress);
+            }
+        });
+
+        btnCornerRadius2Increase.setOnClickListener(v -> {
+            int currentProgress = seekBarCornerRadius2.getProgress();
+            if (currentProgress < 100) {
+                int newProgress = currentProgress + 1;
+                seekBarCornerRadius2.setProgress(newProgress);
+                tvCornerRadius2Value.setText(getString(R.string.super_island_corner_value, newProgress));
+                SharedPreferencesManager.getInstance(requireContext()).setFloatingCornerRadius2(newProgress);
+            }
+        });
+
+        // 第三个圆角按钮
+        btnCornerRadius3Decrease.setOnClickListener(v -> {
+            int currentProgress = seekBarCornerRadius3.getProgress();
+            if (currentProgress > 0) {
+                int newProgress = currentProgress - 1;
+                seekBarCornerRadius3.setProgress(newProgress);
+                tvCornerRadius3Value.setText(getString(R.string.super_island_corner_value, newProgress));
+                SharedPreferencesManager.getInstance(requireContext()).setFloatingCornerRadius3(newProgress);
+            }
+        });
+
+        btnCornerRadius3Increase.setOnClickListener(v -> {
+            int currentProgress = seekBarCornerRadius3.getProgress();
+            if (currentProgress < 100) {
+                int newProgress = currentProgress + 1;
+                seekBarCornerRadius3.setProgress(newProgress);
+                tvCornerRadius3Value.setText(getString(R.string.super_island_corner_value, newProgress));
+                SharedPreferencesManager.getInstance(requireContext()).setFloatingCornerRadius3(newProgress);
+            }
+        });
+    }
+
+    /**
      * 设置声音与震动相关控件
      */
     private void setupSoundVibrationControls() {
@@ -1368,31 +1569,31 @@ public class SettingsFragment extends Fragment {
         boolean soundEnabled = SharedPreferencesManager.getInstance(requireContext()).isSoundEnabled();
         boolean vibrationEnabled = SharedPreferencesManager.getInstance(requireContext()).isVibrationEnabled();
         int vibrationIntensity = SharedPreferencesManager.getInstance(requireContext()).getVibrationIntensity();
-        
+
         // 更新声音状态显示
         updateSoundUI(soundEnabled);
-        
+
         // 更新震动状态显示
         updateVibrationUI(vibrationEnabled);
-        
+
         // 设置震动强度初始值
         seekBarVibrationIntensity.setProgress(vibrationIntensity);
         tvVibrationIntensityValue.setText(getString(R.string.vibration_intensity_value, vibrationIntensity));
-        
+
         // 声音开关点击事件
         btnSoundToggle.setOnClickListener(v -> {
             boolean currentState = SharedPreferencesManager.getInstance(requireContext()).isSoundEnabled();
             SharedPreferencesManager.getInstance(requireContext()).setSoundEnabled(!currentState);
             updateSoundUI(!currentState);
         });
-        
+
         // 震动开关点击事件
         btnVibrationToggle.setOnClickListener(v -> {
             boolean currentState = SharedPreferencesManager.getInstance(requireContext()).isVibrationEnabled();
             SharedPreferencesManager.getInstance(requireContext()).setVibrationEnabled(!currentState);
             updateVibrationUI(!currentState);
         });
-        
+
         // 震动强度滑块监听器
         seekBarVibrationIntensity.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
@@ -1402,14 +1603,14 @@ public class SettingsFragment extends Fragment {
                     SharedPreferencesManager.getInstance(requireContext()).setVibrationIntensity(progress);
                 }
             }
-            
+
             @Override
             public void onStartTrackingTouch(SeekBar seekBar) {}
-            
+
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {}
         });
-        
+
         // 震动强度减小按钮
         btnVibrationIntensityDecrease.setOnClickListener(v -> {
             int currentProgress = seekBarVibrationIntensity.getProgress();
@@ -1419,7 +1620,7 @@ public class SettingsFragment extends Fragment {
                 SharedPreferencesManager.getInstance(requireContext()).setVibrationIntensity(currentProgress - 1);
             }
         });
-        
+
         // 震动强度增加按钮
         btnVibrationIntensityIncrease.setOnClickListener(v -> {
             int currentProgress = seekBarVibrationIntensity.getProgress();
@@ -1430,10 +1631,6 @@ public class SettingsFragment extends Fragment {
             }
         });
     }
-    
-    /**
-     * 更新声音UI状态
-     */
     private void updateSoundUI(boolean enabled) {
         if (enabled) {
             tvSoundStatus.setText(getString(R.string.sound_enabled));
