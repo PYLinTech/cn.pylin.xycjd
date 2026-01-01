@@ -394,12 +394,14 @@ public class FloatingWindowService extends Service {
             }
         }
         
-        // 2. 三圆岛和标准岛：和位置调节一样，先原地消失，1秒无修改后重新显示
-        // 检查岛屿相关圆角是否发生变化
-        boolean islandCornerRadiusChanged = (cornerRadius2 != lastCornerRadius2) || (cornerRadius3 != lastCornerRadius3);
+        // 2. 检查各个圆角是否发生变化
+        boolean basicCornerRadiusChanged = (cornerRadius1 != lastCornerRadius1);
+        boolean threeCircleCornerRadiusChanged = (cornerRadius2 != lastCornerRadius2);
+        boolean superIslandCornerRadiusChanged = (cornerRadius3 != lastCornerRadius3);
         
-        if (islandCornerRadiusChanged) {
-            handleIslandCornerRadiusChange();
+        // 3. 如果任何圆角发生变化，都要处理岛屿的隐藏和显示逻辑
+        if (basicCornerRadiusChanged || threeCircleCornerRadiusChanged || superIslandCornerRadiusChanged) {
+            handleIslandCornerRadiusChange(superIslandCornerRadiusChanged);
         }
         
         // 更新当前值（在处理完变化后再更新）
@@ -410,8 +412,9 @@ public class FloatingWindowService extends Service {
     
     /**
      * 处理岛屿圆角变化的特殊逻辑
+     * @param isSuperIslandChanged 是否超大岛圆角发生变化
      */
-    private void handleIslandCornerRadiusChange() {
+    private void handleIslandCornerRadiusChange(boolean isSuperIslandChanged) {
         // 设置调整状态（与位置调节共用）
         isPositionAdjusting = true;
         
@@ -435,12 +438,29 @@ public class FloatingWindowService extends Service {
         // 2. 实时显示第一圆圈悬浮窗（基础悬浮窗已经存在，无需额外操作）
         
         // 3. 启动1秒超时计时器（与位置调节共用）
+        final boolean shouldExpandSuperIsland = isSuperIslandChanged;
         adjustmentTimeoutRunnable = new Runnable() {
             @Override
             public void run() {
                 if (isPositionAdjusting && !notificationQueue.isEmpty()) {
-                    // 1秒后如果还有通知，重新显示
-                    showThreeCircleIsland();
+                    // 1秒后如果还有通知，根据情况显示岛屿
+                    if (shouldExpandSuperIsland) {
+                        // 如果超大岛圆角发生变化，先显示三圆岛，然后立即展开标准岛
+                        showThreeCircleIsland();
+                        // 延迟一小段时间后展开超大岛，确保三圆岛已显示
+                        adjustmentHandler.postDelayed(() -> {
+                            if (!notificationQueue.isEmpty()) {
+                                showNotificationIsland(
+                                    notificationQueue.getFirst().packageName,
+                                    notificationQueue.getFirst().title,
+                                    notificationQueue.getFirst().content
+                                );
+                            }
+                        }, 300); // 小延迟确保三圆岛先显示
+                    } else {
+                        // 否则只显示三圆岛
+                        showThreeCircleIsland();
+                    }
                 }
                 isPositionAdjusting = false;
             }
@@ -1260,18 +1280,74 @@ public class FloatingWindowService extends Service {
      * @param distance 新的距离值（dp）
      */
     public void updateIslandListDistance(int distance) {
+        // 检测距离是否发生变化
+        boolean distanceChanged = (distance != islandListDistance);
+        
+        if (!distanceChanged) {
+            return;
+        }
+        
         // 更新内部变量
         islandListDistance = distance;
         
-        // 如果标准岛正在显示，需要重新创建以应用新的距离
-        if (floatingIslandView != null && floatingIslandView.getParent() != null) {
-            // 先移除当前视图
-            if (windowManager != null) {
-                windowManager.removeView(floatingIslandView);
-                floatingIslandView = null;
-                notificationAdapter = null;
-            }
+        // 使用管理器保存配置
+        manager.setIslandListDistance(distance);
+        
+        // 如果标准岛正在显示，应用特殊处理逻辑
+        if (floatingIslandView != null && floatingIslandView.getParent() != null || floatingThreeCircleView != null && floatingThreeCircleView.getParent() != null) {
+            handleIslandListDistanceChange(distance);
         }
+    }
+    
+    /**
+     * 处理岛屿列表距离变化的特殊逻辑
+     * @param newDistance 新的距离值（dp）
+     */
+    private void handleIslandListDistanceChange(int newDistance) {
+        // 设置调整状态（与位置调节共用）
+        isPositionAdjusting = true;
+        
+        // 取消之前的超时计时器
+        if (adjustmentTimeoutRunnable != null) {
+            adjustmentHandler.removeCallbacks(adjustmentTimeoutRunnable);
+        }
+        
+        // 1. 移除三圆岛和标准岛视图
+        if (floatingThreeCircleView != null && floatingThreeCircleView.getParent() != null) {
+            windowManager.removeView(floatingThreeCircleView);
+            floatingThreeCircleView = null;
+        }
+        
+        if (floatingIslandView != null && floatingIslandView.getParent() != null) {
+            windowManager.removeView(floatingIslandView);
+            floatingIslandView = null;
+            notificationAdapter = null;
+        }
+        
+        // 2. 实时显示第一圆圈悬浮窗（基础悬浮窗已经存在，无需额外操作）
+        
+        // 3. 启动1秒超时计时器
+        adjustmentTimeoutRunnable = new Runnable() {
+            @Override
+            public void run() {
+                if (isPositionAdjusting && !notificationQueue.isEmpty()) {
+                    // 1秒后如果还有通知，先显示三圆岛
+                    showThreeCircleIsland();
+                    // 延迟300ms后展开标准岛
+                    adjustmentHandler.postDelayed(() -> {
+                        if (!notificationQueue.isEmpty()) {
+                            showNotificationIsland(
+                                notificationQueue.getFirst().packageName,
+                                notificationQueue.getFirst().title,
+                                notificationQueue.getFirst().content
+                            );
+                        }
+                    }, 300);
+                }
+                isPositionAdjusting = false;
+            }
+        };
+        adjustmentHandler.postDelayed(adjustmentTimeoutRunnable, 1000);
     }
 
         /**
