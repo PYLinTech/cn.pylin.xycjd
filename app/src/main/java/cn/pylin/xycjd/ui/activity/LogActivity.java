@@ -5,23 +5,25 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.widget.Button;
-import android.widget.ScrollView;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import java.io.File;
 
 import cn.pylin.xycjd.manager.NotificationLogManager;
+import cn.pylin.xycjd.ui.adapter.LogAdapter;
 import cn.pylin.xycjd.R;
 
 public class LogActivity extends AppCompatActivity implements NotificationLogManager.LogListener {
 
-    private TextView tvLog;
-    private ScrollView scrollView;
+    private RecyclerView recyclerView;
+    private LogAdapter logAdapter;
+    private LinearLayoutManager layoutManager;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -31,8 +33,14 @@ public class LogActivity extends AppCompatActivity implements NotificationLogMan
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        tvLog = findViewById(R.id.tv_log);
-        scrollView = findViewById(R.id.scrollView);
+        // 初始化RecyclerView
+        recyclerView = findViewById(R.id.recyclerView);
+        logAdapter = new LogAdapter();
+        layoutManager = new LinearLayoutManager(this);
+        layoutManager.setStackFromEnd(true); // 从底部开始布局
+        
+        recyclerView.setLayoutManager(layoutManager);
+        recyclerView.setAdapter(logAdapter);
 
         Button btnReturn = findViewById(R.id.btn_return);
         Button btnExit = findViewById(R.id.btn_exit);
@@ -58,14 +66,10 @@ public class LogActivity extends AppCompatActivity implements NotificationLogMan
         NotificationLogManager.getInstance(this).startRecording();
 
         // 加载已有日志
-        StringBuilder sb = new StringBuilder();
-        for (String log : NotificationLogManager.getInstance(this).getLogs()) {
-            sb.append(log);
-        }
-        tvLog.setText(sb.toString());
+        logAdapter.setLogs(NotificationLogManager.getInstance(this).getLogs());
 
         // 滚动到底部
-        scrollView.post(() -> scrollView.fullScroll(ScrollView.FOCUS_DOWN));
+        recyclerView.post(() -> recyclerView.scrollToPosition(logAdapter.getItemCount() - 1));
 
         NotificationLogManager.getInstance(this).addListener(this);
     }
@@ -80,8 +84,13 @@ public class LogActivity extends AppCompatActivity implements NotificationLogMan
     @Override
     public void onLogAdded(String log) {
         runOnUiThread(() -> {
-            tvLog.append(log);
-            scrollView.post(() -> scrollView.fullScroll(ScrollView.FOCUS_DOWN));
+            logAdapter.addLog(log);
+            // 滚动到底部
+            recyclerView.post(() -> {
+                if (layoutManager != null) {
+                    recyclerView.scrollToPosition(logAdapter.getItemCount() - 1);
+                }
+            });
         });
     }
 
