@@ -1848,6 +1848,12 @@ public class FloatingWindowService extends Service {
         blackLayoutParams2.height = circleSize;
         blackCircle2.setLayoutParams(blackLayoutParams2);
 
+        // 动态设置第三个圆圈的字体大小，使其随圆圈大小缩放
+        float textSize = circleSize * 0.15f;
+        if (blackCircle2 instanceof TextView) {
+            ((TextView) blackCircle2).setTextSize(textSize);
+        }
+
         // 初始化背景大小
         ViewGroup.LayoutParams bgParams = background.getLayoutParams();
         bgParams.width = circleSize; // 初始只显示一个圆的大小

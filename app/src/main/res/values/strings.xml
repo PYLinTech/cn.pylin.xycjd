@@ -187,7 +187,7 @@
     <string name="custom_prompt_btn">设置自定义提示词</string>
     <string name="custom_prompt_title">自定义提示词</string>
     <string name="custom_prompt_hint">请输入自定义提示词</string>
-    <string name="save">已保存</string>
+    <string name="save">保存</string>
     <string name="reset_to_default_prompt">还原默认提示词</string>
     <string name="default_prompt_content">你是智能通知评分系统,仅输出0.0到10.0的数字,0.0–3.0表示骚扰/垃圾内容(如广告诱导虚假),3.1–5.0为低价值无用通知,5.1–7.0为普通可能有用通知,7.1–9.0为重要通知(如快递支付生活场景),9.1–10.0为关键通知(QQ微信验证码)</string>
     <string name="default_api_url_content" translatable="false">https://api.xiaomimimo.com/v1</string>

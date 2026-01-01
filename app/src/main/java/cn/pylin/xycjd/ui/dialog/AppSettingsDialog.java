@@ -110,8 +110,6 @@ public class AppSettingsDialog {
             notificationVibrationSwitch.isChecked(),
             notificationSoundSwitch.isChecked()
         );
-        
-        Toast.makeText(mContext, R.string.save, Toast.LENGTH_SHORT).show();
         mDialog.dismiss();
     }
     

@@ -168,7 +168,7 @@
     <string name="custom_prompt_btn">Set Custom Prompt</string>
     <string name="custom_prompt_title">Custom Prompt</string>
     <string name="custom_prompt_hint">Enter custom prompt</string>
-    <string name="save">Saved</string>
+    <string name="save">Save</string>
     <string name="reset_to_default_prompt">Reset Default Prompt</string>
     <string name="default_prompt_content">You are an intelligent notification scoring system, only output numbers from 0.0 to 10.0, 0.0-3.0 indicates harassment/spam content (such as deceptive ads), 3.1-5.0 is low-value useless notifications, 5.1-7.0 is ordinary possibly useful notifications, 7.1-9.0 is important notifications (such as courier payment life scenarios), 9.1-10.0 is key notifications (QQ WeChat verification codes)</string>
     <string name="reset_to_default_online_filtering_degree_config">Restore Filter Level Configuration</string>
