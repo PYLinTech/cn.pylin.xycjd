@@ -421,6 +421,22 @@ public class NotificationProcessor {
             }
         });
     }
+
+    /**
+     * 更新媒体通知的进度信息
+     * @param key 通知的key
+     * @param position 当前播放位置（毫秒）
+     * @param duration 总时长（毫秒）
+     * @param canSeek 是否支持seek
+     */
+    public void updateMediaProgress(String key, long position, long duration, boolean canSeek) {
+        mainHandler.post(() -> {
+            FloatingWindowService service = FloatingWindowService.getInstance();
+            if (service != null) {
+                service.updateMediaProgress(key, position, duration, canSeek);
+            }
+        });
+    }
     
     // ==================== 辅助方法 ====================
     

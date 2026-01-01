@@ -77,6 +77,11 @@ public class FloatingWindowService extends Service {
         private PendingIntent pendingIntent;
         private android.media.session.MediaSession.Token mediaToken;
 
+        // 新增：媒体进度相关字段
+        private long currentPosition;     // 当前播放位置（毫秒）
+        private long totalDuration;       // 总时长（毫秒）
+        private boolean isSeekable;       // 是否支持seek
+
         public NotificationInfo(String key, String packageName, String title, String content, PendingIntent pendingIntent) {
             this(key, packageName, title, content, pendingIntent, null);
         }
@@ -88,6 +93,10 @@ public class FloatingWindowService extends Service {
             this.content = content;
             this.pendingIntent = pendingIntent;
             this.mediaToken = mediaToken;
+            // 初始化进度字段
+            this.currentPosition = 0;
+            this.totalDuration = 0;
+            this.isSeekable = false;
         }
 
         // Public getters
@@ -98,6 +107,11 @@ public class FloatingWindowService extends Service {
         public PendingIntent getPendingIntent() { return pendingIntent; }
         public android.media.session.MediaSession.Token getMediaToken() { return mediaToken; }
 
+        // 新增：进度相关getter
+        public long getCurrentPosition() { return currentPosition; }
+        public long getTotalDuration() { return totalDuration; }
+        public boolean isSeekable() { return isSeekable; }
+
         // Public setters
         public void setKey(String key) { this.key = key; }
         public void setPackageName(String packageName) { this.packageName = packageName; }
@@ -105,6 +119,18 @@ public class FloatingWindowService extends Service {
         public void setContent(String content) { this.content = content; }
         public void setPendingIntent(PendingIntent pendingIntent) { this.pendingIntent = pendingIntent; }
         public void setMediaToken(android.media.session.MediaSession.Token mediaToken) { this.mediaToken = mediaToken; }
+
+        // 新增：进度相关setter
+        public void setCurrentPosition(long currentPosition) { this.currentPosition = currentPosition; }
+        public void setTotalDuration(long totalDuration) { this.totalDuration = totalDuration; }
+        public void setSeekable(boolean seekable) { this.isSeekable = seekable; }
+
+        // 新增：更新进度信息的便捷方法
+        public void updateProgress(long position, long duration, boolean canSeek) {
+            this.currentPosition = position;
+            this.totalDuration = duration;
+            this.isSeekable = canSeek;
+        }
     }
 
     private java.util.LinkedList<NotificationInfo> notificationQueue = new java.util.LinkedList<>();
@@ -1029,6 +1055,57 @@ public class FloatingWindowService extends Service {
         }
     }
 
+    /**
+     * 更新媒体通知的进度信息
+     * @param key 通知的key
+     * @param position 当前播放位置（毫秒）
+     * @param duration 总时长（毫秒）
+     * @param canSeek 是否支持seek
+     */
+    public void updateMediaProgress(String key, long position, long duration, boolean canSeek) {
+        new Handler(Looper.getMainLooper()).post(() -> {
+            // 查找对应的通知
+            for (int i = 0; i < notificationQueue.size(); i++) {
+                NotificationInfo info = notificationQueue.get(i);
+                if (info.getKey().equals(key)) {
+                    // 更新进度信息
+                    info.updateProgress(position, duration, canSeek);
+
+                    // 如果正在显示，更新UI
+                    if (floatingIslandView != null && floatingIslandView.getParent() != null && notificationAdapter != null) {
+                        // 只更新对应的位置，避免整个列表刷新
+                        if (i == 0) {
+                            // 如果是第一个（当前显示的），直接更新ViewHolder
+                            RecyclerView recyclerView = floatingIslandView.findViewById(R.id.notification_recycler_view);
+                            if (recyclerView != null) {
+                                RecyclerView.ViewHolder holder = recyclerView.findViewHolderForAdapterPosition(0);
+                                if (holder instanceof NotificationAdapter.ViewHolder) {
+                                    NotificationAdapter.ViewHolder viewHolder = (NotificationAdapter.ViewHolder) holder;
+                                    // 更新ViewHolder中的进度显示
+                                    if (viewHolder.mediaProgress != null && duration > 0) {
+                                        int progress = (int) ((position * 100) / duration);
+                                        viewHolder.mediaProgress.setProgress(progress);
+                                        viewHolder.currentPosition = position;
+                                        viewHolder.totalDuration = duration;
+                                        viewHolder.updateCurrentTimeDisplay();
+                                        viewHolder.updateTotalTimeDisplay();
+                                    }
+                                } else {
+                                    // 如果找不到ViewHolder，通知adapter刷新
+                                    notificationAdapter.notifyItemChanged(0);
+                                }
+                            }
+                        } else {
+                            // 非当前显示的通知，标记为需要更新
+                            notificationAdapter.notifyItemChanged(i);
+                        }
+                    }
+                    break;
+                }
+            }
+        });
+    }
+
     public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapter.ViewHolder> {
 
         NotificationAdapter() {
@@ -1066,9 +1143,31 @@ public class FloatingWindowService extends Service {
             // 如果没有 token，bindMediaController 可能直接返回了，需要在这里确保图标被设置
             if (info.mediaToken == null) {
                 updateIcon(holder.icon, null, info.packageName);
+                // 隐藏进度条容器
+                if (holder.mediaProgressContainer != null) {
+                    holder.mediaProgressContainer.setVisibility(View.GONE);
+                }
+            } else {
+                // 同步进度信息到ViewHolder
+                holder.currentPosition = info.getCurrentPosition();
+                holder.totalDuration = info.getTotalDuration();
+
+                // 如果ViewHolder中有进度条，更新显示
+                if (holder.mediaProgress != null && holder.totalDuration > 0) {
+                    holder.mediaProgress.setMax(100);
+                    int progress = (int) ((holder.currentPosition * 100) / holder.totalDuration);
+                    holder.mediaProgress.setProgress(progress);
+                    holder.updateCurrentTimeDisplay();
+                    holder.updateTotalTimeDisplay();
+                }
             }
 
             holder.container.setOnTouchListener((v, event) -> {
+                // 如果正在拖拽进度条，不处理卡片的触摸事件
+                if (holder.mediaProgress != null && holder.mediaProgress.isDragging()) {
+                    return false; // 让进度条处理触摸事件
+                }
+
                 switch (event.getAction()) {
                     case MotionEvent.ACTION_DOWN:
                         v.animate().scaleX(0.95f).scaleY(0.95f).setDuration(getScaledDuration(100)).start();
@@ -1085,6 +1184,11 @@ public class FloatingWindowService extends Service {
             });
 
             holder.container.setOnClickListener(v -> {
+                // 如果正在拖拽进度条，不响应卡片点击
+                if (holder.mediaProgress != null && holder.mediaProgress.isDragging()) {
+                    return;
+                }
+
                 // 条件：总过滤开启 + 包名过滤开启 + 是本地模型
                 if (manager.isModelFilteringEnabled() && isModelFilterEnabled(info.packageName) && manager.getFilterModel().equals("model_local")) {
                     // 正向反馈到本地模型 - 使用新的分离接口，参数true表示正向
@@ -1130,6 +1234,14 @@ public class FloatingWindowService extends Service {
             return notificationQueue.size();
         }
 
+        @Override
+        public void onViewRecycled(@NonNull ViewHolder holder) {
+            super.onViewRecycled(holder);
+
+            // 调用ViewHolder的清理方法
+            holder.cleanup();
+        }
+
         class ViewHolder extends RecyclerView.ViewHolder {
             View container;
             ImageView icon;
@@ -1143,6 +1255,19 @@ public class FloatingWindowService extends Service {
             android.media.session.MediaController.Callback mediaCallback;
             String currentPackageName;
 
+            // 新增：媒体进度相关组件
+            cn.pylin.xycjd.ui.view.MediaSeekBar mediaProgress;
+            TextView tvCurrentTime;
+            TextView tvTotalTime;
+            LinearLayout mediaProgressContainer;
+
+            // 新增：进度状态管理
+            private long currentPosition = 0;
+            private long totalDuration = 0;
+            private boolean isUserSeeking = false;
+            private boolean isPlaying = false;
+            private long updateToken = 0; // 用于识别过期的更新任务
+
             ViewHolder(View itemView) {
                 super(itemView);
                 container = itemView.findViewById(R.id.island_container);
@@ -1153,6 +1278,12 @@ public class FloatingWindowService extends Service {
                 btnPrev = itemView.findViewById(R.id.btn_prev);
                 btnPlay = itemView.findViewById(R.id.btn_play);
                 btnNext = itemView.findViewById(R.id.btn_next);
+
+                // 新增：绑定进度条组件
+                mediaProgress = itemView.findViewById(R.id.media_progress);
+                tvCurrentTime = itemView.findViewById(R.id.tv_current_time);
+                tvTotalTime = itemView.findViewById(R.id.tv_total_time);
+                mediaProgressContainer = itemView.findViewById(R.id.media_progress_container);
             }
 
             void bindMediaController(android.media.session.MediaSession.Token token) {
@@ -1160,20 +1291,41 @@ public class FloatingWindowService extends Service {
                 if (mediaController != null && mediaCallback != null) {
                     mediaController.unregisterCallback(mediaCallback);
                 }
-                
+
+                // 停止进度更新
+                stopProgressUpdates();
+
                 if (token == null) {
                     mediaControls.setVisibility(View.GONE);
+                    mediaProgressContainer.setVisibility(View.GONE);
                     mediaController = null;
                     return;
                 }
 
                 mediaControls.setVisibility(View.VISIBLE);
+                mediaProgressContainer.setVisibility(View.VISIBLE);
                 content.setMaxLines(1); // 媒体通知限制为1行
                 mediaController = new android.media.session.MediaController(FloatingWindowService.this, token);
-                
+
+                // 获取初始元数据以设置时长
+                android.media.MediaMetadata metadata = mediaController.getMetadata();
+                if (metadata != null) {
+                    totalDuration = metadata.getLong(android.media.MediaMetadata.METADATA_KEY_DURATION);
+                    if (totalDuration > 0) {
+                        updateTotalTimeDisplay();
+                        mediaProgress.setMax(100); // 使用0-100的进度范围
+                    } else {
+                        // 无固定时长（如直播），隐藏进度条
+                        mediaProgressContainer.setVisibility(View.GONE);
+                    }
+                }
+
                 // 设置初始状态
                 updateMediaState(mediaController.getPlaybackState());
-                updateMediaMetadata(mediaController.getMetadata());
+                updateMediaMetadata(metadata);
+
+                // 设置进度条监听器
+                setupSeekBarListener();
 
                 mediaCallback = new android.media.session.MediaController.Callback() {
                     @Override
@@ -1191,6 +1343,8 @@ public class FloatingWindowService extends Service {
                     public void onSessionDestroyed() {
                         new Handler(Looper.getMainLooper()).post(() -> {
                             mediaControls.setVisibility(View.GONE);
+                            mediaProgressContainer.setVisibility(View.GONE);
+                            stopProgressUpdates();
                         });
                     }
                 };
@@ -1225,14 +1379,153 @@ public class FloatingWindowService extends Service {
 
             private void updateMediaState(android.media.session.PlaybackState state) {
                 if (state == null) return;
-                
-                boolean isPlaying = state.getState() == android.media.session.PlaybackState.STATE_PLAYING;
+
+                isPlaying = state.getState() == android.media.session.PlaybackState.STATE_PLAYING;
                 btnPlay.setImageResource(isPlaying ? R.drawable.ic_media_pause : R.drawable.ic_media_play);
+
+                // 新增：更新进度信息
+                if (!isUserSeeking) {
+                    currentPosition = state.getPosition();
+                    // 检查是否支持seek
+                    boolean canSeek = (state.getActions() & android.media.session.PlaybackState.ACTION_SEEK_TO) != 0;
+                    if (mediaProgress != null) {
+                        mediaProgress.setEnabled(canSeek);
+                    }
+
+                    updateProgressDisplay();
+
+                    // 处理进度更新
+                    if (isPlaying) {
+                        startProgressUpdates();
+                    } else {
+                        stopProgressUpdates();
+                    }
+                }
             }
 
             private void updateMediaMetadata(android.media.MediaMetadata metadata) {
                 // 使用外部通用方法更新图标
                 updateIcon(icon, metadata, currentPackageName);
+
+                // 新增：更新时长信息
+                if (metadata != null) {
+                    totalDuration = metadata.getLong(android.media.MediaMetadata.METADATA_KEY_DURATION);
+                    if (totalDuration > 0) {
+                        updateTotalTimeDisplay();
+                        if (mediaProgress != null) {
+                            mediaProgress.setMax(100);
+                            mediaProgressContainer.setVisibility(View.VISIBLE);
+                        }
+                    } else {
+                        // 无固定时长（如直播），隐藏进度条
+                        if (mediaProgressContainer != null) {
+                            mediaProgressContainer.setVisibility(View.GONE);
+                        }
+                    }
+                }
+            }
+
+            // 新增：设置进度条监听器
+            private void setupSeekBarListener() {
+                if (mediaProgress == null) return;
+
+                mediaProgress.setOnSeekBarChangeListener(new android.widget.SeekBar.OnSeekBarChangeListener() {
+                    @Override
+                    public void onProgressChanged(android.widget.SeekBar seekBar, int progress, boolean fromUser) {
+                        if (fromUser && mediaController != null && totalDuration > 0) {
+                            // 计算seek位置（毫秒）
+                            long seekPosition = (long) (totalDuration * progress / 100.0);
+                            mediaController.getTransportControls().seekTo(seekPosition);
+                        }
+                    }
+
+                    @Override
+                    public void onStartTrackingTouch(android.widget.SeekBar seekBar) {
+                        isUserSeeking = true;
+                        // 拖拽时停止自动更新
+                        stopProgressUpdates();
+                    }
+
+                    @Override
+                    public void onStopTrackingTouch(android.widget.SeekBar seekBar) {
+                        isUserSeeking = false;
+                        // 拖拽结束后，如果是播放状态，恢复自动更新
+                        if (isPlaying) {
+                            startProgressUpdates();
+                        }
+                    }
+                });
+            }
+
+            // 新增：开始进度更新
+            private void startProgressUpdates() {
+                stopProgressUpdates(); // 清除任何现有的更新任务
+                updateToken++; // 增加token使旧任务失效
+                final long currentToken = updateToken;
+
+                new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> {
+                    // 检查是否已过期
+                    if (currentToken != updateToken) return;
+
+                    if (mediaController != null && !isUserSeeking && isPlaying) {
+                        android.media.session.PlaybackState state = mediaController.getPlaybackState();
+                        if (state != null) {
+                            currentPosition = state.getPosition();
+                            updateProgressDisplay();
+
+                            // 如果仍在播放，继续下一次更新
+                            if (state.getState() == android.media.session.PlaybackState.STATE_PLAYING) {
+                                startProgressUpdates();
+                            }
+                        }
+                    }
+                }, 1000); // 1秒后更新
+            }
+
+            // 新增：停止进度更新
+            private void stopProgressUpdates() {
+                updateToken++; // 使所有待处理的更新任务失效
+            }
+
+            // 新增：更新进度显示
+            private void updateProgressDisplay() {
+                if (mediaProgress != null && totalDuration > 0) {
+                    int progress = (int) ((currentPosition * 100) / totalDuration);
+                    mediaProgress.setProgress(progress);
+                }
+                updateCurrentTimeDisplay();
+            }
+
+            // 新增：更新当前时间显示
+            private void updateCurrentTimeDisplay() {
+                if (tvCurrentTime != null) {
+                    tvCurrentTime.setText(formatTime(currentPosition));
+                }
+            }
+
+            // 新增：更新总时长显示
+            private void updateTotalTimeDisplay() {
+                if (tvTotalTime != null) {
+                    tvTotalTime.setText(formatTime(totalDuration));
+                }
+            }
+
+            // 新增：格式化时间显示
+            private String formatTime(long milliseconds) {
+                long seconds = milliseconds / 1000;
+                long minutes = seconds / 60;
+                seconds = seconds % 60;
+                return String.format("%d:%02d", minutes, seconds);
+            }
+
+            // 新增：清理资源方法
+            public void cleanup() {
+                stopProgressUpdates();
+                if (mediaController != null && mediaCallback != null) {
+                    mediaController.unregisterCallback(mediaCallback);
+                }
+                mediaController = null;
+                mediaCallback = null;
             }
         }
     }
