@@ -132,7 +132,7 @@
     <string name="custom_prompt_btn">設置自定義提示詞</string>
     <string name="custom_prompt_title">自定義提示詞</string>
     <string name="custom_prompt_hint">請輸入自定義提示詞</string>
-    <string name="save">保存</string>
+    <string name="save">已保存</string>
     <string name="reset_to_default_prompt">還原默認提示詞</string>
     <string name="default_prompt_content">你是智能通知評分繫統，僅輸齣0.0到10.0的數字，0.0–3.0錶示騷擾/垃圾內容（如廣告誘導虛假），3.1–5.0爲低價值無用通知，5.1–7.0爲普通可能有用通知，7.1–9.0爲重要通知（如快遞支付生活場景），9.1–10.0爲關鍵通知（QQ微信驗証碼）</string>
     <string name="reset_to_default_online_filtering_degree_config">還原過濾程度配置</string>
@@ -234,4 +234,14 @@
     <string name="disable_sound">關閉聲音</string>
     <string name="enable_vibration">開啟震動</string>
     <string name="disable_vibration">關閉震動</string>
+
+    <!-- 超級島樣式配置 -->
+    <string name="super_island_style_title">超級島樣式配置</string>
+    <string name="super_island_style_desc">個性化你的超級島</string>
+    <string name="super_island_corner_small">超小島圓角</string>
+    <string name="super_island_corner_medium">超中島圓角</string>
+    <string name="super_island_corner_large">超大島圓角</string>
+    <string name="super_island_corner_reset">還原默認圓角配置</string>
+    <string name="super_island_list_distance">超大島列錶相對距離</string>
+    <string name="basic_floating_window_opacity">超小島透明度</string>
 </resources>

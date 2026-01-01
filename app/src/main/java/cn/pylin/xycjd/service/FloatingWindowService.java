@@ -40,6 +40,7 @@ import androidx.recyclerview.widget.ItemTouchHelper;
 import cn.pylin.xycjd.model.local.LocalModelManager;
 import cn.pylin.xycjd.R;
 import cn.pylin.xycjd.manager.SharedPreferencesManager;
+import cn.pylin.xycjd.utils.FloatingWindowBackgroundHelper;
 import cn.pylin.xycjd.utils.SpringSnapHelper;
 import cn.pylin.xycjd.ui.view.CircleImageView;
 
@@ -64,6 +65,9 @@ public class FloatingWindowService extends Service {
     private int lastX = 0;
     private int lastY = 0;
     private int lastSize = 0;
+    private int lastCornerRadius1 = 0;
+    private int lastCornerRadius2 = 0;
+    private int lastCornerRadius3 = 0;
 
     public static class NotificationInfo {
         private String key;
@@ -115,8 +119,9 @@ public class FloatingWindowService extends Service {
     private static final int DEFAULT_X = 0;
     private static final int DEFAULT_Y = -100;
     
-    // 第二个悬浮窗与第一个悬浮窗的垂直间距（dp）
-    private static final int ISLAND_MARGIN_TOP = 20;
+
+    // 超大岛列表相对距离（可配置的，默认0dp）
+    private int islandListDistance = 0;
 
     @Override
     public void onCreate() {
@@ -167,10 +172,24 @@ public class FloatingWindowService extends Service {
             int size = intent.getIntExtra("size", DEFAULT_SIZE);
             int x = intent.getIntExtra("x", DEFAULT_X);
             int y = intent.getIntExtra("y", DEFAULT_Y);
+            
+            // 确保WindowManager已初始化
+            if (windowManager == null) {
+                ensureWindowManager();
+            }
+            
+            // 如果悬浮窗还不存在，先创建
+            if (floatingView == null) {
+                createFloatingWindow();
+            }
+            
+            // 然后执行更新
             updateFloatingWindow(size, x, y);
         } else {
-            // 创建新的悬浮窗
-            createFloatingWindow();
+            // 创建新的悬浮窗（仅在服务首次启动时）
+            if (floatingView == null) {
+                createFloatingWindow();
+            }
         }
         return START_STICKY;
     }
@@ -248,18 +267,22 @@ public class FloatingWindowService extends Service {
 
     private void createFloatingWindow() {
         ensureWindowManager();
-        
+
         // 使用ContextThemeWrapper应用AppCompat主题，解决CircleImageView报错问题
         AppAccessibilityService service = AppAccessibilityService.getInstance();
         Context context = new android.view.ContextThemeWrapper(service != null ? service : this, R.style.AppTheme);
         LayoutInflater inflater = LayoutInflater.from(context);
         floatingView = inflater.inflate(R.layout.floating_window_layout, null);
-        
+
         // 使用管理器读取配置
         int size = manager.getFloatingSize();
         int x = manager.getFloatingX();
         int y = manager.getFloatingY();
-        
+        int opacity = manager.getOpacity(); // 读取透明度配置
+
+        // 设置代码生成的背景
+        floatingView.setBackground(FloatingWindowBackgroundHelper.createBasicFloatingWindowBackground(this, size));
+
         params = new WindowManager.LayoutParams(
                 size,
                 size,
@@ -267,12 +290,15 @@ public class FloatingWindowService extends Service {
                 WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
                 PixelFormat.TRANSLUCENT
         );
-        
+
         params.gravity = Gravity.TOP | Gravity.CENTER_HORIZONTAL;
         params.x = x;
         params.y = y;
-        
+
         windowManager.addView(floatingView, params);
+        
+        // 应用透明度设置
+        updateOpacity(opacity);
     }
     
     public void updateFloatingWindow(int size, int x, int y) {
@@ -285,19 +311,18 @@ public class FloatingWindowService extends Service {
             lastY = y;
             lastSize = size;
             
-            // 更新基础悬浮窗
-            params.width = size;
-            params.height = size;
-            params.gravity = Gravity.TOP | Gravity.CENTER_HORIZONTAL;
-            params.x = x;
-            params.y = y;
-            params.flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS;
-            windowManager.updateViewLayout(floatingView, params);
-            
             // 使用管理器保存配置
             manager.setFloatingSize(size);
             manager.setFloatingX(x);
             manager.setFloatingY(y);
+            
+            // 先移除旧的悬浮窗视图
+            if (floatingView != null && floatingView.getParent() != null) {
+                windowManager.removeView(floatingView);
+            }
+            
+            // 重新创建基础悬浮窗（使用新的配置）
+            createFloatingWindow();
             
             // 如果位置或大小发生变化，执行特殊动画逻辑
             if (positionChanged) {
@@ -332,13 +357,114 @@ public class FloatingWindowService extends Service {
         
         // 2. 实时显示第一圆圈悬浮窗（基础悬浮窗已经存在，无需额外操作）
         
-        // 3. 启动2秒超时计时器
+        // 3. 启动1秒超时计时器
         adjustmentTimeoutRunnable = new Runnable() {
             @Override
             public void run() {
                 if (isPositionAdjusting && !notificationQueue.isEmpty()) {
                     // 1秒后如果还有通知，重新显示
                     showThreeCircleIsland();
+                }
+                isPositionAdjusting = false;
+            }
+        };
+        adjustmentHandler.postDelayed(adjustmentTimeoutRunnable, 1000);
+    }
+    
+    /**
+     * 处理圆角变化的特殊逻辑
+     * @param cornerRadius1 基本悬浮窗圆角百分比
+     * @param cornerRadius2 三圆岛圆角百分比
+     * @param cornerRadius3 卡片圆角百分比
+     */
+    public void handleCornerRadiusChange(int cornerRadius1, int cornerRadius2, int cornerRadius3) {
+        // 检测圆角是否发生变化
+        boolean cornerRadiusChanged = (cornerRadius1 != lastCornerRadius1) || 
+                                     (cornerRadius2 != lastCornerRadius2) || 
+                                     (cornerRadius3 != lastCornerRadius3);
+        
+        if (!cornerRadiusChanged) {
+            return;
+        }
+        
+        // 1. 基本悬浮窗：实时生效（需要重新创建背景）
+        if (floatingView != null && params != null) {
+            int size = manager.getFloatingSize();
+            floatingView.setBackground(FloatingWindowBackgroundHelper.createBasicFloatingWindowBackground(this, size));
+            
+            // 由于背景是Drawable，需要重新设置来刷新图层
+            if (floatingView.getParent() != null) {
+                windowManager.updateViewLayout(floatingView, params);
+            }
+        }
+        
+        // 2. 检查各个圆角是否发生变化
+        boolean basicCornerRadiusChanged = (cornerRadius1 != lastCornerRadius1);
+        boolean threeCircleCornerRadiusChanged = (cornerRadius2 != lastCornerRadius2);
+        boolean superIslandCornerRadiusChanged = (cornerRadius3 != lastCornerRadius3);
+        
+        // 3. 如果任何圆角发生变化，都要处理岛屿的隐藏和显示逻辑
+        if (basicCornerRadiusChanged || threeCircleCornerRadiusChanged || superIslandCornerRadiusChanged) {
+            handleIslandCornerRadiusChange(superIslandCornerRadiusChanged);
+        }
+        
+        // 更新当前值（在处理完变化后再更新）
+        lastCornerRadius1 = cornerRadius1;
+        lastCornerRadius2 = cornerRadius2;
+        lastCornerRadius3 = cornerRadius3;
+    }
+    
+    /**
+     * 处理岛屿圆角变化的特殊逻辑
+     * @param isSuperIslandChanged 是否超大岛圆角发生变化
+     */
+    private void handleIslandCornerRadiusChange(boolean isSuperIslandChanged) {
+        // 设置调整状态（与位置调节共用）
+        isPositionAdjusting = true;
+        
+        // 取消之前的超时计时器
+        if (adjustmentTimeoutRunnable != null) {
+            adjustmentHandler.removeCallbacks(adjustmentTimeoutRunnable);
+        }
+        
+        // 1. 移除三圆岛和标准岛视图
+        if (floatingThreeCircleView != null && floatingThreeCircleView.getParent() != null) {
+            windowManager.removeView(floatingThreeCircleView);
+            floatingThreeCircleView = null;
+        }
+        
+        if (floatingIslandView != null && floatingIslandView.getParent() != null) {
+            windowManager.removeView(floatingIslandView);
+            floatingIslandView = null;
+            notificationAdapter = null;
+        }
+        
+        // 2. 实时显示第一圆圈悬浮窗（基础悬浮窗已经存在，无需额外操作）
+        
+        // 3. 启动1秒超时计时器（与位置调节共用）
+        final boolean shouldExpandSuperIsland = isSuperIslandChanged;
+        adjustmentTimeoutRunnable = new Runnable() {
+            @Override
+            public void run() {
+                if (isPositionAdjusting && !notificationQueue.isEmpty()) {
+                    // 1秒后如果还有通知，根据情况显示岛屿
+                    if (shouldExpandSuperIsland) {
+                        // 如果超大岛圆角发生变化，先显示三圆岛，然后立即展开标准岛
+                        showThreeCircleIsland();
+                        // 延迟一小段时间后展开超大岛，确保三圆岛已显示
+                        adjustmentHandler.postDelayed(() -> {
+                            if (!notificationQueue.isEmpty()) {
+                                showNotificationIsland(
+                                    notificationQueue.getFirst().packageName,
+                                    notificationQueue.getFirst().title,
+                                    notificationQueue.getFirst().content
+                                );
+                            }
+                        }, 300); // 小延迟确保三圆岛先显示
+                    } else {
+                        // 否则只显示三圆岛
+                        showThreeCircleIsland();
+                    }
                 }
                 isPositionAdjusting = false;
             }
@@ -690,8 +816,9 @@ public class FloatingWindowService extends Service {
         int x = manager.getFloatingX();
         int y = manager.getFloatingY();
         int size = manager.getFloatingSize();
-        
-        int islandY = y + size + dpToPx(ISLAND_MARGIN_TOP);
+        // 加载列表距离参数
+        islandListDistance = manager.getIslandListDistance();
+        int islandY = y + size + dpToPx(islandListDistance);
 
         RecyclerView recyclerView = floatingIslandView.findViewById(R.id.notification_recycler_view);
         
@@ -918,6 +1045,11 @@ public class FloatingWindowService extends Service {
         @Override
         public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
             View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_notification_card, parent, false);
+            // 设置代码生成的卡片背景
+            View container = view.findViewById(R.id.island_container);
+            // 卡片高度 = 126dp + 16dp = 142dp
+            int cardHeight = getResources().getDimensionPixelSize(R.dimen.notification_card_height) + dpToPx(16);
+            container.setBackground(FloatingWindowBackgroundHelper.createCardBackground(parent.getContext(), cardHeight));
             return new ViewHolder(view);
         }
 
@@ -1146,6 +1278,94 @@ public class FloatingWindowService extends Service {
         NotificationInfo info = notificationQueue.getFirst();
         showNotificationIsland(info.packageName, info.title, info.content);
     }
+    
+    /**
+     * 更新超大岛列表相对距离
+     * @param distance 新的距离值（dp）
+     */
+    public void updateIslandListDistance(int distance) {
+        // 检测距离是否发生变化
+        boolean distanceChanged = (distance != islandListDistance);
+        
+        if (!distanceChanged) {
+            return;
+        }
+        
+        // 更新内部变量
+        islandListDistance = distance;
+        
+        // 使用管理器保存配置
+        manager.setIslandListDistance(distance);
+        
+        // 如果标准岛正在显示，应用特殊处理逻辑
+        if (floatingIslandView != null && floatingIslandView.getParent() != null || floatingThreeCircleView != null && floatingThreeCircleView.getParent() != null) {
+            handleIslandListDistanceChange(distance);
+        }
+    }
+    
+    /**
+     * 更新悬浮窗透明度
+     * @param opacity 透明度值（0-100%，0表示不透明，100表示完全透明）
+     */
+    public void updateOpacity(int opacity) {
+        // 如果基础悬浮窗存在，更新其透明度
+        if (floatingView != null && params != null) {
+            // 将0-100的透明度转换为0.0-1.0的alpha值
+            float alpha = 1.0f - (opacity / 100.0f);
+            floatingView.setAlpha(alpha);
+        }
+    }
+    
+    /**
+     * 处理岛屿列表距离变化的特殊逻辑
+     * @param newDistance 新的距离值（dp）
+     */
+    private void handleIslandListDistanceChange(int newDistance) {
+        // 设置调整状态（与位置调节共用）
+        isPositionAdjusting = true;
+        
+        // 取消之前的超时计时器
+        if (adjustmentTimeoutRunnable != null) {
+            adjustmentHandler.removeCallbacks(adjustmentTimeoutRunnable);
+        }
+        
+        // 1. 移除三圆岛和标准岛视图
+        if (floatingThreeCircleView != null && floatingThreeCircleView.getParent() != null) {
+            windowManager.removeView(floatingThreeCircleView);
+            floatingThreeCircleView = null;
+        }
+        
+        if (floatingIslandView != null && floatingIslandView.getParent() != null) {
+            windowManager.removeView(floatingIslandView);
+            floatingIslandView = null;
+            notificationAdapter = null;
+        }
+        
+        // 2. 实时显示第一圆圈悬浮窗（基础悬浮窗已经存在，无需额外操作）
+        
+        // 3. 启动1秒超时计时器
+        adjustmentTimeoutRunnable = new Runnable() {
+            @Override
+            public void run() {
+                if (isPositionAdjusting && !notificationQueue.isEmpty()) {
+                    // 1秒后如果还有通知，先显示三圆岛
+                    showThreeCircleIsland();
+                    // 延迟300ms后展开标准岛
+                    adjustmentHandler.postDelayed(() -> {
+                        if (!notificationQueue.isEmpty()) {
+                            showNotificationIsland(
+                                notificationQueue.getFirst().packageName,
+                                notificationQueue.getFirst().title,
+                                notificationQueue.getFirst().content
+                            );
+                        }
+                    }, 300);
+                }
+                isPositionAdjusting = false;
+            }
+        };
+        adjustmentHandler.postDelayed(adjustmentTimeoutRunnable, 1000);
+    }
 
         /**
      * 更新图标显示（通用方法）
@@ -1301,38 +1521,41 @@ public class FloatingWindowService extends Service {
         Context context = new android.view.ContextThemeWrapper(service != null ? service : this, R.style.AppTheme);
         LayoutInflater inflater = LayoutInflater.from(context);
         floatingThreeCircleView = inflater.inflate(R.layout.floating_window_island_three, null);
-        
+
         // 获取第一个悬浮窗的位置和大小
+        int size = manager.getFloatingSize();
         int x = manager.getFloatingX();
         int y = manager.getFloatingY();
-        int size = manager.getFloatingSize();
-        
+
+        // 设置代码生成的背景
+        View background = floatingThreeCircleView.findViewById(R.id.island_background);
+        background.setBackground(FloatingWindowBackgroundHelper.createIslandBackground(this, size));
+
         // 计算第三个小岛的圆形大小，比第一个悬浮窗小4dp
         int circleSize = size - dpToPx(4); // 减去4dp，使圆形小一点
-        
+
         // 动态设置圆形大小
         CircleImageView appIcon = floatingThreeCircleView.findViewById(R.id.circle_app_icon);
         View blackCircle = floatingThreeCircleView.findViewById(R.id.circle_black);
         View blackCircle2 = floatingThreeCircleView.findViewById(R.id.circle_black2);
-        
+
         // 设置圆形大小
         FrameLayout.LayoutParams layoutParams = (FrameLayout.LayoutParams) appIcon.getLayoutParams();
         layoutParams.width = circleSize;
         layoutParams.height = circleSize;
         appIcon.setLayoutParams(layoutParams);
-        
+
         FrameLayout.LayoutParams blackLayoutParams = (FrameLayout.LayoutParams) blackCircle.getLayoutParams();
         blackLayoutParams.width = circleSize;
         blackLayoutParams.height = circleSize;
         blackCircle.setLayoutParams(blackLayoutParams);
-        
+
         FrameLayout.LayoutParams blackLayoutParams2 = (FrameLayout.LayoutParams) blackCircle2.getLayoutParams();
         blackLayoutParams2.width = circleSize;
         blackLayoutParams2.height = circleSize;
         blackCircle2.setLayoutParams(blackLayoutParams2);
 
-        // 初始化背景
-        View background = floatingThreeCircleView.findViewById(R.id.island_background);
+        // 初始化背景大小
         ViewGroup.LayoutParams bgParams = background.getLayoutParams();
         bgParams.width = circleSize; // 初始只显示一个圆的大小
         background.setLayoutParams(bgParams);
@@ -1342,8 +1565,8 @@ public class FloatingWindowService extends Service {
         int margin = dpToPx(2);
         // 三圆悬浮岛的总宽度 = 3 * circleSize + 6 * margin + 2 * targetSpacerWidth + 2 * padding
         int totalWidth = 3 * circleSize + 6 * margin + 2 * targetSpacerWidth + dpToPx(20);
-        int totalHeight = size; 
-        
+        int totalHeight = size;
+
         // 创建悬浮窗布局参数
         threeCircleParams = new WindowManager.LayoutParams(
                 totalWidth,
@@ -1352,12 +1575,12 @@ public class FloatingWindowService extends Service {
                 WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
                 PixelFormat.TRANSLUCENT
         );
-        
+
         // 设置位置，使其中心与第一个悬浮窗的中心对齐
         threeCircleParams.gravity = Gravity.TOP | Gravity.CENTER_HORIZONTAL;
         threeCircleParams.x = x;
         threeCircleParams.y = y;
-        
+
         floatingThreeCircleView.setOnClickListener(view -> {
             if (!notificationQueue.isEmpty()) {
                 NotificationInfo info = notificationQueue.getFirst();

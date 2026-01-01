@@ -97,6 +97,22 @@ public class SharedPreferencesManager {
     public static final String PROCESS_MODE_SHOW_FIRST = "show_first"; // 先显示再检查
     public static final String PROCESS_MODE_CHECK_FIRST = "check_first"; // 先检查再显示
     
+    // 悬浮窗圆角百分比存储值（0-100）
+    private static final String PREF_FLOATING_CORNER_RADIUS_1 = "floating_corner_radius_1";
+    private static final String PREF_FLOATING_CORNER_RADIUS_2 = "floating_corner_radius_2";
+    private static final String PREF_FLOATING_CORNER_RADIUS_3 = "floating_corner_radius_3";
+    private int floatingCornerRadius1;
+    private int floatingCornerRadius2;
+    private int floatingCornerRadius3;
+    
+    // 超大岛列表相对距离存储值（0-200dp）
+    private static final String PREF_ISLAND_LIST_DISTANCE = "island_list_distance";
+    private int islandListDistance;
+    
+    // 透明度存储值（0-100%）
+    private static final String PREF_OPACITY = "pref_opacity";
+    private int opacity;
+    
     private SharedPreferencesManager(Context context) {
         // 初始化全局SharedPreferences
         globalPrefs = PreferenceManager.getDefaultSharedPreferences(context);
@@ -153,6 +169,17 @@ public class SharedPreferencesManager {
         soundEnabled = globalPrefs.getBoolean(PREF_SOUND_ENABLED, true);
         vibrationEnabled = globalPrefs.getBoolean(PREF_VIBRATION_ENABLED, true);
         vibrationIntensity = globalPrefs.getInt(PREF_VIBRATION_INTENSITY, 160);
+        
+        // 加载悬浮窗圆角百分比（默认值：第一个100%，第二个50%，第三个50%）
+        floatingCornerRadius1 = globalPrefs.getInt(PREF_FLOATING_CORNER_RADIUS_1, 100);
+        floatingCornerRadius2 = globalPrefs.getInt(PREF_FLOATING_CORNER_RADIUS_2, 100);
+        floatingCornerRadius3 = globalPrefs.getInt(PREF_FLOATING_CORNER_RADIUS_3, 45);
+        
+        // 加载超大岛列表相对距离（默认值：20dp）
+        islandListDistance = globalPrefs.getInt(PREF_ISLAND_LIST_DISTANCE, 0);
+        
+        // 加载透明度（默认值：0% - 不透明，100% - 完全透明，但默认值为0表示不透明，符合用户要求的默认0）
+        opacity = globalPrefs.getInt(PREF_OPACITY, 0);
     }
     
     // ==================== 全局设置读写方法 ====================
@@ -513,5 +540,56 @@ public class SharedPreferencesManager {
             editor.putBoolean(packageName, value);
         }
         editor.apply();
+    }
+    
+    // ==================== 悬浮窗圆角百分比方法 ====================
+    
+    public int getFloatingCornerRadius1() {
+        return floatingCornerRadius1;
+    }
+    
+    public void setFloatingCornerRadius1(int radius) {
+        this.floatingCornerRadius1 = radius;
+        globalEditor.putInt(PREF_FLOATING_CORNER_RADIUS_1, radius).apply();
+    }
+    
+    public int getFloatingCornerRadius2() {
+        return floatingCornerRadius2;
+    }
+    
+    public void setFloatingCornerRadius2(int radius) {
+        this.floatingCornerRadius2 = radius;
+        globalEditor.putInt(PREF_FLOATING_CORNER_RADIUS_2, radius).apply();
+    }
+    
+    public int getFloatingCornerRadius3() {
+        return floatingCornerRadius3;
+    }
+    
+    public void setFloatingCornerRadius3(int radius) {
+        this.floatingCornerRadius3 = radius;
+        globalEditor.putInt(PREF_FLOATING_CORNER_RADIUS_3, radius).apply();
+    }
+    
+    // ==================== 超大岛列表相对距离方法 ====================
+    
+    public int getIslandListDistance() {
+        return islandListDistance;
+    }
+    
+    public void setIslandListDistance(int distance) {
+        this.islandListDistance = distance;
+        globalEditor.putInt(PREF_ISLAND_LIST_DISTANCE, distance).apply();
+    }
+    
+    // ==================== 透明度方法 ====================
+    
+    public int getOpacity() {
+        return opacity;
+    }
+    
+    public void setOpacity(int opacity) {
+        this.opacity = opacity;
+        globalEditor.putInt(PREF_OPACITY, opacity).apply();
     }
 }

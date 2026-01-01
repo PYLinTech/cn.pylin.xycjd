@@ -4,5 +4,6 @@
 !README.md
 .gradle/
 .idea/
+.claude/
 build/
 local.properties
