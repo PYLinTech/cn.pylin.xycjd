@@ -40,6 +40,7 @@ import androidx.recyclerview.widget.ItemTouchHelper;
 import cn.pylin.xycjd.model.local.LocalModelManager;
 import cn.pylin.xycjd.R;
 import cn.pylin.xycjd.manager.SharedPreferencesManager;
+import cn.pylin.xycjd.utils.FloatingWindowBackgroundHelper;
 import cn.pylin.xycjd.utils.SpringSnapHelper;
 import cn.pylin.xycjd.ui.view.CircleImageView;
 
@@ -248,18 +249,21 @@ public class FloatingWindowService extends Service {
 
     private void createFloatingWindow() {
         ensureWindowManager();
-        
+
         // 使用ContextThemeWrapper应用AppCompat主题，解决CircleImageView报错问题
         AppAccessibilityService service = AppAccessibilityService.getInstance();
         Context context = new android.view.ContextThemeWrapper(service != null ? service : this, R.style.AppTheme);
         LayoutInflater inflater = LayoutInflater.from(context);
         floatingView = inflater.inflate(R.layout.floating_window_layout, null);
-        
+
+        // 设置代码生成的背景
+        floatingView.setBackground(FloatingWindowBackgroundHelper.createBasicFloatingWindowBackground(this));
+
         // 使用管理器读取配置
         int size = manager.getFloatingSize();
         int x = manager.getFloatingX();
         int y = manager.getFloatingY();
-        
+
         params = new WindowManager.LayoutParams(
                 size,
                 size,
@@ -267,11 +271,11 @@ public class FloatingWindowService extends Service {
                 WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
                 PixelFormat.TRANSLUCENT
         );
-        
+
         params.gravity = Gravity.TOP | Gravity.CENTER_HORIZONTAL;
         params.x = x;
         params.y = y;
-        
+
         windowManager.addView(floatingView, params);
     }
     
@@ -918,6 +922,9 @@ public class FloatingWindowService extends Service {
         @Override
         public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
             View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_notification_card, parent, false);
+            // 设置代码生成的卡片背景
+            View container = view.findViewById(R.id.island_container);
+            container.setBackground(FloatingWindowBackgroundHelper.createCardBackground(parent.getContext()));
             return new ViewHolder(view);
         }
 
@@ -1301,38 +1308,41 @@ public class FloatingWindowService extends Service {
         Context context = new android.view.ContextThemeWrapper(service != null ? service : this, R.style.AppTheme);
         LayoutInflater inflater = LayoutInflater.from(context);
         floatingThreeCircleView = inflater.inflate(R.layout.floating_window_island_three, null);
-        
+
+        // 设置代码生成的背景
+        View background = floatingThreeCircleView.findViewById(R.id.island_background);
+        background.setBackground(FloatingWindowBackgroundHelper.createIslandBackground(this));
+
         // 获取第一个悬浮窗的位置和大小
         int x = manager.getFloatingX();
         int y = manager.getFloatingY();
         int size = manager.getFloatingSize();
-        
+
         // 计算第三个小岛的圆形大小，比第一个悬浮窗小4dp
         int circleSize = size - dpToPx(4); // 减去4dp，使圆形小一点
-        
+
         // 动态设置圆形大小
         CircleImageView appIcon = floatingThreeCircleView.findViewById(R.id.circle_app_icon);
         View blackCircle = floatingThreeCircleView.findViewById(R.id.circle_black);
         View blackCircle2 = floatingThreeCircleView.findViewById(R.id.circle_black2);
-        
+
         // 设置圆形大小
         FrameLayout.LayoutParams layoutParams = (FrameLayout.LayoutParams) appIcon.getLayoutParams();
         layoutParams.width = circleSize;
         layoutParams.height = circleSize;
         appIcon.setLayoutParams(layoutParams);
-        
+
         FrameLayout.LayoutParams blackLayoutParams = (FrameLayout.LayoutParams) blackCircle.getLayoutParams();
         blackLayoutParams.width = circleSize;
         blackLayoutParams.height = circleSize;
         blackCircle.setLayoutParams(blackLayoutParams);
-        
+
         FrameLayout.LayoutParams blackLayoutParams2 = (FrameLayout.LayoutParams) blackCircle2.getLayoutParams();
         blackLayoutParams2.width = circleSize;
         blackLayoutParams2.height = circleSize;
         blackCircle2.setLayoutParams(blackLayoutParams2);
 
-        // 初始化背景
-        View background = floatingThreeCircleView.findViewById(R.id.island_background);
+        // 初始化背景大小
         ViewGroup.LayoutParams bgParams = background.getLayoutParams();
         bgParams.width = circleSize; // 初始只显示一个圆的大小
         background.setLayoutParams(bgParams);
@@ -1342,8 +1352,8 @@ public class FloatingWindowService extends Service {
         int margin = dpToPx(2);
         // 三圆悬浮岛的总宽度 = 3 * circleSize + 6 * margin + 2 * targetSpacerWidth + 2 * padding
         int totalWidth = 3 * circleSize + 6 * margin + 2 * targetSpacerWidth + dpToPx(20);
-        int totalHeight = size; 
-        
+        int totalHeight = size;
+
         // 创建悬浮窗布局参数
         threeCircleParams = new WindowManager.LayoutParams(
                 totalWidth,
@@ -1352,12 +1362,12 @@ public class FloatingWindowService extends Service {
                 WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
                 PixelFormat.TRANSLUCENT
         );
-        
+
         // 设置位置，使其中心与第一个悬浮窗的中心对齐
         threeCircleParams.gravity = Gravity.TOP | Gravity.CENTER_HORIZONTAL;
         threeCircleParams.x = x;
         threeCircleParams.y = y;
-        
+
         floatingThreeCircleView.setOnClickListener(view -> {
             if (!notificationQueue.isEmpty()) {
                 NotificationInfo info = notificationQueue.getFirst();

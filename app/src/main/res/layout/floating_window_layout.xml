@@ -3,6 +3,4 @@
     android:id="@+id/floating_view"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:src="@drawable/floating_circle_background"
-    android:background="@drawable/floating_circle_background"
     android:scaleType="fitXY" />
