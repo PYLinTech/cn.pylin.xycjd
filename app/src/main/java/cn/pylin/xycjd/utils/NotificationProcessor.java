@@ -142,7 +142,7 @@ public class NotificationProcessor {
         // 3. 媒体通知特殊处理
         if (context.config.isMedia) {
             // 媒体通知：直接显示到超级岛并执行行为，然后终止处理
-            if (context.config.appMode.equals("mode_super_island_only")) {
+            if (!context.config.appMode.equals("MODE_NOTIFICATION_BAR_ONLY")) {
                 showInIsland(context);
                 executeBehaviors(context);
             }
@@ -415,6 +415,21 @@ public class NotificationProcessor {
                         // 如果反射失败，使用adapter.notifyDataSetChanged()
                         if (service.notificationAdapter != null) {
                             service.notificationAdapter.notifyDataSetChanged();
+                        }
+                    }
+                }
+                
+                // 如果超中岛（三圆岛）正在显示，且更新的是队列第一个通知，需要更新媒体封面
+                if (service.floatingThreeCircleView != null && service.floatingThreeCircleView.getParent() != null) {
+                    // 检查是否是队列第一个通知（正在显示在超中岛）
+                    if (!queue.isEmpty() && queue.getFirst().getKey().equals(context.key)) {
+                        // 通过反射调用私有方法 updateThreeCircleContent
+                        try {
+                            java.lang.reflect.Method updateMethod = FloatingWindowService.class.getDeclaredMethod("updateThreeCircleContent");
+                            updateMethod.setAccessible(true);
+                            updateMethod.invoke(service);
+                        } catch (Exception e) {
+                            // 如果反射失败不要管
                         }
                     }
                 }

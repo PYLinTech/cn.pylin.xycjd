@@ -54,7 +54,7 @@ public class FloatingWindowService extends Service {
     public View floatingIslandView;
     private WindowManager.LayoutParams islandParams;
     
-    private View floatingThreeCircleView;
+    public View floatingThreeCircleView;
     private WindowManager.LayoutParams threeCircleParams;
     public NotificationAdapter notificationAdapter;
     
