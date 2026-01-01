@@ -172,10 +172,24 @@ public class FloatingWindowService extends Service {
             int size = intent.getIntExtra("size", DEFAULT_SIZE);
             int x = intent.getIntExtra("x", DEFAULT_X);
             int y = intent.getIntExtra("y", DEFAULT_Y);
+            
+            // 确保WindowManager已初始化
+            if (windowManager == null) {
+                ensureWindowManager();
+            }
+            
+            // 如果悬浮窗还不存在，先创建
+            if (floatingView == null) {
+                createFloatingWindow();
+            }
+            
+            // 然后执行更新
             updateFloatingWindow(size, x, y);
         } else {
-            // 创建新的悬浮窗
-            createFloatingWindow();
+            // 创建新的悬浮窗（仅在服务首次启动时）
+            if (floatingView == null) {
+                createFloatingWindow();
+            }
         }
         return START_STICKY;
     }
@@ -293,19 +307,18 @@ public class FloatingWindowService extends Service {
             lastY = y;
             lastSize = size;
             
-            // 更新基础悬浮窗
-            params.width = size;
-            params.height = size;
-            params.gravity = Gravity.TOP | Gravity.CENTER_HORIZONTAL;
-            params.x = x;
-            params.y = y;
-            params.flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS;
-            windowManager.updateViewLayout(floatingView, params);
-            
             // 使用管理器保存配置
             manager.setFloatingSize(size);
             manager.setFloatingX(x);
             manager.setFloatingY(y);
+            
+            // 先移除旧的悬浮窗视图
+            if (floatingView != null && floatingView.getParent() != null) {
+                windowManager.removeView(floatingView);
+            }
+            
+            // 重新创建基础悬浮窗（使用新的配置）
+            createFloatingWindow();
             
             // 如果位置或大小发生变化，执行特殊动画逻辑
             if (positionChanged) {
