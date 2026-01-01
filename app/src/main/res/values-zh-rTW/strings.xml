@@ -243,4 +243,5 @@
     <string name="super_island_corner_large">超大島圓角</string>
     <string name="super_island_corner_reset">還原默認圓角配置</string>
     <string name="super_island_list_distance">超大島列錶相對距離</string>
+    <string name="basic_floating_window_opacity">超小島透明度</string>
 </resources>

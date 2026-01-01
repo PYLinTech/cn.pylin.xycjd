@@ -278,6 +278,7 @@ public class FloatingWindowService extends Service {
         int size = manager.getFloatingSize();
         int x = manager.getFloatingX();
         int y = manager.getFloatingY();
+        int opacity = manager.getOpacity(); // 读取透明度配置
 
         // 设置代码生成的背景
         floatingView.setBackground(FloatingWindowBackgroundHelper.createBasicFloatingWindowBackground(this, size));
@@ -295,6 +296,9 @@ public class FloatingWindowService extends Service {
         params.y = y;
 
         windowManager.addView(floatingView, params);
+        
+        // 应用透明度设置
+        updateOpacity(opacity);
     }
     
     public void updateFloatingWindow(int size, int x, int y) {
@@ -1296,6 +1300,19 @@ public class FloatingWindowService extends Service {
         // 如果标准岛正在显示，应用特殊处理逻辑
         if (floatingIslandView != null && floatingIslandView.getParent() != null || floatingThreeCircleView != null && floatingThreeCircleView.getParent() != null) {
             handleIslandListDistanceChange(distance);
+        }
+    }
+    
+    /**
+     * 更新悬浮窗透明度
+     * @param opacity 透明度值（0-100%，0表示不透明，100表示完全透明）
+     */
+    public void updateOpacity(int opacity) {
+        // 如果基础悬浮窗存在，更新其透明度
+        if (floatingView != null && params != null) {
+            // 将0-100的透明度转换为0.0-1.0的alpha值
+            float alpha = 1.0f - (opacity / 100.0f);
+            floatingView.setAlpha(alpha);
         }
     }
     

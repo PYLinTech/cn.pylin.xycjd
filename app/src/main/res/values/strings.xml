@@ -325,4 +325,8 @@
     <!-- 超大岛列表相对距离 -->
     <string name="super_island_list_distance">超大岛列表相对距离</string>
     <string name="default_list_distance" translatable="false">0</string>
+    
+    <!-- 基础悬浮窗透明度 -->
+    <string name="basic_floating_window_opacity">超小岛透明度</string>
+    <string name="default_opacity" translatable="false">0</string>
 </resources>

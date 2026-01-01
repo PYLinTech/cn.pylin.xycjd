@@ -1131,6 +1131,76 @@
                     android:textColor="?android:attr/textColorSecondary"
                     android:layout_marginBottom="16dp" />
 
+                <!-- 基础悬浮窗透明度 -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginBottom="12dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginBottom="4dp">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/basic_floating_window_opacity"
+                            android:textSize="14sp"
+                            android:textColor="?android:attr/textColorSecondary" />
+
+                        <TextView
+                            android:id="@+id/tv_opacity_value"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="0%"
+                            android:textSize="14sp"
+                            android:textColor="?android:attr/textColorPrimary" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical">
+
+                        <ImageButton
+                            android:id="@+id/btn_opacity_decrease"
+                            android:layout_width="36dp"
+                            android:layout_height="36dp"
+                            android:src="@drawable/ic_remove"
+                            android:background="?attr/selectableItemBackgroundBorderless"
+                            android:contentDescription="@string/decrease"
+                            app:tint="?android:attr/textColorSecondary" />
+
+                        <SeekBar
+                            android:id="@+id/seekbar_opacity"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:layout_marginStart="8dp"
+                            android:layout_marginEnd="8dp"
+                            android:max="100"
+                            android:progress="0"
+                            android:progressTint="@color/colorPrimary"
+                            android:thumbTint="@color/colorPrimary"
+                            android:progressBackgroundTint="?android:attr/textColorSecondary" />
+
+                        <ImageButton
+                            android:id="@+id/btn_opacity_increase"
+                            android:layout_width="36dp"
+                            android:layout_height="36dp"
+                            android:src="@drawable/ic_add"
+                            android:background="?attr/selectableItemBackgroundBorderless"
+                            android:contentDescription="@string/increase"
+                            app:tint="?android:attr/textColorSecondary" />
+                    </LinearLayout>
+                </LinearLayout>
+
                 <!-- 超小岛圆角 -->
                 <LinearLayout
                     android:layout_width="match_parent"

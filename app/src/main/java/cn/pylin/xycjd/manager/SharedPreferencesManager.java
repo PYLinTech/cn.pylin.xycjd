@@ -109,6 +109,10 @@ public class SharedPreferencesManager {
     private static final String PREF_ISLAND_LIST_DISTANCE = "island_list_distance";
     private int islandListDistance;
     
+    // 透明度存储值（0-100%）
+    private static final String PREF_OPACITY = "pref_opacity";
+    private int opacity;
+    
     private SharedPreferencesManager(Context context) {
         // 初始化全局SharedPreferences
         globalPrefs = PreferenceManager.getDefaultSharedPreferences(context);
@@ -173,6 +177,9 @@ public class SharedPreferencesManager {
         
         // 加载超大岛列表相对距离（默认值：20dp）
         islandListDistance = globalPrefs.getInt(PREF_ISLAND_LIST_DISTANCE, 0);
+        
+        // 加载透明度（默认值：0% - 不透明，100% - 完全透明，但默认值为0表示不透明，符合用户要求的默认0）
+        opacity = globalPrefs.getInt(PREF_OPACITY, 0);
     }
     
     // ==================== 全局设置读写方法 ====================
@@ -573,5 +580,16 @@ public class SharedPreferencesManager {
     public void setIslandListDistance(int distance) {
         this.islandListDistance = distance;
         globalEditor.putInt(PREF_ISLAND_LIST_DISTANCE, distance).apply();
+    }
+    
+    // ==================== 透明度方法 ====================
+    
+    public int getOpacity() {
+        return opacity;
+    }
+    
+    public void setOpacity(int opacity) {
+        this.opacity = opacity;
+        globalEditor.putInt(PREF_OPACITY, opacity).apply();
     }
 }

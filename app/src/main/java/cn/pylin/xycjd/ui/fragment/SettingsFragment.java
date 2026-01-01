@@ -143,6 +143,10 @@ public class SettingsFragment extends Fragment {
 
     // 超级岛样式相关控件
     private CardView cardSuperIslandStyle;
+    private TextView tvOpacityValue;
+    private SeekBar seekBarOpacity;
+    private ImageButton btnOpacityDecrease;
+    private ImageButton btnOpacityIncrease;
     private TextView tvCornerRadius1Value;
     private TextView tvCornerRadius2Value;
     private TextView tvCornerRadius3Value;
@@ -162,6 +166,10 @@ public class SettingsFragment extends Fragment {
     private SeekBar seekBarListDistance;
     private ImageButton btnListDistanceDecrease;
     private ImageButton btnListDistanceIncrease;
+    
+    // 透明度相关常量
+    private static final String PREF_OPACITY = "pref_opacity";
+    private static final int DEFAULT_OPACITY = 0;
 
     private boolean isFloatingWindowEnabled = false;
     private static final int REQUEST_OVERLAY_PERMISSION = 1001;
@@ -346,6 +354,10 @@ public class SettingsFragment extends Fragment {
 
         // 初始化超级岛样式相关控件
         cardSuperIslandStyle = view.findViewById(R.id.card_super_island_style);
+        tvOpacityValue = view.findViewById(R.id.tv_opacity_value);
+        seekBarOpacity = view.findViewById(R.id.seekbar_opacity);
+        btnOpacityDecrease = view.findViewById(R.id.btn_opacity_decrease);
+        btnOpacityIncrease = view.findViewById(R.id.btn_opacity_increase);
         tvCornerRadius1Value = view.findViewById(R.id.tv_corner_radius_1_value);
         tvCornerRadius2Value = view.findViewById(R.id.tv_corner_radius_2_value);
         tvCornerRadius3Value = view.findViewById(R.id.tv_corner_radius_3_value);
@@ -1467,6 +1479,56 @@ public class SettingsFragment extends Fragment {
      * 设置超级岛样式相关控件
      */
     private void setupSuperIslandStyleControls() {
+        // 从SharedPreferences管理器获取透明度设置
+        int opacity = SharedPreferencesManager.getInstance(requireContext()).getOpacity();
+        
+        // 设置透明度初始值
+        seekBarOpacity.setProgress(opacity);
+        tvOpacityValue.setText(getString(R.string.super_island_corner_value, opacity));
+        
+        // 设置透明度滑块监听器（实时保存和生效）
+        seekBarOpacity.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                tvOpacityValue.setText(getString(R.string.super_island_corner_value, progress));
+                if (fromUser) {
+                    // 实时保存到SharedPreferences
+                    SharedPreferencesManager.getInstance(requireContext()).setOpacity(progress);
+                    // 实时更新悬浮窗透明度（如果服务正在运行）
+                    updateFloatingWindowOpacity(progress);
+                }
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {}
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {}
+        });
+
+        // 设置透明度加减按钮点击事件（每次调整1%）
+        btnOpacityDecrease.setOnClickListener(v -> {
+            int currentProgress = seekBarOpacity.getProgress();
+            if (currentProgress > 0) {
+                int newProgress = currentProgress - 1;
+                seekBarOpacity.setProgress(newProgress);
+                tvOpacityValue.setText(getString(R.string.super_island_corner_value, newProgress));
+                SharedPreferencesManager.getInstance(requireContext()).setOpacity(newProgress);
+                updateFloatingWindowOpacity(newProgress);
+            }
+        });
+
+        btnOpacityIncrease.setOnClickListener(v -> {
+            int currentProgress = seekBarOpacity.getProgress();
+            if (currentProgress < 100) {
+                int newProgress = currentProgress + 1;
+                seekBarOpacity.setProgress(newProgress);
+                tvOpacityValue.setText(getString(R.string.super_island_corner_value, newProgress));
+                SharedPreferencesManager.getInstance(requireContext()).setOpacity(newProgress);
+                updateFloatingWindowOpacity(newProgress);
+            }
+        });
+
         // 从SharedPreferences管理器获取超级岛圆角设置
         int cornerRadius1 = SharedPreferencesManager.getInstance(requireContext()).getFloatingCornerRadius1();
         int cornerRadius2 = SharedPreferencesManager.getInstance(requireContext()).getFloatingCornerRadius2();
@@ -1817,6 +1879,20 @@ public class SettingsFragment extends Fragment {
                 
                 // 调用服务的距离更新方法（需要在FloatingWindowService中实现）
                 service.updateIslandListDistance(listDistance);
+            }
+        }
+    }
+    
+    /**
+     * 更新悬浮窗透明度（实时生效）
+     */
+    private void updateFloatingWindowOpacity(int opacity) {
+        // 如果服务正在运行，通知服务更新透明度
+        if (FloatingWindowService.isServiceRunning(requireContext())) {
+            FloatingWindowService service = FloatingWindowService.getInstance();
+            if (service != null) {
+                // 调用服务的透明度更新方法
+                service.updateOpacity(opacity);
             }
         }
     }
