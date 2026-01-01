@@ -256,13 +256,13 @@ public class FloatingWindowService extends Service {
         LayoutInflater inflater = LayoutInflater.from(context);
         floatingView = inflater.inflate(R.layout.floating_window_layout, null);
 
-        // 设置代码生成的背景
-        floatingView.setBackground(FloatingWindowBackgroundHelper.createBasicFloatingWindowBackground(this));
-
         // 使用管理器读取配置
         int size = manager.getFloatingSize();
         int x = manager.getFloatingX();
         int y = manager.getFloatingY();
+
+        // 设置代码生成的背景
+        floatingView.setBackground(FloatingWindowBackgroundHelper.createBasicFloatingWindowBackground(this, size));
 
         params = new WindowManager.LayoutParams(
                 size,
@@ -924,7 +924,9 @@ public class FloatingWindowService extends Service {
             View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_notification_card, parent, false);
             // 设置代码生成的卡片背景
             View container = view.findViewById(R.id.island_container);
-            container.setBackground(FloatingWindowBackgroundHelper.createCardBackground(parent.getContext()));
+            // 卡片高度 = 126dp + 16dp = 142dp
+            int cardHeight = getResources().getDimensionPixelSize(R.dimen.notification_card_height) + dpToPx(16);
+            container.setBackground(FloatingWindowBackgroundHelper.createCardBackground(parent.getContext(), cardHeight));
             return new ViewHolder(view);
         }
 
@@ -1309,14 +1311,14 @@ public class FloatingWindowService extends Service {
         LayoutInflater inflater = LayoutInflater.from(context);
         floatingThreeCircleView = inflater.inflate(R.layout.floating_window_island_three, null);
 
-        // 设置代码生成的背景
-        View background = floatingThreeCircleView.findViewById(R.id.island_background);
-        background.setBackground(FloatingWindowBackgroundHelper.createIslandBackground(this));
-
         // 获取第一个悬浮窗的位置和大小
+        int size = manager.getFloatingSize();
         int x = manager.getFloatingX();
         int y = manager.getFloatingY();
-        int size = manager.getFloatingSize();
+
+        // 设置代码生成的背景
+        View background = floatingThreeCircleView.findViewById(R.id.island_background);
+        background.setBackground(FloatingWindowBackgroundHelper.createIslandBackground(this, size));
 
         // 计算第三个小岛的圆形大小，比第一个悬浮窗小4dp
         int circleSize = size - dpToPx(4); // 减去4dp，使圆形小一点
