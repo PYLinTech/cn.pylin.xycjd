@@ -1765,28 +1765,48 @@ public class FloatingWindowService extends Service {
         NotificationInfo info = notificationQueue.getFirst();
         String packageName = info.packageName;
         
-        // 获取应用图标 View
         CircleImageView appIcon = floatingThreeCircleView.findViewById(R.id.circle_app_icon);
         
-        // 获取媒体元数据（如果有）
         android.media.MediaMetadata metadata = null;
+        android.media.session.PlaybackState playbackState = null;
         if (info.mediaToken != null) {
             try {
                 android.media.session.MediaController controller = new android.media.session.MediaController(this, info.mediaToken);
                 metadata = controller.getMetadata();
+                playbackState = controller.getPlaybackState();
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
         
-        // 更新图标
         updateIcon(appIcon, metadata, packageName);
         
-        // 更新数量
         TextView countText = floatingThreeCircleView.findViewById(R.id.circle_black2);
-        if (countText != null) {
-            int count = notificationQueue.size();
-            countText.setText(count > 9 ? getString(R.string.text_9_plus) : String.valueOf(count));
+        cn.pylin.xycjd.ui.view.AudioVisualizerView audioVisualizer = floatingThreeCircleView.findViewById(R.id.audio_visualizer);
+        
+        if (info.mediaToken != null) {
+            if (countText != null) {
+                countText.setVisibility(View.GONE);
+            }
+            if (audioVisualizer != null) {
+                audioVisualizer.setVisibility(View.VISIBLE);
+                boolean isPlaying = playbackState != null && playbackState.getState() == android.media.session.PlaybackState.STATE_PLAYING;
+                if (isPlaying) {
+                    audioVisualizer.startAnimation();
+                } else {
+                    audioVisualizer.setPausedState();
+                }
+            }
+        } else {
+            if (countText != null) {
+                countText.setVisibility(View.VISIBLE);
+                int count = notificationQueue.size();
+                countText.setText(count > 9 ? getString(R.string.text_9_plus) : String.valueOf(count));
+            }
+            if (audioVisualizer != null) {
+                audioVisualizer.stopAnimation();
+                audioVisualizer.setVisibility(View.GONE);
+            }
         }
     }
 
@@ -1826,7 +1846,7 @@ public class FloatingWindowService extends Service {
 
         final View background = floatingThreeCircleView.findViewById(R.id.island_background);
         final View circle1 = floatingThreeCircleView.findViewById(R.id.circle_app_icon);
-        final View circle3 = floatingThreeCircleView.findViewById(R.id.circle_black2);
+        final View circle3Container = floatingThreeCircleView.findViewById(R.id.circle_black2_container);
 
         // 倒放：从1f到0f
         ValueAnimator animator = ValueAnimator.ofFloat(1f, 0f);
@@ -1847,12 +1867,12 @@ public class FloatingWindowService extends Service {
             // Circle 1 (Left) moves back to center
             circle1.setTranslationX(-currentOffset);
             
-            // Circle 3 (Right) moves back to center
-            circle3.setTranslationX(currentOffset);
+            // Circle 3 Container (Right) moves back to center
+            circle3Container.setTranslationX(currentOffset);
             
             // 3. 非线性渐隐
             circle1.setAlpha(fraction);
-            circle3.setAlpha(fraction);
+            circle3Container.setAlpha(fraction);
         });
         
         animator.addListener(new android.animation.AnimatorListenerAdapter() {
@@ -1891,7 +1911,8 @@ public class FloatingWindowService extends Service {
         // 动态设置圆形大小
         CircleImageView appIcon = floatingThreeCircleView.findViewById(R.id.circle_app_icon);
         View blackCircle = floatingThreeCircleView.findViewById(R.id.circle_black);
-        View blackCircle2 = floatingThreeCircleView.findViewById(R.id.circle_black2);
+        View blackCircle2Container = floatingThreeCircleView.findViewById(R.id.circle_black2_container);
+        TextView blackCircle2 = floatingThreeCircleView.findViewById(R.id.circle_black2);
 
         // 设置圆形大小
         FrameLayout.LayoutParams layoutParams = (FrameLayout.LayoutParams) appIcon.getLayoutParams();
@@ -1904,15 +1925,16 @@ public class FloatingWindowService extends Service {
         blackLayoutParams.height = circleSize;
         blackCircle.setLayoutParams(blackLayoutParams);
 
-        FrameLayout.LayoutParams blackLayoutParams2 = (FrameLayout.LayoutParams) blackCircle2.getLayoutParams();
-        blackLayoutParams2.width = circleSize;
-        blackLayoutParams2.height = circleSize;
-        blackCircle2.setLayoutParams(blackLayoutParams2);
+        // 设置父容器大小
+        FrameLayout.LayoutParams containerLayoutParams = (FrameLayout.LayoutParams) blackCircle2Container.getLayoutParams();
+        containerLayoutParams.width = circleSize;
+        containerLayoutParams.height = circleSize;
+        blackCircle2Container.setLayoutParams(containerLayoutParams);
 
         // 动态设置第三个圆圈的字体大小，使其随圆圈大小缩放
         float textSize = circleSize * 0.15f;
-        if (blackCircle2 instanceof TextView) {
-            ((TextView) blackCircle2).setTextSize(textSize);
+        if (blackCircle2 != null) {
+            blackCircle2.setTextSize(textSize);
         }
 
         // 初始化背景大小
@@ -1966,7 +1988,7 @@ public class FloatingWindowService extends Service {
 
         final View background = floatingThreeCircleView.findViewById(R.id.island_background);
         final View circle1 = floatingThreeCircleView.findViewById(R.id.circle_app_icon);
-        final View circle3 = floatingThreeCircleView.findViewById(R.id.circle_black2);
+        final View circle3Container = floatingThreeCircleView.findViewById(R.id.circle_black2_container);
 
         // 1. 设置背景初始宽度
         ViewGroup.LayoutParams bgParams = background.getLayoutParams();
@@ -1977,8 +1999,8 @@ public class FloatingWindowService extends Service {
         circle1.setTranslationX(0);
         circle1.setAlpha(0f);
         
-        circle3.setTranslationX(0);
-        circle3.setAlpha(0f);
+        circle3Container.setTranslationX(0);
+        circle3Container.setAlpha(0f);
     }
 
     /**
@@ -1999,7 +2021,7 @@ public class FloatingWindowService extends Service {
 
         final View background = floatingThreeCircleView.findViewById(R.id.island_background);
         final View circle1 = floatingThreeCircleView.findViewById(R.id.circle_app_icon);
-        final View circle3 = floatingThreeCircleView.findViewById(R.id.circle_black2);
+        final View circle3Container = floatingThreeCircleView.findViewById(R.id.circle_black2_container);
 
         ValueAnimator animator = ValueAnimator.ofFloat(0f, 1f);
         animator.setDuration(getScaledDuration(600));
@@ -2019,12 +2041,12 @@ public class FloatingWindowService extends Service {
             // Circle 1 (Left) moves left (negative X)
             circle1.setTranslationX(-currentOffset);
             
-            // Circle 3 (Right) moves right (positive X)
-            circle3.setTranslationX(currentOffset);
+            // Circle 3 Container (Right) moves right (positive X)
+            circle3Container.setTranslationX(currentOffset);
             
             // 3. 非线性渐显 (使用 DecelerateInterpolator 自身的曲线)
             circle1.setAlpha(fraction);
-            circle3.setAlpha(fraction);
+            circle3Container.setAlpha(fraction);
         });
         animator.start();
     }
