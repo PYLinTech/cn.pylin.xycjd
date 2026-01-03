@@ -98,14 +98,14 @@ public class AudioVisualizerView extends View {
         }
 
         animator = ValueAnimator.ofFloat(0, 1);
-        animator.setDuration(2400);
+        animator.setDuration(3600);
         animator.setRepeatCount(ValueAnimator.INFINITE);
         animator.setRepeatMode(ValueAnimator.RESTART);
         animator.setInterpolator(new LinearInterpolator());
 
         animator.addUpdateListener(animation -> {
             float value = (float) animation.getAnimatedValue();
-            float time = (float) (value * Math.PI * 3);
+            float time = (float) (value * Math.PI * 4);
             
             for (int i = 0; i < barCount; i++) {
                 float barPos = i / (float) (barCount - 1);
