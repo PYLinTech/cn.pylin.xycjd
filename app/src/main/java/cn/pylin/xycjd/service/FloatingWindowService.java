@@ -26,6 +26,8 @@ import android.view.WindowManager;
 import android.view.animation.AnticipateInterpolator;
 import android.view.animation.DecelerateInterpolator;
 import android.view.animation.OvershootInterpolator;
+import android.view.GestureDetector;
+import android.view.GestureDetector.SimpleOnGestureListener;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -68,6 +70,7 @@ public class FloatingWindowService extends Service {
     private int lastCornerRadius1 = 0;
     private int lastCornerRadius2 = 0;
     private int lastCornerRadius3 = 0;
+    private GestureDetector threeCircleGestureDetector;
 
     public static class NotificationInfo {
         private String key;
@@ -979,32 +982,25 @@ public class FloatingWindowService extends Service {
                 super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
                 
                 // 实现非线性动画效果：先快后慢
-                if (actionState == ItemTouchHelper.ACTION_STATE_SWIPE) {
-                    float width = (float) viewHolder.itemView.getWidth();
-                    float absDx = Math.abs(dX);
-                    float fraction = absDx / width;
-                    
-                    // 限制最大缩放和透明度变化
-                    // 使用 sin 函数实现先快后慢的效果 (0 -> 1 的过程变化率逐渐减小)
-                    float nonlinearFraction = (float) Math.sin(Math.min(1f, fraction) * Math.PI / 2);
-                    
-                    // 缩放效果：从1.0减小到0.9
-                    float scale = 1.0f - 0.1f * nonlinearFraction;
-                    scale = Math.max(0.9f, scale);
-                    
-                    // 透明度效果：从1.0减小到0.2
-                    float alpha = 1.0f - 0.8f * nonlinearFraction;
-                    alpha = Math.max(0.2f, alpha);
-                    
-                    viewHolder.itemView.setScaleX(scale);
-                    viewHolder.itemView.setScaleY(scale);
-                    viewHolder.itemView.setAlpha(alpha);
-                    
-                    // 必须调用 super 否则没有平移效果
-                    super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
-                } else {
-                    super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
-                }
+                float width = (float) viewHolder.itemView.getWidth();
+                float absDx = Math.abs(dX);
+                float fraction = absDx / width;
+
+                // 限制最大缩放和透明度变化
+                // 使用 sin 函数实现先快后慢的效果 (0 -> 1 的过程变化率逐渐减小)
+                float nonlinearFraction = (float) Math.sin(Math.min(1f, fraction) * Math.PI / 2);
+
+                // 缩放效果：从1.0减小到0.9
+                float scale = 1.0f - 0.1f * nonlinearFraction;
+                scale = Math.max(0.9f, scale);
+
+                // 透明度效果：从1.0减小到0.2
+                float alpha = 1.0f - 0.8f * nonlinearFraction;
+                alpha = Math.max(0.2f, alpha);
+
+                viewHolder.itemView.setScaleX(scale);
+                viewHolder.itemView.setScaleY(scale);
+                viewHolder.itemView.setAlpha(alpha);
             }
 
             @Override
@@ -1886,6 +1882,38 @@ public class FloatingWindowService extends Service {
         
         animator.start();
     }
+    
+    /**
+     * 清空所有通知
+     */
+    private void clearAllNotifications() {
+        if (notificationQueue.isEmpty()) return;
+        
+        // 从系统通知栏移除所有通知
+        AppNotificationListenerService listenerService = AppNotificationListenerService.getInstance();
+        if (listenerService != null) {
+            // 遍历所有通知并从系统通知栏移除
+            for (NotificationInfo info : notificationQueue) {
+                try {
+                    listenerService.cancelNotification(info.key);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        
+        // 清空通知队列
+        notificationQueue.clear();
+        
+        // 隐藏所有悬浮岛
+        hideNotificationIsland();
+        hideThreeCircleIsland();
+        
+        // 重置状态
+        lastNotificationPackageName = null;
+        lastNotificationTitle = null;
+        lastNotificationContent = null;
+    }
 
     /**
      * 创建三圆灵动岛样式的悬浮窗
@@ -1974,6 +2002,36 @@ public class FloatingWindowService extends Service {
         int mediumOpacity = manager.getMediumOpacity();
         float mediumAlpha = 1.0f - (mediumOpacity / 100.0f);
         floatingThreeCircleView.setAlpha(mediumAlpha);
+        
+        // 设置手势检测器，用于左滑或右滑清空所有通知
+        threeCircleGestureDetector = new GestureDetector(this, new SimpleOnGestureListener() {
+            @Override
+            public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
+                // 检测水平滑动，速度阈值和距离阈值
+                float minVelocity = 800;
+                float minDistance = 160;
+                
+                float dx = e2.getX() - e1.getX();
+                float dy = e2.getY() - e1.getY();
+                
+                // 确保是水平滑动，且距离和速度都达到阈值
+                if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > minDistance && Math.abs(velocityX) > minVelocity) {
+                    // 左滑或右滑都清空所有通知
+                    clearAllNotifications();
+                    return true;
+                }
+                return false;
+            }
+        });
+        
+        // 设置触摸监听器
+        floatingThreeCircleView.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                threeCircleGestureDetector.onTouchEvent(event);
+                return false; // 返回false以允许点击事件继续传递
+            }
+        });
     }
 
     /**
