@@ -834,6 +834,10 @@ public class FloatingWindowService extends Service {
 
         for (int i = 0; i < recyclerView.getChildCount(); i++) {
             View child = recyclerView.getChildAt(i);
+            // 找到内部的容器进行缩放
+            View container = child.findViewById(R.id.island_container);
+            if (container == null) continue;
+
             // 使用视觉位置 (Top + TranslationY) 计算中心点
             // 这样在 ItemAnimator 移动动画过程中也能获取正确的实时位置
             float childCenterY = child.getY() + child.getHeight() / 2f;
@@ -847,8 +851,8 @@ public class FloatingWindowService extends Service {
                 scale = 0.8f;
             }
 
-            child.setScaleX(scale);
-            child.setScaleY(scale);
+            container.setScaleX(scale);
+            container.setScaleY(scale);
         }
     }
 
@@ -1039,11 +1043,32 @@ public class FloatingWindowService extends Service {
         // 应用水平偏移：基础位置x + 水平偏移量
         recyclerView.setTranslationX(x + dpToPx(horizontalOffset));
         
-        // 5. 点击卡片以外的区域收起
+        // 5. 配置锚点 View (三圆岛点击区域)
+        View islandAnchor = floatingIslandView.findViewById(R.id.island_anchor);
+        if (islandAnchor != null) {
+            // 计算三圆岛的大小和位置
+            int circleSize = size - dpToPx(4);
+            int targetSpacerWidth = dpToPx(10);
+            int targetMargin = dpToPx(2);
+            // 宽度计算参考 createThreeCircleIsland
+            int totalWidth = 3 * circleSize + 6 * targetMargin + 2 * targetSpacerWidth + dpToPx(20);
+            
+            FrameLayout.LayoutParams anchorParams = (FrameLayout.LayoutParams) islandAnchor.getLayoutParams();
+            anchorParams.width = totalWidth;
+            anchorParams.height = size;
+            anchorParams.topMargin = y; // 与悬浮窗 Y 坐标一致
+            islandAnchor.setLayoutParams(anchorParams);
+
+            islandAnchor.setOnClickListener(v -> {
+                // 点击三圆岛区域，强制收起（无视自动展开限制）
+                hideNotificationIsland();
+            });
+        }
+
+        // 6. 点击卡片以外的区域收起
         // 将 Window 设置为全屏，并监听根布局点击事件
         View islandRoot = floatingIslandView.findViewById(R.id.island_root);
         islandRoot.setOnClickListener(v -> {
-            // 逻辑修改：
             // 1. 如果是手动展开的，点击外部总是允许收起（保持原有符合直觉的交互）
             // 2. 如果是自动展开的，则受"自动展开后是否通过点击空白区域收起"开关控制
             if (!isAutoExpanded || manager.isCollapseOnTouchOutside()) {
@@ -1056,9 +1081,12 @@ public class FloatingWindowService extends Service {
         final GestureDetector recyclerViewGestureDetector = new GestureDetector(this, new SimpleOnGestureListener() {
             @Override
             public boolean onSingleTapUp(MotionEvent e) {
+                // 使用 findChildViewUnder 获取点击的子View
                 View child = recyclerView.findChildViewUnder(e.getX(), e.getY());
+                
+                // 如果没有点击到任何子View，说明是空白区域
                 if (child == null) {
-                    // 点击了空白区域，手动触发根布局的点击事件
+                    // 触发 islandRoot 的点击逻辑
                     islandRoot.performClick();
                     return true;
                 }
@@ -1220,6 +1248,22 @@ public class FloatingWindowService extends Service {
                     holder.updateTotalTimeDisplay();
                 }
             }
+
+            // 处理根布局的点击（卡片间的空隙，因为container被缩放了）
+            holder.itemView.setOnClickListener(v -> {
+                // 点击了卡片视觉外部（但由于View本身是满的，所以被ItemView捕获），执行收起逻辑
+                if (!isAutoExpanded || manager.isCollapseOnTouchOutside()) {
+                    hideNotificationIsland();
+                }
+            });
+
+            // 处理根布局的点击（卡片间的空隙，因为container被缩放了）
+            holder.itemView.setOnClickListener(v -> {
+                // 点击了卡片视觉外部（但由于View本身是满的，所以被ItemView捕获），执行收起逻辑
+                if (!isAutoExpanded || manager.isCollapseOnTouchOutside()) {
+                    hideNotificationIsland();
+                }
+            });
 
             holder.container.setOnTouchListener((v, event) -> {
                 // 如果正在拖拽进度条，不处理卡片的触摸事件
