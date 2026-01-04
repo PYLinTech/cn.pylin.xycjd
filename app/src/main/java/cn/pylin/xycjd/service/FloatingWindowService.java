@@ -1030,13 +1030,15 @@ public class FloatingWindowService extends Service {
                         hideNotificationIsland();
                         lastNotificationPackageName = null;
                         hideThreeCircleIsland();
-                    } else if (position == 0) {
-                        // 如果移除了第一个（最新的），更新 lastNotification 为新的头部
-                        NotificationInfo latest = notificationQueue.getFirst();
-                        lastNotificationPackageName = latest.packageName;
-                        lastNotificationTitle = latest.title;
-                        lastNotificationContent = latest.content;
-                        // 更新三圆岛显示
+                    } else {
+                        if (position == 0) {
+                            // 如果移除了第一个（最新的），更新 lastNotification 为新的头部
+                            NotificationInfo latest = notificationQueue.getFirst();
+                            lastNotificationPackageName = latest.packageName;
+                            lastNotificationTitle = latest.title;
+                            lastNotificationContent = latest.content;
+                        }
+                        // 无论移除的是哪个，都更新三圆岛显示（主要为了更新数量）
                         updateThreeCircleContent();
                     }
                 }
@@ -1958,6 +1960,15 @@ public void performThreeCircleClick(boolean isAuto) {
             if (audioVisualizer != null) {
                 audioVisualizer.stopAnimation();
                 audioVisualizer.setVisibility(View.GONE);
+            }
+        }
+
+        // 强制刷新视图布局，确保在任何情况下（特别是在删除非首个卡片时）UI都能及时更新
+        if (floatingThreeCircleView.getParent() != null && windowManager != null) {
+            try {
+                windowManager.updateViewLayout(floatingThreeCircleView, threeCircleParams);
+            } catch (Exception e) {
+                e.printStackTrace();
             }
         }
     }
