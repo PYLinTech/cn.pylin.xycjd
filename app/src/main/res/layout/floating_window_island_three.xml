@@ -32,18 +32,31 @@
         android:elevation="5dp"
         android:background="@android:color/transparent" />
 
-    <!-- Circle 3 (Bottommost) -->
-    <TextView
-        android:id="@+id/circle_black2"
+    <!-- Circle 3 (Bottommost) - Parent Container -->
+    <FrameLayout
+        android:id="@+id/circle_black2_container"
         android:layout_width="96dp"
         android:layout_height="96dp"
         android:layout_gravity="center"
         android:layout_margin="2dp"
-        android:elevation="0dp"
-        android:background="@android:color/transparent"
-        android:gravity="center"
-        android:textColor="@android:color/white"
-        android:textSize="14sp"
-        android:textStyle="bold" />
+        android:elevation="0dp">
+
+        <TextView
+            android:id="@+id/circle_black2"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@android:color/transparent"
+            android:gravity="center"
+            android:textColor="@android:color/white"
+            android:textSize="14sp"
+            android:textStyle="bold" />
+
+        <cn.pylin.xycjd.ui.view.AudioVisualizerView
+            android:id="@+id/audio_visualizer"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="gone" />
+
+    </FrameLayout>
 
 </FrameLayout>

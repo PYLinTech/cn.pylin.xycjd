@@ -6,6 +6,15 @@
     android:clickable="true"
     android:focusable="true">
 
+    <!-- 锚点View，用于捕获三圆岛区域的点击 -->
+    <View
+        android:id="@+id/island_anchor"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_gravity="top|center_horizontal"
+        android:clickable="true"
+        android:focusable="true" />
+
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/notification_recycler_view"
         android:layout_width="match_parent"

@@ -90,13 +90,10 @@
     <string name="welcome_icon">Welcome Icon</string>
     
     <!-- Floating Window -->
-    <string name="floating_window_setting">Floating Window Settings</string>
-    <string name="floating_window_size">Floating Window Size</string>
-    <string name="floating_window_position_x">Horizontal Position</string>
-    <string name="floating_window_position_y">Vertical Position</string>
+    <string name="floating_window_position_y">Super Small Island vertical position</string>
     <string name="floating_window_permission_denied">Floating window permission denied, please enable in settings</string>
-    <string name="service_status">Floating Window Status</string>
-    <string name="service_status_desc">Manage floating window service status</string>
+    <string name="service_status">Super Island Status</string>
+    <string name="service_status_desc">Manage Super Island service status</string>
     <string name="service_running">Service Running</string>
     <string name="service_stopped">Service Stopped</string>
     <string name="start_service">Start Service</string>
@@ -168,7 +165,7 @@
     <string name="custom_prompt_btn">Set Custom Prompt</string>
     <string name="custom_prompt_title">Custom Prompt</string>
     <string name="custom_prompt_hint">Enter custom prompt</string>
-    <string name="save">Saved</string>
+    <string name="save">Save</string>
     <string name="reset_to_default_prompt">Reset Default Prompt</string>
     <string name="default_prompt_content">You are an intelligent notification scoring system, only output numbers from 0.0 to 10.0, 0.0-3.0 indicates harassment/spam content (such as deceptive ads), 3.1-5.0 is low-value useless notifications, 5.1-7.0 is ordinary possibly useful notifications, 7.1-9.0 is important notifications (such as courier payment life scenarios), 9.1-10.0 is key notifications (QQ WeChat verification codes)</string>
     <string name="reset_to_default_online_filtering_degree_config">Restore Filter Level Configuration</string>
@@ -280,10 +277,21 @@
     <!-- Super Island Style Configuration -->
     <string name="super_island_style_title">Super Island Style Configuration</string>
     <string name="super_island_style_desc">Personalize your Super Island</string>
-    <string name="super_island_corner_small">Small Island Corner</string>
-    <string name="super_island_corner_medium">Medium Island Corner</string>
-    <string name="super_island_corner_large">Large Island Corner</string>
+    <string name="super_island_corner_small">Super Small Island Corner</string>
+    <string name="super_island_corner_medium">Super Medium Island Corner</string>
+    <string name="super_island_corner_large">Super Large Island Corner</string>
+    <string name="reset_opacity">Restore default transparency</string>
     <string name="super_island_corner_reset">Reset Default Corner Configuration</string>
-    <string name="super_island_list_distance">Relative distance of mega island list</string>
-    <string name="basic_floating_window_opacity">Small Island Transparency</string>
+    <string name="super_island_list_distance">Vertical Relative Distance of Super Large Island</string>
+    <string name="basic_floating_window_opacity">Super Small Island Transparency</string>
+    <string name="super_island_list_horizontal_distance">Horizontal Relative Distance of Super Large Island</string>
+    <string name="medium_floating_window_opacity">Super Medium Island Transparency</string>
+    <string name="large_floating_window_opacity">Super Large Island Transparency</string>
+    <string name="floating_window_setting">Super Island Location Configuration</string>
+    <string name="floating_window_size">Super Small Island Size</string>
+    <string name="floating_window_position_x">Super Small Island horizontal position</string>
+    <string name="interaction_config_title">Super Large Island interactive configuration</string>
+    <string name="auto_collapse_after_expand">Auto collapse after auto expand</string>
+    <string name="auto_collapse_duration">Auto-collapse duration</string>
+    <string name="collapse_on_touch_outside">Collapse by clicking the blank area after automatic expansion</string>
 </resources>

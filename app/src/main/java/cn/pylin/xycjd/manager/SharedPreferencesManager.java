@@ -109,9 +109,25 @@ public class SharedPreferencesManager {
     private static final String PREF_ISLAND_LIST_DISTANCE = "island_list_distance";
     private int islandListDistance;
     
+    // 超大岛列表水平相对距离存储值（0-400，映射为-200到200dp）
+    private static final String PREF_ISLAND_LIST_HORIZONTAL_DISTANCE = "island_list_horizontal_distance";
+    private int islandListHorizontalDistance;
+    
     // 透明度存储值（0-100%）
     private static final String PREF_OPACITY = "pref_opacity";
+    private static final String PREF_MEDIUM_OPACITY = "pref_medium_opacity";
+    private static final String PREF_LARGE_OPACITY = "pref_large_opacity";
     private int opacity;
+    private int mediumOpacity;
+    private int largeOpacity;
+
+    // 超大岛交互配置
+    private static final String PREF_AUTO_COLLAPSE_AFTER_EXPAND = "pref_auto_collapse_after_expand";
+    private static final String PREF_AUTO_COLLAPSE_DURATION = "pref_auto_collapse_duration";
+    private static final String PREF_COLLAPSE_ON_TOUCH_OUTSIDE = "pref_collapse_on_touch_outside";
+    private boolean autoCollapseAfterExpand;
+    private float autoCollapseDuration;
+    private boolean collapseOnTouchOutside;
     
     private SharedPreferencesManager(Context context) {
         // 初始化全局SharedPreferences
@@ -175,11 +191,21 @@ public class SharedPreferencesManager {
         floatingCornerRadius2 = globalPrefs.getInt(PREF_FLOATING_CORNER_RADIUS_2, 100);
         floatingCornerRadius3 = globalPrefs.getInt(PREF_FLOATING_CORNER_RADIUS_3, 45);
         
-        // 加载超大岛列表相对距离（默认值：20dp）
+        // 加载超大岛列表相对距离（默认值：0dp）
         islandListDistance = globalPrefs.getInt(PREF_ISLAND_LIST_DISTANCE, 0);
+        
+        // 加载超大岛列表水平相对距离（默认值：200，映射为0dp居中）
+        islandListHorizontalDistance = globalPrefs.getInt(PREF_ISLAND_LIST_HORIZONTAL_DISTANCE, 200);
         
         // 加载透明度（默认值：0% - 不透明，100% - 完全透明，但默认值为0表示不透明，符合用户要求的默认0）
         opacity = globalPrefs.getInt(PREF_OPACITY, 0);
+        mediumOpacity = globalPrefs.getInt(PREF_MEDIUM_OPACITY, 0);
+        largeOpacity = globalPrefs.getInt(PREF_LARGE_OPACITY, 0);
+
+        // 加载超大岛交互配置
+        autoCollapseAfterExpand = globalPrefs.getBoolean(PREF_AUTO_COLLAPSE_AFTER_EXPAND, false);
+        autoCollapseDuration = globalPrefs.getFloat(PREF_AUTO_COLLAPSE_DURATION, 5.0f);
+        collapseOnTouchOutside = globalPrefs.getBoolean(PREF_COLLAPSE_ON_TOUCH_OUTSIDE, true);
     }
     
     // ==================== 全局设置读写方法 ====================
@@ -582,6 +608,17 @@ public class SharedPreferencesManager {
         globalEditor.putInt(PREF_ISLAND_LIST_DISTANCE, distance).apply();
     }
     
+    // ==================== 超大岛列表水平相对距离方法 ====================
+    
+    public int getIslandListHorizontalDistance() {
+        return islandListHorizontalDistance;
+    }
+    
+    public void setIslandListHorizontalDistance(int distance) {
+        this.islandListHorizontalDistance = distance;
+        globalEditor.putInt(PREF_ISLAND_LIST_HORIZONTAL_DISTANCE, distance).apply();
+    }
+    
     // ==================== 透明度方法 ====================
     
     public int getOpacity() {
@@ -591,5 +628,52 @@ public class SharedPreferencesManager {
     public void setOpacity(int opacity) {
         this.opacity = opacity;
         globalEditor.putInt(PREF_OPACITY, opacity).apply();
+    }
+    
+    public int getMediumOpacity() {
+        return mediumOpacity;
+    }
+    
+    public void setMediumOpacity(int mediumOpacity) {
+        this.mediumOpacity = mediumOpacity;
+        globalEditor.putInt(PREF_MEDIUM_OPACITY, mediumOpacity).apply();
+    }
+    
+    public int getLargeOpacity() {
+        return largeOpacity;
+    }
+    
+    public void setLargeOpacity(int largeOpacity) {
+        this.largeOpacity = largeOpacity;
+        globalEditor.putInt(PREF_LARGE_OPACITY, largeOpacity).apply();
+    }
+
+    // ==================== 超大岛交互配置方法 ====================
+
+    public boolean isAutoCollapseAfterExpand() {
+        return autoCollapseAfterExpand;
+    }
+
+    public void setAutoCollapseAfterExpand(boolean enabled) {
+        this.autoCollapseAfterExpand = enabled;
+        globalEditor.putBoolean(PREF_AUTO_COLLAPSE_AFTER_EXPAND, enabled).apply();
+    }
+
+    public float getAutoCollapseDuration() {
+        return autoCollapseDuration;
+    }
+
+    public void setAutoCollapseDuration(float duration) {
+        this.autoCollapseDuration = duration;
+        globalEditor.putFloat(PREF_AUTO_COLLAPSE_DURATION, duration).apply();
+    }
+
+    public boolean isCollapseOnTouchOutside() {
+        return collapseOnTouchOutside;
+    }
+
+    public void setCollapseOnTouchOutside(boolean enabled) {
+        this.collapseOnTouchOutside = enabled;
+        globalEditor.putBoolean(PREF_COLLAPSE_ON_TOUCH_OUTSIDE, enabled).apply();
     }
 }

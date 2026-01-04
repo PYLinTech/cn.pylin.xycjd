@@ -69,13 +69,10 @@
     <string name="notification_listener_service_label">小雨超級島通知監聽器</string>
     <string name="app_icon">應用圖標</string>
     <string name="welcome_icon">歡迎圖標</string>
-    <string name="floating_window_setting">懸浮窗設置</string>
-    <string name="floating_window_size">懸浮窗大小</string>
-    <string name="floating_window_position_x">水平位置</string>
-    <string name="floating_window_position_y">垂直位置</string>
+    <string name="floating_window_position_y">超小島垂直位置</string>
     <string name="floating_window_permission_denied">懸浮窗權限被拒絶，請在設置中開啟</string>
-    <string name="service_status">懸浮窗狀態</string>
-    <string name="service_status_desc">管理懸浮窗服務狀態</string>
+    <string name="service_status">超級島狀態</string>
+    <string name="service_status_desc">管理超級島服務狀態</string>
     <string name="service_running">服務正在運行</string>
     <string name="service_stopped">服務已停止</string>
     <string name="start_service">啟動服務</string>
@@ -132,7 +129,7 @@
     <string name="custom_prompt_btn">設置自定義提示詞</string>
     <string name="custom_prompt_title">自定義提示詞</string>
     <string name="custom_prompt_hint">請輸入自定義提示詞</string>
-    <string name="save">已保存</string>
+    <string name="save">保存</string>
     <string name="reset_to_default_prompt">還原默認提示詞</string>
     <string name="default_prompt_content">你是智能通知評分繫統，僅輸齣0.0到10.0的數字，0.0–3.0錶示騷擾/垃圾內容（如廣告誘導虛假），3.1–5.0爲低價值無用通知，5.1–7.0爲普通可能有用通知，7.1–9.0爲重要通知（如快遞支付生活場景），9.1–10.0爲關鍵通知（QQ微信驗証碼）</string>
     <string name="reset_to_default_online_filtering_degree_config">還原過濾程度配置</string>
@@ -241,7 +238,18 @@
     <string name="super_island_corner_small">超小島圓角</string>
     <string name="super_island_corner_medium">超中島圓角</string>
     <string name="super_island_corner_large">超大島圓角</string>
+    <string name="reset_opacity">還原默認透明度設置</string>
     <string name="super_island_corner_reset">還原默認圓角配置</string>
-    <string name="super_island_list_distance">超大島列錶相對距離</string>
+    <string name="super_island_list_distance">超大島垂直相對距離</string>
+    <string name="super_island_list_horizontal_distance">超大島水平相對距離</string>
     <string name="basic_floating_window_opacity">超小島透明度</string>
+    <string name="medium_floating_window_opacity">超中島透明度</string>
+    <string name="large_floating_window_opacity">超大島透明度</string>
+    <string name="floating_window_setting">超級島位置配置</string>
+    <string name="floating_window_size">超小島大小</string>
+    <string name="floating_window_position_x">超小島水平位置</string>
+    <string name="interaction_config_title">超大島交互配置</string>
+    <string name="auto_collapse_after_expand">自動展開後是否自動收起</string>
+    <string name="auto_collapse_duration">自動收起時長</string>
+    <string name="collapse_on_touch_outside">自動展開後是否通過點擊空白區域收起</string>
 </resources>

@@ -21,6 +21,13 @@ public class NotificationLogManager {
     private Context context;
     private static final String LOG_FILE_NAME = "notification_logs.txt";
     private static final String PREF_LOG_RECORDING = "notification_log_recording";
+    private static final int MAX_LOGS_IN_MEMORY = 100; // 内存中保存的日志数量（队列大小）
+    private static final int MAX_LOGS_IN_FILE = 500; // 文件中保存的日志数量
+    
+    // 文件写入队列
+    private final List<String> fileWriteQueue = new ArrayList<>();
+    private boolean isWritingToFile = false;
+    private static final int BATCH_WRITE_SIZE = 50; // 批量写入大小
 
     public interface LogListener {
         void onLogAdded(String log);
@@ -49,10 +56,14 @@ public class NotificationLogManager {
         
         synchronized (logs) {
             logs.add(logEntry);
+            // 使用队列方式：当内存中日志数量超过限制时，移除最旧的日志
+            if (logs.size() > MAX_LOGS_IN_MEMORY) {
+                logs.remove(0);
+            }
         }
         
-        // 保存到文件
-        saveLogToFile(logEntry);
+        // 保存到文件（异步队列方式）
+        saveLogToFileAsync(logEntry);
         
         // 通知UI更新
         synchronized (listeners) {
@@ -109,14 +120,125 @@ public class NotificationLogManager {
     }
 
     /**
-     * 保存日志到文件
+     * 异步保存日志到文件（队列方式）
      */
-    private void saveLogToFile(String logEntry) {
+    private void saveLogToFileAsync(String logEntry) {
+        synchronized (fileWriteQueue) {
+            fileWriteQueue.add(logEntry);
+            // 如果文件写入队列过大，移除最旧的
+            if (fileWriteQueue.size() > MAX_LOGS_IN_FILE) {
+                fileWriteQueue.subList(0, fileWriteQueue.size() - MAX_LOGS_IN_FILE).clear();
+            }
+        }
+        
+        // 如果没有正在进行的文件写入，启动批量写入
+        if (!isWritingToFile) {
+            new Thread(() -> {
+                processFileWriteQueue();
+            }).start();
+        }
+    }
+    
+    /**
+     * 处理文件写入队列（批量写入）
+     */
+    private void processFileWriteQueue() {
+        isWritingToFile = true;
+        
+        try {
+            while (true) {
+                List<String> batchToWrite = new ArrayList<>();
+                
+                // 从队列中取出一批日志
+                synchronized (fileWriteQueue) {
+                    if (fileWriteQueue.isEmpty()) {
+                        break;
+                    }
+                    
+                    int batchSize = Math.min(BATCH_WRITE_SIZE, fileWriteQueue.size());
+                    batchToWrite.addAll(fileWriteQueue.subList(0, batchSize));
+                    fileWriteQueue.subList(0, batchSize).clear();
+                }
+                
+                // 批量写入文件
+                if (!batchToWrite.isEmpty()) {
+                    writeBatchToFile(batchToWrite);
+                }
+                
+                // 短暂休眠，避免过于频繁的写入
+                Thread.sleep(100);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            isWritingToFile = false;
+        }
+    }
+    
+    /**
+     * 批量写入日志到文件
+     */
+    private void writeBatchToFile(List<String> batchLogs) {
         try {
             File file = new File(context.getFilesDir(), LOG_FILE_NAME);
             FileOutputStream fos = new FileOutputStream(file, true); // 追加模式
-            fos.write(logEntry.getBytes());
+            
+            for (String logEntry : batchLogs) {
+                fos.write(logEntry.getBytes());
+            }
             fos.close();
+            
+            // 检查文件大小，如果过大则清理
+            if (file.length() > 10 * 1024 * 1024) { // 10MB
+                cleanupOldLogs();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * 清理文件中的旧日志，保持文件大小可控
+     */
+    private void cleanupOldLogs() {
+        try {
+            File file = new File(context.getFilesDir(), LOG_FILE_NAME);
+            if (!file.exists()) {
+                return;
+            }
+            
+            // 读取所有日志
+            List<String> allLogs = new ArrayList<>();
+            FileInputStream fis = new FileInputStream(file);
+            BufferedReader reader = new BufferedReader(new InputStreamReader(fis));
+            StringBuilder lineBuilder = new StringBuilder();
+            String line;
+            
+            while ((line = reader.readLine()) != null) {
+                lineBuilder.append(line).append("\n");
+                if (line.trim().isEmpty()) {
+                    String logEntry = lineBuilder.toString();
+                    if (!logEntry.trim().isEmpty()) {
+                        allLogs.add(logEntry);
+                    }
+                    lineBuilder = new StringBuilder();
+                }
+            }
+            
+            reader.close();
+            fis.close();
+            
+            // 如果日志数量超过限制，只保留最新的
+            if (allLogs.size() > MAX_LOGS_IN_FILE) {
+                List<String> recentLogs = allLogs.subList(allLogs.size() - MAX_LOGS_IN_FILE, allLogs.size());
+                
+                // 重写文件
+                FileOutputStream fos = new FileOutputStream(file, false);
+                for (String log : recentLogs) {
+                    fos.write(log.getBytes());
+                }
+                fos.close();
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -138,6 +260,7 @@ public class NotificationLogManager {
                 BufferedReader reader = new BufferedReader(new InputStreamReader(fis));
                 StringBuilder lineBuilder = new StringBuilder();
                 String line;
+                int logCount = 0;
                 
                 while ((line = reader.readLine()) != null) {
                     lineBuilder.append(line).append("\n");
@@ -146,6 +269,11 @@ public class NotificationLogManager {
                         String logEntry = lineBuilder.toString();
                         if (!logEntry.trim().isEmpty()) {
                             logs.add(logEntry);
+                            logCount++;
+                            // 限制从文件加载的日志数量，避免启动时内存溢出
+                            if (logCount >= MAX_LOGS_IN_MEMORY) {
+                                break;
+                            }
                         }
                         lineBuilder = new StringBuilder();
                     }
@@ -227,23 +355,5 @@ public class NotificationLogManager {
             e.printStackTrace();
             return null;
         }
-    }
-
-    /**
-     * 获取导出目录的路径（下载目录/cn.pylin.xycjd/log/）
-     * @return 导出目录路径
-     */
-    public String getExportDirectoryPath() {
-        File downloadDir = android.os.Environment.getExternalStoragePublicDirectory(
-            android.os.Environment.DIRECTORY_DOWNLOADS
-        );
-        if (downloadDir == null) {
-            return null;
-        }
-        
-        // 返回子文件夹路径：Download/cn.pylin.xycjd/log/
-        File appDir = new File(downloadDir, "cn.pylin.xycjd");
-        File logDir = new File(appDir, "log");
-        return logDir.getAbsolutePath();
     }
 }

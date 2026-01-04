@@ -26,6 +26,8 @@ import android.view.WindowManager;
 import android.view.animation.AnticipateInterpolator;
 import android.view.animation.DecelerateInterpolator;
 import android.view.animation.OvershootInterpolator;
+import android.view.GestureDetector;
+import android.view.GestureDetector.SimpleOnGestureListener;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -54,7 +56,7 @@ public class FloatingWindowService extends Service {
     public View floatingIslandView;
     private WindowManager.LayoutParams islandParams;
     
-    private View floatingThreeCircleView;
+    public View floatingThreeCircleView;
     private WindowManager.LayoutParams threeCircleParams;
     public NotificationAdapter notificationAdapter;
     
@@ -68,6 +70,12 @@ public class FloatingWindowService extends Service {
     private int lastCornerRadius1 = 0;
     private int lastCornerRadius2 = 0;
     private int lastCornerRadius3 = 0;
+    private GestureDetector threeCircleGestureDetector;
+
+    // 自动收起相关
+    private Handler collapseHandler = new Handler(Looper.getMainLooper());
+    private Runnable collapseRunnable;
+    private boolean isAutoExpanded = false; // 标记当前是否为自动展开状态
 
     public static class NotificationInfo {
         private String key;
@@ -76,6 +84,11 @@ public class FloatingWindowService extends Service {
         private String content;
         private PendingIntent pendingIntent;
         private android.media.session.MediaSession.Token mediaToken;
+
+        // 新增：媒体进度相关字段
+        private long currentPosition;     // 当前播放位置（毫秒）
+        private long totalDuration;       // 总时长（毫秒）
+        private boolean isSeekable;       // 是否支持seek
 
         public NotificationInfo(String key, String packageName, String title, String content, PendingIntent pendingIntent) {
             this(key, packageName, title, content, pendingIntent, null);
@@ -88,6 +101,10 @@ public class FloatingWindowService extends Service {
             this.content = content;
             this.pendingIntent = pendingIntent;
             this.mediaToken = mediaToken;
+            // 初始化进度字段
+            this.currentPosition = 0;
+            this.totalDuration = 0;
+            this.isSeekable = false;
         }
 
         // Public getters
@@ -98,6 +115,11 @@ public class FloatingWindowService extends Service {
         public PendingIntent getPendingIntent() { return pendingIntent; }
         public android.media.session.MediaSession.Token getMediaToken() { return mediaToken; }
 
+        // 新增：进度相关getter
+        public long getCurrentPosition() { return currentPosition; }
+        public long getTotalDuration() { return totalDuration; }
+        public boolean isSeekable() { return isSeekable; }
+
         // Public setters
         public void setKey(String key) { this.key = key; }
         public void setPackageName(String packageName) { this.packageName = packageName; }
@@ -105,6 +127,18 @@ public class FloatingWindowService extends Service {
         public void setContent(String content) { this.content = content; }
         public void setPendingIntent(PendingIntent pendingIntent) { this.pendingIntent = pendingIntent; }
         public void setMediaToken(android.media.session.MediaSession.Token mediaToken) { this.mediaToken = mediaToken; }
+
+        // 新增：进度相关setter
+        public void setCurrentPosition(long currentPosition) { this.currentPosition = currentPosition; }
+        public void setTotalDuration(long totalDuration) { this.totalDuration = totalDuration; }
+        public void setSeekable(boolean seekable) { this.isSeekable = seekable; }
+
+        // 新增：更新进度信息的便捷方法
+        public void updateProgress(long position, long duration, boolean canSeek) {
+            this.currentPosition = position;
+            this.totalDuration = duration;
+            this.isSeekable = canSeek;
+        }
     }
 
     private java.util.LinkedList<NotificationInfo> notificationQueue = new java.util.LinkedList<>();
@@ -122,6 +156,9 @@ public class FloatingWindowService extends Service {
 
     // 超大岛列表相对距离（可配置的，默认0dp）
     private int islandListDistance = 0;
+    
+    // 超大岛列表水平相对距离（可配置的，默认200，映射为0dp居中）
+    private int islandListHorizontalDistance = 200;
 
     @Override
     public void onCreate() {
@@ -297,8 +334,8 @@ public class FloatingWindowService extends Service {
 
         windowManager.addView(floatingView, params);
         
-        // 应用透明度设置
-        updateOpacity(opacity);
+        // 应用透明度设置（包括基础悬浮窗、三圆岛和标准岛）
+        updateOpacity();
     }
     
     public void updateFloatingWindow(int size, int x, int y) {
@@ -501,10 +538,16 @@ public class FloatingWindowService extends Service {
     }
 
     public void showNotificationIsland(String packageName, String title, String content) {
+        // 默认是手动展开（通过点击三圆岛或通知卡片触发）
+        showNotificationIsland(packageName, title, content, false);
+    }
+
+    public void showNotificationIsland(String packageName, String title, String content, boolean isAutoExpanded) {
         ensureWindowManager();
         
         // 确保状态复位
         isClosingIsland = false;
+        this.isAutoExpanded = isAutoExpanded;
 
         if (floatingIslandView == null) {
             createFloatingIsland();
@@ -675,9 +718,16 @@ public class FloatingWindowService extends Service {
      */
     public void hideNotificationIsland() {
         if (isClosingIsland) return;
+
+        // 取消可能的自动收起任务
+        if (collapseRunnable != null) {
+            collapseHandler.removeCallbacks(collapseRunnable);
+        }
         
         if (windowManager != null && floatingIslandView != null && floatingIslandView.getParent() != null) {
             isClosingIsland = true;
+            // 重置自动展开状态
+            isAutoExpanded = false;
             
             // 禁用点击事件，防止重复触发
             View islandRoot = floatingIslandView.findViewById(R.id.island_root);
@@ -784,6 +834,10 @@ public class FloatingWindowService extends Service {
 
         for (int i = 0; i < recyclerView.getChildCount(); i++) {
             View child = recyclerView.getChildAt(i);
+            // 找到内部的容器进行缩放
+            View container = child.findViewById(R.id.island_container);
+            if (container == null) continue;
+
             // 使用视觉位置 (Top + TranslationY) 计算中心点
             // 这样在 ItemAnimator 移动动画过程中也能获取正确的实时位置
             float childCenterY = child.getY() + child.getHeight() / 2f;
@@ -797,8 +851,8 @@ public class FloatingWindowService extends Service {
                 scale = 0.8f;
             }
 
-            child.setScaleX(scale);
-            child.setScaleY(scale);
+            container.setScaleX(scale);
+            container.setScaleY(scale);
         }
     }
 
@@ -818,7 +872,11 @@ public class FloatingWindowService extends Service {
         int size = manager.getFloatingSize();
         // 加载列表距离参数
         islandListDistance = manager.getIslandListDistance();
+        islandListHorizontalDistance = manager.getIslandListHorizontalDistance();
         int islandY = y + size + dpToPx(islandListDistance);
+        
+        // 计算水平偏移：将0-400的SeekBar值映射为-200到200dp
+        int horizontalOffset = islandListHorizontalDistance - 200;
 
         RecyclerView recyclerView = floatingIslandView.findViewById(R.id.notification_recycler_view);
         
@@ -946,32 +1004,25 @@ public class FloatingWindowService extends Service {
                 super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
                 
                 // 实现非线性动画效果：先快后慢
-                if (actionState == ItemTouchHelper.ACTION_STATE_SWIPE) {
-                    float width = (float) viewHolder.itemView.getWidth();
-                    float absDx = Math.abs(dX);
-                    float fraction = absDx / width;
-                    
-                    // 限制最大缩放和透明度变化
-                    // 使用 sin 函数实现先快后慢的效果 (0 -> 1 的过程变化率逐渐减小)
-                    float nonlinearFraction = (float) Math.sin(Math.min(1f, fraction) * Math.PI / 2);
-                    
-                    // 缩放效果：从1.0减小到0.9
-                    float scale = 1.0f - 0.1f * nonlinearFraction;
-                    scale = Math.max(0.9f, scale);
-                    
-                    // 透明度效果：从1.0减小到0.2
-                    float alpha = 1.0f - 0.8f * nonlinearFraction;
-                    alpha = Math.max(0.2f, alpha);
-                    
-                    viewHolder.itemView.setScaleX(scale);
-                    viewHolder.itemView.setScaleY(scale);
-                    viewHolder.itemView.setAlpha(alpha);
-                    
-                    // 必须调用 super 否则没有平移效果
-                    super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
-                } else {
-                    super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
-                }
+                float width = (float) viewHolder.itemView.getWidth();
+                float absDx = Math.abs(dX);
+                float fraction = absDx / width;
+
+                // 限制最大缩放和透明度变化
+                // 使用 sin 函数实现先快后慢的效果 (0 -> 1 的过程变化率逐渐减小)
+                float nonlinearFraction = (float) Math.sin(Math.min(1f, fraction) * Math.PI / 2);
+
+                // 缩放效果：从1.0减小到0.9
+                float scale = 1.0f - 0.1f * nonlinearFraction;
+                scale = Math.max(0.9f, scale);
+
+                // 透明度效果：从1.0减小到0.2
+                float alpha = 1.0f - 0.8f * nonlinearFraction;
+                alpha = Math.max(0.2f, alpha);
+
+                viewHolder.itemView.setScaleX(scale);
+                viewHolder.itemView.setScaleY(scale);
+                viewHolder.itemView.setAlpha(alpha);
             }
 
             @Override
@@ -989,12 +1040,69 @@ public class FloatingWindowService extends Service {
         containerParams.topMargin = islandY;
         containerParams.height = visibleHeight; // 设置 RecyclerView 高度
         recyclerView.setLayoutParams(containerParams);
-        recyclerView.setTranslationX(x);
+        // 应用水平偏移：基础位置x + 水平偏移量
+        recyclerView.setTranslationX(x + dpToPx(horizontalOffset));
         
-        // 5. 点击卡片以外的区域收起
+        // 5. 配置锚点 View (三圆岛点击区域)
+        View islandAnchor = floatingIslandView.findViewById(R.id.island_anchor);
+        if (islandAnchor != null) {
+            // 计算三圆岛的大小和位置
+            int circleSize = size - dpToPx(4);
+            int targetSpacerWidth = dpToPx(10);
+            int targetMargin = dpToPx(2);
+            // 宽度计算参考 createThreeCircleIsland
+            int totalWidth = 3 * circleSize + 6 * targetMargin + 2 * targetSpacerWidth + dpToPx(20);
+            
+            FrameLayout.LayoutParams anchorParams = (FrameLayout.LayoutParams) islandAnchor.getLayoutParams();
+            anchorParams.width = totalWidth;
+            anchorParams.height = size;
+            anchorParams.topMargin = y; // 与悬浮窗 Y 坐标一致
+            islandAnchor.setLayoutParams(anchorParams);
+
+            islandAnchor.setOnClickListener(v -> {
+                // 点击三圆岛区域，强制收起（无视自动展开限制）
+                hideNotificationIsland();
+            });
+        }
+
+        // 6. 点击卡片以外的区域收起
         // 将 Window 设置为全屏，并监听根布局点击事件
         View islandRoot = floatingIslandView.findViewById(R.id.island_root);
-        islandRoot.setOnClickListener(v -> hideNotificationIsland());
+        islandRoot.setOnClickListener(v -> {
+            // 1. 如果是手动展开的，点击外部总是允许收起（保持原有符合直觉的交互）
+            // 2. 如果是自动展开的，则受"自动展开后是否通过点击空白区域收起"开关控制
+            if (!isAutoExpanded || manager.isCollapseOnTouchOutside()) {
+                hideNotificationIsland();
+            }
+        });
+
+        // 7. 处理RecyclerView空白区域点击
+        // 即使点击了RecyclerView的非Item区域，也视为点击了外部
+        final GestureDetector recyclerViewGestureDetector = new GestureDetector(this, new SimpleOnGestureListener() {
+            @Override
+            public boolean onSingleTapUp(MotionEvent e) {
+                // 使用 findChildViewUnder 获取点击的子View
+                View child = recyclerView.findChildViewUnder(e.getX(), e.getY());
+                
+                // 如果没有点击到任何子View，说明是空白区域
+                if (child == null) {
+                    // 触发 islandRoot 的点击逻辑
+                    islandRoot.performClick();
+                    return true;
+                }
+                return false;
+            }
+        });
+
+        recyclerView.addOnItemTouchListener(new RecyclerView.SimpleOnItemTouchListener() {
+            @Override
+            public boolean onInterceptTouchEvent(@NonNull RecyclerView rv, @NonNull MotionEvent e) {
+                if (recyclerViewGestureDetector.onTouchEvent(e)) {
+                    return true;
+                }
+                return false;
+            }
+        });
         
         islandParams = new WindowManager.LayoutParams(
                 WindowManager.LayoutParams.MATCH_PARENT,
@@ -1015,6 +1123,11 @@ public class FloatingWindowService extends Service {
                 recyclerView.scrollBy(0, 0);
             }
         });
+        
+        // 应用超大岛透明度设置
+        int largeOpacity = manager.getLargeOpacity();
+        float largeAlpha = 1.0f - (largeOpacity / 100.0f);
+        floatingIslandView.setAlpha(largeAlpha);
     }
     
     /**
@@ -1027,6 +1140,57 @@ public class FloatingWindowService extends Service {
         if (notificationAdapter != null) {
             notificationAdapter.notifyDataSetChanged();
         }
+    }
+
+    /**
+     * 更新媒体通知的进度信息
+     * @param key 通知的key
+     * @param position 当前播放位置（毫秒）
+     * @param duration 总时长（毫秒）
+     * @param canSeek 是否支持seek
+     */
+    public void updateMediaProgress(String key, long position, long duration, boolean canSeek) {
+        new Handler(Looper.getMainLooper()).post(() -> {
+            // 查找对应的通知
+            for (int i = 0; i < notificationQueue.size(); i++) {
+                NotificationInfo info = notificationQueue.get(i);
+                if (info.getKey().equals(key)) {
+                    // 更新进度信息
+                    info.updateProgress(position, duration, canSeek);
+
+                    // 如果正在显示，更新UI
+                    if (floatingIslandView != null && floatingIslandView.getParent() != null && notificationAdapter != null) {
+                        // 只更新对应的位置，避免整个列表刷新
+                        if (i == 0) {
+                            // 如果是第一个（当前显示的），直接更新ViewHolder
+                            RecyclerView recyclerView = floatingIslandView.findViewById(R.id.notification_recycler_view);
+                            if (recyclerView != null) {
+                                RecyclerView.ViewHolder holder = recyclerView.findViewHolderForAdapterPosition(0);
+                                if (holder instanceof NotificationAdapter.ViewHolder) {
+                                    NotificationAdapter.ViewHolder viewHolder = (NotificationAdapter.ViewHolder) holder;
+                                    // 更新ViewHolder中的进度显示
+                                    if (viewHolder.mediaProgress != null && duration > 0) {
+                                        int progress = (int) ((position * 100) / duration);
+                                        viewHolder.mediaProgress.setProgress(progress);
+                                        viewHolder.currentPosition = position;
+                                        viewHolder.totalDuration = duration;
+                                        viewHolder.updateCurrentTimeDisplay();
+                                        viewHolder.updateTotalTimeDisplay();
+                                    }
+                                } else {
+                                    // 如果找不到ViewHolder，通知adapter刷新
+                                    notificationAdapter.notifyItemChanged(0);
+                                }
+                            }
+                        } else {
+                            // 非当前显示的通知，标记为需要更新
+                            notificationAdapter.notifyItemChanged(i);
+                        }
+                    }
+                    break;
+                }
+            }
+        });
     }
 
     public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapter.ViewHolder> {
@@ -1066,9 +1230,47 @@ public class FloatingWindowService extends Service {
             // 如果没有 token，bindMediaController 可能直接返回了，需要在这里确保图标被设置
             if (info.mediaToken == null) {
                 updateIcon(holder.icon, null, info.packageName);
+                // 隐藏进度条容器
+                if (holder.mediaProgressContainer != null) {
+                    holder.mediaProgressContainer.setVisibility(View.GONE);
+                }
+            } else {
+                // 同步进度信息到ViewHolder
+                holder.currentPosition = info.getCurrentPosition();
+                holder.totalDuration = info.getTotalDuration();
+
+                // 如果ViewHolder中有进度条，更新显示
+                if (holder.mediaProgress != null && holder.totalDuration > 0) {
+                    holder.mediaProgress.setMax(100);
+                    int progress = (int) ((holder.currentPosition * 100) / holder.totalDuration);
+                    holder.mediaProgress.setProgress(progress);
+                    holder.updateCurrentTimeDisplay();
+                    holder.updateTotalTimeDisplay();
+                }
             }
 
+            // 处理根布局的点击（卡片间的空隙，因为container被缩放了）
+            holder.itemView.setOnClickListener(v -> {
+                // 点击了卡片视觉外部（但由于View本身是满的，所以被ItemView捕获），执行收起逻辑
+                if (!isAutoExpanded || manager.isCollapseOnTouchOutside()) {
+                    hideNotificationIsland();
+                }
+            });
+
+            // 处理根布局的点击（卡片间的空隙，因为container被缩放了）
+            holder.itemView.setOnClickListener(v -> {
+                // 点击了卡片视觉外部（但由于View本身是满的，所以被ItemView捕获），执行收起逻辑
+                if (!isAutoExpanded || manager.isCollapseOnTouchOutside()) {
+                    hideNotificationIsland();
+                }
+            });
+
             holder.container.setOnTouchListener((v, event) -> {
+                // 如果正在拖拽进度条，不处理卡片的触摸事件
+                if (holder.mediaProgress != null && holder.mediaProgress.isDragging()) {
+                    return false; // 让进度条处理触摸事件
+                }
+
                 switch (event.getAction()) {
                     case MotionEvent.ACTION_DOWN:
                         v.animate().scaleX(0.95f).scaleY(0.95f).setDuration(getScaledDuration(100)).start();
@@ -1085,6 +1287,11 @@ public class FloatingWindowService extends Service {
             });
 
             holder.container.setOnClickListener(v -> {
+                // 如果正在拖拽进度条，不响应卡片点击
+                if (holder.mediaProgress != null && holder.mediaProgress.isDragging()) {
+                    return;
+                }
+
                 // 条件：总过滤开启 + 包名过滤开启 + 是本地模型
                 if (manager.isModelFilteringEnabled() && isModelFilterEnabled(info.packageName) && manager.getFilterModel().equals("model_local")) {
                     // 正向反馈到本地模型 - 使用新的分离接口，参数true表示正向
@@ -1130,6 +1337,14 @@ public class FloatingWindowService extends Service {
             return notificationQueue.size();
         }
 
+        @Override
+        public void onViewRecycled(@NonNull ViewHolder holder) {
+            super.onViewRecycled(holder);
+
+            // 调用ViewHolder的清理方法
+            holder.cleanup();
+        }
+
         class ViewHolder extends RecyclerView.ViewHolder {
             View container;
             ImageView icon;
@@ -1143,6 +1358,19 @@ public class FloatingWindowService extends Service {
             android.media.session.MediaController.Callback mediaCallback;
             String currentPackageName;
 
+            // 新增：媒体进度相关组件
+            cn.pylin.xycjd.ui.view.MediaSeekBar mediaProgress;
+            TextView tvCurrentTime;
+            TextView tvTotalTime;
+            LinearLayout mediaProgressContainer;
+
+            // 新增：进度状态管理
+            private long currentPosition = 0;
+            private long totalDuration = 0;
+            private boolean isUserSeeking = false;
+            private boolean isPlaying = false;
+            private long updateToken = 0; // 用于识别过期的更新任务
+
             ViewHolder(View itemView) {
                 super(itemView);
                 container = itemView.findViewById(R.id.island_container);
@@ -1153,6 +1381,12 @@ public class FloatingWindowService extends Service {
                 btnPrev = itemView.findViewById(R.id.btn_prev);
                 btnPlay = itemView.findViewById(R.id.btn_play);
                 btnNext = itemView.findViewById(R.id.btn_next);
+
+                // 新增：绑定进度条组件
+                mediaProgress = itemView.findViewById(R.id.media_progress);
+                tvCurrentTime = itemView.findViewById(R.id.tv_current_time);
+                tvTotalTime = itemView.findViewById(R.id.tv_total_time);
+                mediaProgressContainer = itemView.findViewById(R.id.media_progress_container);
             }
 
             void bindMediaController(android.media.session.MediaSession.Token token) {
@@ -1160,20 +1394,41 @@ public class FloatingWindowService extends Service {
                 if (mediaController != null && mediaCallback != null) {
                     mediaController.unregisterCallback(mediaCallback);
                 }
-                
+
+                // 停止进度更新
+                stopProgressUpdates();
+
                 if (token == null) {
                     mediaControls.setVisibility(View.GONE);
+                    mediaProgressContainer.setVisibility(View.GONE);
                     mediaController = null;
                     return;
                 }
 
                 mediaControls.setVisibility(View.VISIBLE);
+                mediaProgressContainer.setVisibility(View.VISIBLE);
                 content.setMaxLines(1); // 媒体通知限制为1行
                 mediaController = new android.media.session.MediaController(FloatingWindowService.this, token);
-                
+
+                // 获取初始元数据以设置时长
+                android.media.MediaMetadata metadata = mediaController.getMetadata();
+                if (metadata != null) {
+                    totalDuration = metadata.getLong(android.media.MediaMetadata.METADATA_KEY_DURATION);
+                    if (totalDuration > 0) {
+                        updateTotalTimeDisplay();
+                        mediaProgress.setMax(100); // 使用0-100的进度范围
+                    } else {
+                        // 无固定时长（如直播），隐藏进度条
+                        mediaProgressContainer.setVisibility(View.GONE);
+                    }
+                }
+
                 // 设置初始状态
                 updateMediaState(mediaController.getPlaybackState());
-                updateMediaMetadata(mediaController.getMetadata());
+                updateMediaMetadata(metadata);
+
+                // 设置进度条监听器
+                setupSeekBarListener();
 
                 mediaCallback = new android.media.session.MediaController.Callback() {
                     @Override
@@ -1191,6 +1446,8 @@ public class FloatingWindowService extends Service {
                     public void onSessionDestroyed() {
                         new Handler(Looper.getMainLooper()).post(() -> {
                             mediaControls.setVisibility(View.GONE);
+                            mediaProgressContainer.setVisibility(View.GONE);
+                            stopProgressUpdates();
                         });
                     }
                 };
@@ -1225,14 +1482,153 @@ public class FloatingWindowService extends Service {
 
             private void updateMediaState(android.media.session.PlaybackState state) {
                 if (state == null) return;
-                
-                boolean isPlaying = state.getState() == android.media.session.PlaybackState.STATE_PLAYING;
+
+                isPlaying = state.getState() == android.media.session.PlaybackState.STATE_PLAYING;
                 btnPlay.setImageResource(isPlaying ? R.drawable.ic_media_pause : R.drawable.ic_media_play);
+
+                // 新增：更新进度信息
+                if (!isUserSeeking) {
+                    currentPosition = state.getPosition();
+                    // 检查是否支持seek
+                    boolean canSeek = (state.getActions() & android.media.session.PlaybackState.ACTION_SEEK_TO) != 0;
+                    if (mediaProgress != null) {
+                        mediaProgress.setEnabled(canSeek);
+                    }
+
+                    updateProgressDisplay();
+
+                    // 处理进度更新
+                    if (isPlaying) {
+                        startProgressUpdates();
+                    } else {
+                        stopProgressUpdates();
+                    }
+                }
             }
 
             private void updateMediaMetadata(android.media.MediaMetadata metadata) {
                 // 使用外部通用方法更新图标
                 updateIcon(icon, metadata, currentPackageName);
+
+                // 新增：更新时长信息
+                if (metadata != null) {
+                    totalDuration = metadata.getLong(android.media.MediaMetadata.METADATA_KEY_DURATION);
+                    if (totalDuration > 0) {
+                        updateTotalTimeDisplay();
+                        if (mediaProgress != null) {
+                            mediaProgress.setMax(100);
+                            mediaProgressContainer.setVisibility(View.VISIBLE);
+                        }
+                    } else {
+                        // 无固定时长（如直播），隐藏进度条
+                        if (mediaProgressContainer != null) {
+                            mediaProgressContainer.setVisibility(View.GONE);
+                        }
+                    }
+                }
+            }
+
+            // 新增：设置进度条监听器
+            private void setupSeekBarListener() {
+                if (mediaProgress == null) return;
+
+                mediaProgress.setOnSeekBarChangeListener(new android.widget.SeekBar.OnSeekBarChangeListener() {
+                    @Override
+                    public void onProgressChanged(android.widget.SeekBar seekBar, int progress, boolean fromUser) {
+                        if (fromUser && mediaController != null && totalDuration > 0) {
+                            // 计算seek位置（毫秒）
+                            long seekPosition = (long) (totalDuration * progress / 100.0);
+                            mediaController.getTransportControls().seekTo(seekPosition);
+                        }
+                    }
+
+                    @Override
+                    public void onStartTrackingTouch(android.widget.SeekBar seekBar) {
+                        isUserSeeking = true;
+                        // 拖拽时停止自动更新
+                        stopProgressUpdates();
+                    }
+
+                    @Override
+                    public void onStopTrackingTouch(android.widget.SeekBar seekBar) {
+                        isUserSeeking = false;
+                        // 拖拽结束后，如果是播放状态，恢复自动更新
+                        if (isPlaying) {
+                            startProgressUpdates();
+                        }
+                    }
+                });
+            }
+
+            // 新增：开始进度更新
+            private void startProgressUpdates() {
+                stopProgressUpdates(); // 清除任何现有的更新任务
+                updateToken++; // 增加token使旧任务失效
+                final long currentToken = updateToken;
+
+                new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> {
+                    // 检查是否已过期
+                    if (currentToken != updateToken) return;
+
+                    if (mediaController != null && !isUserSeeking && isPlaying) {
+                        android.media.session.PlaybackState state = mediaController.getPlaybackState();
+                        if (state != null) {
+                            currentPosition = state.getPosition();
+                            updateProgressDisplay();
+
+                            // 如果仍在播放，继续下一次更新
+                            if (state.getState() == android.media.session.PlaybackState.STATE_PLAYING) {
+                                startProgressUpdates();
+                            }
+                        }
+                    }
+                }, 1000); // 1秒后更新
+            }
+
+            // 新增：停止进度更新
+            private void stopProgressUpdates() {
+                updateToken++; // 使所有待处理的更新任务失效
+            }
+
+            // 新增：更新进度显示
+            private void updateProgressDisplay() {
+                if (mediaProgress != null && totalDuration > 0) {
+                    int progress = (int) ((currentPosition * 100) / totalDuration);
+                    mediaProgress.setProgress(progress);
+                }
+                updateCurrentTimeDisplay();
+            }
+
+            // 新增：更新当前时间显示
+            private void updateCurrentTimeDisplay() {
+                if (tvCurrentTime != null) {
+                    tvCurrentTime.setText(formatTime(currentPosition));
+                }
+            }
+
+            // 新增：更新总时长显示
+            private void updateTotalTimeDisplay() {
+                if (tvTotalTime != null) {
+                    tvTotalTime.setText(formatTime(totalDuration));
+                }
+            }
+
+            // 新增：格式化时间显示
+            private String formatTime(long milliseconds) {
+                long seconds = milliseconds / 1000;
+                long minutes = seconds / 60;
+                seconds = seconds % 60;
+                return String.format("%d:%02d", minutes, seconds);
+            }
+
+            // 新增：清理资源方法
+            public void cleanup() {
+                stopProgressUpdates();
+                if (mediaController != null && mediaCallback != null) {
+                    mediaController.unregisterCallback(mediaCallback);
+                }
+                mediaController = null;
+                mediaCallback = null;
             }
         }
     }
@@ -1273,54 +1669,119 @@ public class FloatingWindowService extends Service {
         }
     }
 
-    public void performThreeCircleClick() {
-        if (notificationQueue.isEmpty()) return;
-        NotificationInfo info = notificationQueue.getFirst();
-        showNotificationIsland(info.packageName, info.title, info.content);
-    }
+public void performThreeCircleClick() {
+    // 默认是手动点击
+    performThreeCircleClick(false);
+}
+
+public void performThreeCircleClick(boolean isAuto) {
+    if (notificationQueue.isEmpty()) return;
+    NotificationInfo info = notificationQueue.getFirst();
+    showNotificationIsland(info.packageName, info.title, info.content, isAuto);
+}
     
     /**
      * 更新超大岛列表相对距离
-     * @param distance 新的距离值（dp）
+     * @param verticalDistance 垂直距离值（dp）
+     * @param horizontalDistance 水平距离值（映射后的实际值，0-400映射为-200到200）
      */
-    public void updateIslandListDistance(int distance) {
+    public void updateIslandListDistance(int verticalDistance, int horizontalDistance) {
         // 检测距离是否发生变化
-        boolean distanceChanged = (distance != islandListDistance);
+        boolean distanceChanged = (verticalDistance != islandListDistance) || (horizontalDistance != islandListHorizontalDistance);
         
         if (!distanceChanged) {
             return;
         }
         
         // 更新内部变量
-        islandListDistance = distance;
+        islandListDistance = verticalDistance;
+        islandListHorizontalDistance = horizontalDistance;
         
         // 使用管理器保存配置
-        manager.setIslandListDistance(distance);
+        manager.setIslandListDistance(verticalDistance);
+        manager.setIslandListHorizontalDistance(horizontalDistance);
         
         // 如果标准岛正在显示，应用特殊处理逻辑
         if (floatingIslandView != null && floatingIslandView.getParent() != null || floatingThreeCircleView != null && floatingThreeCircleView.getParent() != null) {
-            handleIslandListDistanceChange(distance);
+            handleIslandListDistanceChange(verticalDistance, horizontalDistance);
         }
     }
     
     /**
      * 更新悬浮窗透明度
-     * @param opacity 透明度值（0-100%，0表示不透明，100表示完全透明）
+     * 从管理器读取所有透明度设置并应用到对应的悬浮窗层级
      */
-    public void updateOpacity(int opacity) {
-        // 如果基础悬浮窗存在，更新其透明度
+    public void updateOpacity() {
+        // 如果基础悬浮窗存在，更新其透明度（超小岛）
         if (floatingView != null && params != null) {
-            // 将0-100的透明度转换为0.0-1.0的alpha值
+            int opacity = manager.getOpacity();
             float alpha = 1.0f - (opacity / 100.0f);
             floatingView.setAlpha(alpha);
+        }
+        
+        // 如果三圆岛存在，更新其透明度（超中岛）
+        if (floatingThreeCircleView != null) {
+            int mediumOpacity = manager.getMediumOpacity();
+            float mediumAlpha = 1.0f - (mediumOpacity / 100.0f);
+            floatingThreeCircleView.setAlpha(mediumAlpha);
+        }
+        
+        // 如果标准岛存在，更新其透明度（超大岛）
+        if (floatingIslandView != null) {
+            int largeOpacity = manager.getLargeOpacity();
+            float largeAlpha = 1.0f - (largeOpacity / 100.0f);
+            floatingIslandView.setAlpha(largeAlpha);
         }
     }
     
     /**
-     * 处理岛屿列表距离变化的特殊逻辑
-     * @param newDistance 新的距离值（dp）
+     * 更新指定悬浮窗层级的透明度
+     * @param level 1=基础悬浮窗(超小岛), 2=三圆岛(超中岛), 3=标准岛(超大岛)
      */
-    private void handleIslandListDistanceChange(int newDistance) {
+    /**
+     * 调度自动收起
+     * @param delayMillis 延迟时间（毫秒）
+     */
+    public void scheduleAutoCollapse(long delayMillis) {
+        if (collapseRunnable != null) {
+            collapseHandler.removeCallbacks(collapseRunnable);
+        }
+        collapseRunnable = this::hideNotificationIsland;
+        collapseHandler.postDelayed(collapseRunnable, delayMillis);
+    }
+
+    public void updateOpacity(int level) {
+        switch (level) {
+            case 1: // 基础悬浮窗（超小岛）
+                if (floatingView != null && params != null) {
+                    int opacity = manager.getOpacity();
+                    float alpha = 1.0f - (opacity / 100.0f);
+                    floatingView.setAlpha(alpha);
+                }
+                break;
+            case 2: // 三圆岛（超中岛）
+                if (floatingThreeCircleView != null) {
+                    int mediumOpacity = manager.getMediumOpacity();
+                    float mediumAlpha = 1.0f - (mediumOpacity / 100.0f);
+                    floatingThreeCircleView.setAlpha(mediumAlpha);
+                }
+                break;
+            case 3: // 标准岛（超大岛）
+                if (floatingIslandView != null) {
+                    int largeOpacity = manager.getLargeOpacity();
+                    float largeAlpha = 1.0f - (largeOpacity / 100.0f);
+                    floatingIslandView.setAlpha(largeAlpha);
+                }
+                break;
+        }
+    }
+
+    /**
+     * 处理岛屿列表距离变化的特殊逻辑
+     * @param verticalDistance 垂直距离值（dp）
+     * @param horizontalDistance 水平距离值（映射后的实际值，0-400映射为-200到200）
+     */
+    private void handleIslandListDistanceChange(int verticalDistance, int horizontalDistance) {
         // 设置调整状态（与位置调节共用）
         isPositionAdjusting = true;
         
@@ -1353,10 +1814,12 @@ public class FloatingWindowService extends Service {
                     // 延迟300ms后展开标准岛
                     adjustmentHandler.postDelayed(() -> {
                         if (!notificationQueue.isEmpty()) {
+                            // 这里是用户调整设置导致的展开，视为手动展开（不应该受自动收起逻辑限制）
                             showNotificationIsland(
                                 notificationQueue.getFirst().packageName,
                                 notificationQueue.getFirst().title,
-                                notificationQueue.getFirst().content
+                                notificationQueue.getFirst().content,
+                                false
                             );
                         }
                     }, 300);
@@ -1411,28 +1874,48 @@ public class FloatingWindowService extends Service {
         NotificationInfo info = notificationQueue.getFirst();
         String packageName = info.packageName;
         
-        // 获取应用图标 View
         CircleImageView appIcon = floatingThreeCircleView.findViewById(R.id.circle_app_icon);
         
-        // 获取媒体元数据（如果有）
         android.media.MediaMetadata metadata = null;
+        android.media.session.PlaybackState playbackState = null;
         if (info.mediaToken != null) {
             try {
                 android.media.session.MediaController controller = new android.media.session.MediaController(this, info.mediaToken);
                 metadata = controller.getMetadata();
+                playbackState = controller.getPlaybackState();
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
         
-        // 更新图标
         updateIcon(appIcon, metadata, packageName);
         
-        // 更新数量
         TextView countText = floatingThreeCircleView.findViewById(R.id.circle_black2);
-        if (countText != null) {
-            int count = notificationQueue.size();
-            countText.setText(count > 9 ? getString(R.string.text_9_plus) : String.valueOf(count));
+        cn.pylin.xycjd.ui.view.AudioVisualizerView audioVisualizer = floatingThreeCircleView.findViewById(R.id.audio_visualizer);
+        
+        if (info.mediaToken != null) {
+            if (countText != null) {
+                countText.setVisibility(View.GONE);
+            }
+            if (audioVisualizer != null) {
+                audioVisualizer.setVisibility(View.VISIBLE);
+                boolean isPlaying = playbackState != null && playbackState.getState() == android.media.session.PlaybackState.STATE_PLAYING;
+                if (isPlaying) {
+                    audioVisualizer.startAnimation();
+                } else {
+                    audioVisualizer.setPausedState();
+                }
+            }
+        } else {
+            if (countText != null) {
+                countText.setVisibility(View.VISIBLE);
+                int count = notificationQueue.size();
+                countText.setText(count > 9 ? getString(R.string.text_9_plus) : String.valueOf(count));
+            }
+            if (audioVisualizer != null) {
+                audioVisualizer.stopAnimation();
+                audioVisualizer.setVisibility(View.GONE);
+            }
         }
     }
 
@@ -1472,7 +1955,7 @@ public class FloatingWindowService extends Service {
 
         final View background = floatingThreeCircleView.findViewById(R.id.island_background);
         final View circle1 = floatingThreeCircleView.findViewById(R.id.circle_app_icon);
-        final View circle3 = floatingThreeCircleView.findViewById(R.id.circle_black2);
+        final View circle3Container = floatingThreeCircleView.findViewById(R.id.circle_black2_container);
 
         // 倒放：从1f到0f
         ValueAnimator animator = ValueAnimator.ofFloat(1f, 0f);
@@ -1493,12 +1976,12 @@ public class FloatingWindowService extends Service {
             // Circle 1 (Left) moves back to center
             circle1.setTranslationX(-currentOffset);
             
-            // Circle 3 (Right) moves back to center
-            circle3.setTranslationX(currentOffset);
+            // Circle 3 Container (Right) moves back to center
+            circle3Container.setTranslationX(currentOffset);
             
             // 3. 非线性渐隐
             circle1.setAlpha(fraction);
-            circle3.setAlpha(fraction);
+            circle3Container.setAlpha(fraction);
         });
         
         animator.addListener(new android.animation.AnimatorListenerAdapter() {
@@ -1511,6 +1994,38 @@ public class FloatingWindowService extends Service {
         });
         
         animator.start();
+    }
+    
+    /**
+     * 清空所有通知
+     */
+    private void clearAllNotifications() {
+        if (notificationQueue.isEmpty()) return;
+        
+        // 从系统通知栏移除所有通知
+        AppNotificationListenerService listenerService = AppNotificationListenerService.getInstance();
+        if (listenerService != null) {
+            // 遍历所有通知并从系统通知栏移除
+            for (NotificationInfo info : notificationQueue) {
+                try {
+                    listenerService.cancelNotification(info.key);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        
+        // 清空通知队列
+        notificationQueue.clear();
+        
+        // 隐藏所有悬浮岛
+        hideNotificationIsland();
+        hideThreeCircleIsland();
+        
+        // 重置状态
+        lastNotificationPackageName = null;
+        lastNotificationTitle = null;
+        lastNotificationContent = null;
     }
 
     /**
@@ -1537,7 +2052,8 @@ public class FloatingWindowService extends Service {
         // 动态设置圆形大小
         CircleImageView appIcon = floatingThreeCircleView.findViewById(R.id.circle_app_icon);
         View blackCircle = floatingThreeCircleView.findViewById(R.id.circle_black);
-        View blackCircle2 = floatingThreeCircleView.findViewById(R.id.circle_black2);
+        View blackCircle2Container = floatingThreeCircleView.findViewById(R.id.circle_black2_container);
+        TextView blackCircle2 = floatingThreeCircleView.findViewById(R.id.circle_black2);
 
         // 设置圆形大小
         FrameLayout.LayoutParams layoutParams = (FrameLayout.LayoutParams) appIcon.getLayoutParams();
@@ -1550,10 +2066,17 @@ public class FloatingWindowService extends Service {
         blackLayoutParams.height = circleSize;
         blackCircle.setLayoutParams(blackLayoutParams);
 
-        FrameLayout.LayoutParams blackLayoutParams2 = (FrameLayout.LayoutParams) blackCircle2.getLayoutParams();
-        blackLayoutParams2.width = circleSize;
-        blackLayoutParams2.height = circleSize;
-        blackCircle2.setLayoutParams(blackLayoutParams2);
+        // 设置父容器大小
+        FrameLayout.LayoutParams containerLayoutParams = (FrameLayout.LayoutParams) blackCircle2Container.getLayoutParams();
+        containerLayoutParams.width = circleSize;
+        containerLayoutParams.height = circleSize;
+        blackCircle2Container.setLayoutParams(containerLayoutParams);
+
+        // 动态设置第三个圆圈的字体大小，使其随圆圈大小缩放
+        float textSize = circleSize * 0.15f;
+        if (blackCircle2 != null) {
+            blackCircle2.setTextSize(textSize);
+        }
 
         // 初始化背景大小
         ViewGroup.LayoutParams bgParams = background.getLayoutParams();
@@ -1587,6 +2110,41 @@ public class FloatingWindowService extends Service {
                 showNotificationIsland(info.packageName, info.title, info.content);
             }
         });
+        
+        // 应用超中岛透明度设置
+        int mediumOpacity = manager.getMediumOpacity();
+        float mediumAlpha = 1.0f - (mediumOpacity / 100.0f);
+        floatingThreeCircleView.setAlpha(mediumAlpha);
+        
+        // 设置手势检测器，用于左滑或右滑清空所有通知
+        threeCircleGestureDetector = new GestureDetector(this, new SimpleOnGestureListener() {
+            @Override
+            public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
+                // 检测水平滑动，速度阈值和距离阈值
+                float minVelocity = 800;
+                float minDistance = 160;
+                
+                float dx = e2.getX() - e1.getX();
+                float dy = e2.getY() - e1.getY();
+                
+                // 确保是水平滑动，且距离和速度都达到阈值
+                if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > minDistance && Math.abs(velocityX) > minVelocity) {
+                    // 左滑或右滑都清空所有通知
+                    clearAllNotifications();
+                    return true;
+                }
+                return false;
+            }
+        });
+        
+        // 设置触摸监听器
+        floatingThreeCircleView.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                threeCircleGestureDetector.onTouchEvent(event);
+                return false; // 返回false以允许点击事件继续传递
+            }
+        });
     }
 
     /**
@@ -1601,7 +2159,7 @@ public class FloatingWindowService extends Service {
 
         final View background = floatingThreeCircleView.findViewById(R.id.island_background);
         final View circle1 = floatingThreeCircleView.findViewById(R.id.circle_app_icon);
-        final View circle3 = floatingThreeCircleView.findViewById(R.id.circle_black2);
+        final View circle3Container = floatingThreeCircleView.findViewById(R.id.circle_black2_container);
 
         // 1. 设置背景初始宽度
         ViewGroup.LayoutParams bgParams = background.getLayoutParams();
@@ -1612,8 +2170,8 @@ public class FloatingWindowService extends Service {
         circle1.setTranslationX(0);
         circle1.setAlpha(0f);
         
-        circle3.setTranslationX(0);
-        circle3.setAlpha(0f);
+        circle3Container.setTranslationX(0);
+        circle3Container.setAlpha(0f);
     }
 
     /**
@@ -1634,7 +2192,7 @@ public class FloatingWindowService extends Service {
 
         final View background = floatingThreeCircleView.findViewById(R.id.island_background);
         final View circle1 = floatingThreeCircleView.findViewById(R.id.circle_app_icon);
-        final View circle3 = floatingThreeCircleView.findViewById(R.id.circle_black2);
+        final View circle3Container = floatingThreeCircleView.findViewById(R.id.circle_black2_container);
 
         ValueAnimator animator = ValueAnimator.ofFloat(0f, 1f);
         animator.setDuration(getScaledDuration(600));
@@ -1654,12 +2212,12 @@ public class FloatingWindowService extends Service {
             // Circle 1 (Left) moves left (negative X)
             circle1.setTranslationX(-currentOffset);
             
-            // Circle 3 (Right) moves right (positive X)
-            circle3.setTranslationX(currentOffset);
+            // Circle 3 Container (Right) moves right (positive X)
+            circle3Container.setTranslationX(currentOffset);
             
             // 3. 非线性渐显 (使用 DecelerateInterpolator 自身的曲线)
             circle1.setAlpha(fraction);
-            circle3.setAlpha(fraction);
+            circle3Container.setAlpha(fraction);
         });
         animator.start();
     }

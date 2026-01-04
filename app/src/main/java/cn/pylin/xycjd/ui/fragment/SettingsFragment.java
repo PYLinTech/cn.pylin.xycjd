@@ -147,6 +147,16 @@ public class SettingsFragment extends Fragment {
     private SeekBar seekBarOpacity;
     private ImageButton btnOpacityDecrease;
     private ImageButton btnOpacityIncrease;
+    // 超中岛透明度控件
+    private TextView tvMediumOpacityValue;
+    private SeekBar seekBarMediumOpacity;
+    private ImageButton btnMediumOpacityDecrease;
+    private ImageButton btnMediumOpacityIncrease;
+    // 超大岛透明度控件
+    private TextView tvLargeOpacityValue;
+    private SeekBar seekBarLargeOpacity;
+    private ImageButton btnLargeOpacityDecrease;
+    private ImageButton btnLargeOpacityIncrease;
     private TextView tvCornerRadius1Value;
     private TextView tvCornerRadius2Value;
     private TextView tvCornerRadius3Value;
@@ -160,12 +170,28 @@ public class SettingsFragment extends Fragment {
     private ImageButton btnCornerRadius3Decrease;
     private ImageButton btnCornerRadius3Increase;
     private Button btnResetSuperIslandCorners;
+    private Button btnResetOpacity;
     
     // 悬浮窗相关控件 - 超大岛列表相对距离
     private TextView tvListDistanceValue;
     private SeekBar seekBarListDistance;
     private ImageButton btnListDistanceDecrease;
     private ImageButton btnListDistanceIncrease;
+    
+    // 悬浮窗相关控件 - 超大岛列表水平相对距离
+    private TextView tvListHorizontalDistanceValue;
+    private SeekBar seekBarListHorizontalDistance;
+    private ImageButton btnListHorizontalDistanceDecrease;
+    private ImageButton btnListHorizontalDistanceIncrease;
+
+    // 超大岛交互配置控件
+    private androidx.appcompat.widget.SwitchCompat switchAutoCollapse;
+    private LinearLayout layoutAutoCollapseDuration;
+    private TextView tvAutoCollapseDurationValue;
+    private SeekBar seekBarAutoCollapseDuration;
+    private ImageButton btnAutoCollapseDecrease;
+    private ImageButton btnAutoCollapseIncrease;
+    private androidx.appcompat.widget.SwitchCompat switchCollapseOnTouchOutside;
     
     // 透明度相关常量
     private static final String PREF_OPACITY = "pref_opacity";
@@ -247,6 +273,9 @@ public class SettingsFragment extends Fragment {
 
         // 设置超大岛列表相对距离初始值
         setupListDistanceControls();
+
+        // 设置超大岛交互配置
+        setupInteractionConfigControls();
 
         return view;
     }
@@ -358,6 +387,16 @@ public class SettingsFragment extends Fragment {
         seekBarOpacity = view.findViewById(R.id.seekbar_opacity);
         btnOpacityDecrease = view.findViewById(R.id.btn_opacity_decrease);
         btnOpacityIncrease = view.findViewById(R.id.btn_opacity_increase);
+        // 初始化超中岛透明度控件
+        tvMediumOpacityValue = view.findViewById(R.id.tv_medium_opacity_value);
+        seekBarMediumOpacity = view.findViewById(R.id.seekbar_medium_opacity);
+        btnMediumOpacityDecrease = view.findViewById(R.id.btn_medium_opacity_decrease);
+        btnMediumOpacityIncrease = view.findViewById(R.id.btn_medium_opacity_increase);
+        // 初始化超大岛透明度控件
+        tvLargeOpacityValue = view.findViewById(R.id.tv_large_opacity_value);
+        seekBarLargeOpacity = view.findViewById(R.id.seekbar_large_opacity);
+        btnLargeOpacityDecrease = view.findViewById(R.id.btn_large_opacity_decrease);
+        btnLargeOpacityIncrease = view.findViewById(R.id.btn_large_opacity_increase);
         tvCornerRadius1Value = view.findViewById(R.id.tv_corner_radius_1_value);
         tvCornerRadius2Value = view.findViewById(R.id.tv_corner_radius_2_value);
         tvCornerRadius3Value = view.findViewById(R.id.tv_corner_radius_3_value);
@@ -371,13 +410,28 @@ public class SettingsFragment extends Fragment {
         btnCornerRadius3Decrease = view.findViewById(R.id.btn_corner_radius_3_decrease);
         btnCornerRadius3Increase = view.findViewById(R.id.btn_corner_radius_3_increase);
         btnResetSuperIslandCorners = view.findViewById(R.id.btn_reset_super_island_corners);
+        btnResetOpacity = view.findViewById(R.id.btn_reset_opacity);
         
         // 初始化超大岛列表相对距离相关控件
         tvListDistanceValue = view.findViewById(R.id.tv_list_distance_value);
         seekBarListDistance = view.findViewById(R.id.seekbar_list_distance);
         btnListDistanceDecrease = view.findViewById(R.id.btn_list_distance_decrease);
         btnListDistanceIncrease = view.findViewById(R.id.btn_list_distance_increase);
+        
+        // 初始化超大岛列表水平相对距离相关控件
+        tvListHorizontalDistanceValue = view.findViewById(R.id.tv_list_horizontal_distance_value);
+        seekBarListHorizontalDistance = view.findViewById(R.id.seekbar_list_horizontal_distance);
+        btnListHorizontalDistanceDecrease = view.findViewById(R.id.btn_list_horizontal_distance_decrease);
+        btnListHorizontalDistanceIncrease = view.findViewById(R.id.btn_list_horizontal_distance_increase);
 
+        // 初始化超大岛交互配置控件
+        switchAutoCollapse = view.findViewById(R.id.switch_auto_collapse);
+        layoutAutoCollapseDuration = view.findViewById(R.id.layout_auto_collapse_duration);
+        tvAutoCollapseDurationValue = view.findViewById(R.id.tv_auto_collapse_duration_value);
+        seekBarAutoCollapseDuration = view.findViewById(R.id.seekbar_auto_collapse_duration);
+        btnAutoCollapseDecrease = view.findViewById(R.id.btn_auto_collapse_decrease);
+        btnAutoCollapseIncrease = view.findViewById(R.id.btn_auto_collapse_increase);
+        switchCollapseOnTouchOutside = view.findViewById(R.id.switch_collapse_on_touch_outside);
     }
 
     private void setLanguageSelection() {
@@ -527,16 +581,20 @@ public class SettingsFragment extends Fragment {
             seekBarSize.setProgress(100); // 默认大小
             seekBarX.setProgress(500); // 默认水平位置(0)
             seekBarY.setProgress(100); // 默认垂直位置(-100)
-            seekBarListDistance.setProgress(0); // 默认列表距离0dp
+            seekBarListDistance.setProgress(0); // 默认列表垂直距离0dp
+            seekBarListHorizontalDistance.setProgress(200); // 默认列表水平距离200（映射为0dp居中）
             
             // 更新显示值
             tvSizeValue.setText(getString(R.string.default_size));
             tvXValue.setText(getString(R.string.default_x));
             tvYValue.setText(getString(R.string.default_y));
             tvListDistanceValue.setText(getString(R.string.value_dp, 0));
+            tvListHorizontalDistanceValue.setText(getString(R.string.value_dp, 0));
             
-            // 保存列表距离到SharedPreferences
-            SharedPreferencesManager.getInstance(requireContext()).setIslandListDistance(0);
+            // 保存距离到SharedPreferences
+            SharedPreferencesManager manager = SharedPreferencesManager.getInstance(requireContext());
+            manager.setIslandListDistance(0);
+            manager.setIslandListHorizontalDistance(200);
             
             // 如果悬浮窗已启用，立即更新
             if (isFloatingWindowEnabled) {
@@ -1481,12 +1539,22 @@ public class SettingsFragment extends Fragment {
     private void setupSuperIslandStyleControls() {
         // 从SharedPreferences管理器获取透明度设置
         int opacity = SharedPreferencesManager.getInstance(requireContext()).getOpacity();
+        int mediumOpacity = SharedPreferencesManager.getInstance(requireContext()).getMediumOpacity();
+        int largeOpacity = SharedPreferencesManager.getInstance(requireContext()).getLargeOpacity();
         
         // 设置透明度初始值
         seekBarOpacity.setProgress(opacity);
         tvOpacityValue.setText(getString(R.string.super_island_corner_value, opacity));
         
-        // 设置透明度滑块监听器（实时保存和生效）
+        // 设置超中岛透明度初始值
+        seekBarMediumOpacity.setProgress(mediumOpacity);
+        tvMediumOpacityValue.setText(getString(R.string.super_island_corner_value, mediumOpacity));
+        
+        // 设置超大岛透明度初始值
+        seekBarLargeOpacity.setProgress(largeOpacity);
+        tvLargeOpacityValue.setText(getString(R.string.super_island_corner_value, largeOpacity));
+        
+        // 设置超小岛透明度滑块监听器（实时保存和生效）
         seekBarOpacity.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
@@ -1494,8 +1562,8 @@ public class SettingsFragment extends Fragment {
                 if (fromUser) {
                     // 实时保存到SharedPreferences
                     SharedPreferencesManager.getInstance(requireContext()).setOpacity(progress);
-                    // 实时更新悬浮窗透明度（如果服务正在运行）
-                    updateFloatingWindowOpacity(progress);
+                    // 实时更新超小岛透明度（如果服务正在运行）
+                    updateFloatingWindowOpacity(1); // 1表示超小岛
                 }
             }
 
@@ -1506,7 +1574,47 @@ public class SettingsFragment extends Fragment {
             public void onStopTrackingTouch(SeekBar seekBar) {}
         });
 
-        // 设置透明度加减按钮点击事件（每次调整1%）
+        // 设置超中岛透明度滑块监听器（实时保存和生效）
+        seekBarMediumOpacity.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                tvMediumOpacityValue.setText(getString(R.string.super_island_corner_value, progress));
+                if (fromUser) {
+                    // 实时保存到SharedPreferences
+                    SharedPreferencesManager.getInstance(requireContext()).setMediumOpacity(progress);
+                    // 实时更新超中岛透明度（如果服务正在运行）
+                    updateFloatingWindowOpacity(2); // 2表示超中岛
+                }
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {}
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {}
+        });
+
+        // 设置超大岛透明度滑块监听器（实时保存和生效）
+        seekBarLargeOpacity.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                tvLargeOpacityValue.setText(getString(R.string.super_island_corner_value, progress));
+                if (fromUser) {
+                    // 实时保存到SharedPreferences
+                    SharedPreferencesManager.getInstance(requireContext()).setLargeOpacity(progress);
+                    // 实时更新超大岛透明度（如果服务正在运行）
+                    updateFloatingWindowOpacity(3); // 3表示超大岛
+                }
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {}
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {}
+        });
+
+        // 设置超小岛透明度加减按钮点击事件（每次调整1%）
         btnOpacityDecrease.setOnClickListener(v -> {
             int currentProgress = seekBarOpacity.getProgress();
             if (currentProgress > 0) {
@@ -1514,7 +1622,7 @@ public class SettingsFragment extends Fragment {
                 seekBarOpacity.setProgress(newProgress);
                 tvOpacityValue.setText(getString(R.string.super_island_corner_value, newProgress));
                 SharedPreferencesManager.getInstance(requireContext()).setOpacity(newProgress);
-                updateFloatingWindowOpacity(newProgress);
+                updateFloatingWindowOpacity(1); // 1表示超小岛
             }
         });
 
@@ -1525,7 +1633,53 @@ public class SettingsFragment extends Fragment {
                 seekBarOpacity.setProgress(newProgress);
                 tvOpacityValue.setText(getString(R.string.super_island_corner_value, newProgress));
                 SharedPreferencesManager.getInstance(requireContext()).setOpacity(newProgress);
-                updateFloatingWindowOpacity(newProgress);
+                updateFloatingWindowOpacity(1); // 1表示超小岛
+            }
+        });
+
+        // 设置超中岛透明度加减按钮点击事件（每次调整1%）
+        btnMediumOpacityDecrease.setOnClickListener(v -> {
+            int currentProgress = seekBarMediumOpacity.getProgress();
+            if (currentProgress > 0) {
+                int newProgress = currentProgress - 1;
+                seekBarMediumOpacity.setProgress(newProgress);
+                tvMediumOpacityValue.setText(getString(R.string.super_island_corner_value, newProgress));
+                SharedPreferencesManager.getInstance(requireContext()).setMediumOpacity(newProgress);
+                updateFloatingWindowOpacity(2); // 2表示超中岛
+            }
+        });
+
+        btnMediumOpacityIncrease.setOnClickListener(v -> {
+            int currentProgress = seekBarMediumOpacity.getProgress();
+            if (currentProgress < 100) {
+                int newProgress = currentProgress + 1;
+                seekBarMediumOpacity.setProgress(newProgress);
+                tvMediumOpacityValue.setText(getString(R.string.super_island_corner_value, newProgress));
+                SharedPreferencesManager.getInstance(requireContext()).setMediumOpacity(newProgress);
+                updateFloatingWindowOpacity(2); // 2表示超中岛
+            }
+        });
+
+        // 设置超大岛透明度加减按钮点击事件（每次调整1%）
+        btnLargeOpacityDecrease.setOnClickListener(v -> {
+            int currentProgress = seekBarLargeOpacity.getProgress();
+            if (currentProgress > 0) {
+                int newProgress = currentProgress - 1;
+                seekBarLargeOpacity.setProgress(newProgress);
+                tvLargeOpacityValue.setText(getString(R.string.super_island_corner_value, newProgress));
+                SharedPreferencesManager.getInstance(requireContext()).setLargeOpacity(newProgress);
+                updateFloatingWindowOpacity(3); // 3表示超大岛
+            }
+        });
+
+        btnLargeOpacityIncrease.setOnClickListener(v -> {
+            int currentProgress = seekBarLargeOpacity.getProgress();
+            if (currentProgress < 100) {
+                int newProgress = currentProgress + 1;
+                seekBarLargeOpacity.setProgress(newProgress);
+                tvLargeOpacityValue.setText(getString(R.string.super_island_corner_value, newProgress));
+                SharedPreferencesManager.getInstance(requireContext()).setLargeOpacity(newProgress);
+                updateFloatingWindowOpacity(3); // 3表示超大岛
             }
         });
 
@@ -1604,7 +1758,38 @@ public class SettingsFragment extends Fragment {
         // 设置加减按钮点击事件（每次调整1%）
         setupSuperIslandStyleButtons();
 
-        // 设置重置按钮点击事件
+        // 设置还原默认透明度按钮点击事件
+        btnResetOpacity.setOnClickListener(v -> {
+            // 恢复默认透明度值：0, 0, 0
+            int defaultOpacity = 0;
+            int defaultMediumOpacity = 0;
+            int defaultLargeOpacity = 0;
+
+            // 更新滑块位置
+            seekBarOpacity.setProgress(defaultOpacity);
+            seekBarMediumOpacity.setProgress(defaultMediumOpacity);
+            seekBarLargeOpacity.setProgress(defaultLargeOpacity);
+
+            // 更新显示值
+            tvOpacityValue.setText(getString(R.string.super_island_corner_value, defaultOpacity));
+            tvMediumOpacityValue.setText(getString(R.string.super_island_corner_value, defaultMediumOpacity));
+            tvLargeOpacityValue.setText(getString(R.string.super_island_corner_value, defaultLargeOpacity));
+
+            // 保存到SharedPreferences
+            SharedPreferencesManager manager = SharedPreferencesManager.getInstance(requireContext());
+            manager.setOpacity(defaultOpacity);
+            manager.setMediumOpacity(defaultMediumOpacity);
+            manager.setLargeOpacity(defaultLargeOpacity);
+            
+            // 触发透明度更新（如果服务正在运行）
+            if (FloatingWindowService.isServiceRunning(requireContext())) {
+                updateFloatingWindowOpacity(1); // 超小岛
+                updateFloatingWindowOpacity(2); // 超中岛
+                updateFloatingWindowOpacity(3); // 超大岛
+            }
+        });
+
+        // 设置重置圆角按钮点击事件
         btnResetSuperIslandCorners.setOnClickListener(v -> {
             // 恢复默认值：100, 100, 45
             int defaultRadius1 = 100;
@@ -1857,13 +2042,66 @@ public class SettingsFragment extends Fragment {
     private void setupListDistanceControls() {
         // 从SharedPreferences管理器获取列表距离设置
         int listDistance = SharedPreferencesManager.getInstance(requireContext()).getIslandListDistance();
+        int listHorizontalDistance = SharedPreferencesManager.getInstance(requireContext()).getIslandListHorizontalDistance();
         
         // 设置初始值
         seekBarListDistance.setProgress(listDistance);
         tvListDistanceValue.setText(getString(R.string.value_dp, listDistance));
         
+        // 设置水平距离初始值
+        seekBarListHorizontalDistance.setProgress(listHorizontalDistance);
+        int horizontalValue = listHorizontalDistance - 200; // 映射为-200到200
+        tvListHorizontalDistanceValue.setText(getString(R.string.value_dp, horizontalValue));
+        
+        // 设置水平距离滑块监听器
+        seekBarListHorizontalDistance.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                int value = progress - 200; // 映射为-200到200
+                tvListHorizontalDistanceValue.setText(getString(R.string.value_dp, value));
+                if (fromUser) {
+                    // 实时保存到SharedPreferences
+                    SharedPreferencesManager.getInstance(requireContext()).setIslandListHorizontalDistance(progress);
+                    // 触发水平距离更新
+                    updateIslandListHorizontalDistance();
+                }
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {}
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {}
+        });
+
+        // 设置水平距离加减按钮点击事件（每次调整1dp）
+        btnListHorizontalDistanceDecrease.setOnClickListener(v -> {
+            int currentProgress = seekBarListHorizontalDistance.getProgress();
+            if (currentProgress > 0) {
+                int newProgress = currentProgress - 1;
+                seekBarListHorizontalDistance.setProgress(newProgress);
+                int value = newProgress - 200;
+                tvListHorizontalDistanceValue.setText(getString(R.string.value_dp, value));
+                SharedPreferencesManager.getInstance(requireContext()).setIslandListHorizontalDistance(newProgress);
+                updateIslandListHorizontalDistance();
+            }
+        });
+
+        btnListHorizontalDistanceIncrease.setOnClickListener(v -> {
+            int currentProgress = seekBarListHorizontalDistance.getProgress();
+            if (currentProgress < seekBarListHorizontalDistance.getMax()) {
+                int newProgress = currentProgress + 1;
+                seekBarListHorizontalDistance.setProgress(newProgress);
+                int value = newProgress - 200;
+                tvListHorizontalDistanceValue.setText(getString(R.string.value_dp, value));
+                SharedPreferencesManager.getInstance(requireContext()).setIslandListHorizontalDistance(newProgress);
+                updateIslandListHorizontalDistance();
+            }
+        });
+        
         // 如果服务正在运行，通知服务更新距离
         updateIslandListDistance();
+        updateIslandListHorizontalDistance();
     }
     
     /**
@@ -1876,25 +2114,115 @@ public class SettingsFragment extends Fragment {
             if (service != null) {
                 // 获取当前的距离设置
                 int listDistance = SharedPreferencesManager.getInstance(requireContext()).getIslandListDistance();
+                int listHorizontalDistance = SharedPreferencesManager.getInstance(requireContext()).getIslandListHorizontalDistance();
                 
                 // 调用服务的距离更新方法（需要在FloatingWindowService中实现）
-                service.updateIslandListDistance(listDistance);
+                service.updateIslandListDistance(listDistance, listHorizontalDistance);
+            }
+        }
+    }
+    
+    /**
+     * 更新超大岛列表水平相对距离
+     */
+    private void updateIslandListHorizontalDistance() {
+        // 如果服务正在运行，通知服务更新水平距离
+        if (FloatingWindowService.isServiceRunning(requireContext())) {
+            FloatingWindowService service = FloatingWindowService.getInstance();
+            if (service != null) {
+                // 获取当前的距离设置
+                int listDistance = SharedPreferencesManager.getInstance(requireContext()).getIslandListDistance();
+                int listHorizontalDistance = SharedPreferencesManager.getInstance(requireContext()).getIslandListHorizontalDistance();
+                
+                // 调用服务的距离更新方法
+                service.updateIslandListDistance(listDistance, listHorizontalDistance);
             }
         }
     }
     
     /**
      * 更新悬浮窗透明度（实时生效）
+     * @param level 1=基础悬浮窗(超小岛), 2=三圆岛(超中岛), 3=标准岛(超大岛)
      */
-    private void updateFloatingWindowOpacity(int opacity) {
+    private void updateFloatingWindowOpacity(int level) {
         // 如果服务正在运行，通知服务更新透明度
         if (FloatingWindowService.isServiceRunning(requireContext())) {
             FloatingWindowService service = FloatingWindowService.getInstance();
             if (service != null) {
                 // 调用服务的透明度更新方法
-                service.updateOpacity(opacity);
+                service.updateOpacity(level);
             }
         }
+    }
+
+    /**
+     * 设置超大岛交互配置控件
+     */
+    private void setupInteractionConfigControls() {
+        SharedPreferencesManager manager = SharedPreferencesManager.getInstance(requireContext());
+        
+        // 1. 自动展开后是否自动收起
+        boolean autoCollapse = manager.isAutoCollapseAfterExpand();
+        switchAutoCollapse.setChecked(autoCollapse);
+        layoutAutoCollapseDuration.setVisibility(autoCollapse ? View.VISIBLE : View.GONE);
+        
+        switchAutoCollapse.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            manager.setAutoCollapseAfterExpand(isChecked);
+            layoutAutoCollapseDuration.setVisibility(isChecked ? View.VISIBLE : View.GONE);
+        });
+
+        // 2. 自动收起时长 (3.0 - 30.0s)
+        // SeekBar 0-270, value = 3.0 + progress/10.0
+        float duration = manager.getAutoCollapseDuration();
+        int progress = (int) ((duration - 3.0f) * 10);
+        if (progress < 0) progress = 0;
+        if (progress > 270) progress = 270;
+        
+        seekBarAutoCollapseDuration.setProgress(progress);
+        tvAutoCollapseDurationValue.setText(getString(R.string.value_seconds, duration));
+        
+        seekBarAutoCollapseDuration.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                float value = 3.0f + (progress / 10.0f);
+                tvAutoCollapseDurationValue.setText(getString(R.string.value_seconds, value));
+                if (fromUser) {
+                    manager.setAutoCollapseDuration(value);
+                }
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {}
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {}
+        });
+
+        btnAutoCollapseDecrease.setOnClickListener(v -> {
+            int current = seekBarAutoCollapseDuration.getProgress();
+            if (current > 0) {
+                seekBarAutoCollapseDuration.setProgress(current - 1);
+                float value = 3.0f + ((current - 1) / 10.0f);
+                manager.setAutoCollapseDuration(value);
+            }
+        });
+
+        btnAutoCollapseIncrease.setOnClickListener(v -> {
+            int current = seekBarAutoCollapseDuration.getProgress();
+            if (current < 270) {
+                seekBarAutoCollapseDuration.setProgress(current + 1);
+                float value = 3.0f + ((current + 1) / 10.0f);
+                manager.setAutoCollapseDuration(value);
+            }
+        });
+
+        // 3. 点击空白区域是否自动收起
+        boolean collapseOnTouchOutside = manager.isCollapseOnTouchOutside();
+        switchCollapseOnTouchOutside.setChecked(collapseOnTouchOutside);
+        
+        switchCollapseOnTouchOutside.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            manager.setCollapseOnTouchOutside(isChecked);
+        });
     }
     
 }

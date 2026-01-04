@@ -142,7 +142,7 @@ public class NotificationProcessor {
         // 3. 媒体通知特殊处理
         if (context.config.isMedia) {
             // 媒体通知：直接显示到超级岛并执行行为，然后终止处理
-            if (context.config.appMode.equals("mode_super_island_only")) {
+            if (!context.config.appMode.equals("MODE_NOTIFICATION_BAR_ONLY")) {
                 showInIsland(context);
                 executeBehaviors(context);
             }
@@ -418,6 +418,37 @@ public class NotificationProcessor {
                         }
                     }
                 }
+                
+                // 如果超中岛（三圆岛）正在显示，且更新的是队列第一个通知，需要更新媒体封面
+                if (service.floatingThreeCircleView != null && service.floatingThreeCircleView.getParent() != null) {
+                    // 检查是否是队列第一个通知（正在显示在超中岛）
+                    if (!queue.isEmpty() && queue.getFirst().getKey().equals(context.key)) {
+                        // 通过反射调用私有方法 updateThreeCircleContent
+                        try {
+                            java.lang.reflect.Method updateMethod = FloatingWindowService.class.getDeclaredMethod("updateThreeCircleContent");
+                            updateMethod.setAccessible(true);
+                            updateMethod.invoke(service);
+                        } catch (Exception e) {
+                            // 如果反射失败不要管
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    /**
+     * 更新媒体通知的进度信息
+     * @param key 通知的key
+     * @param position 当前播放位置（毫秒）
+     * @param duration 总时长（毫秒）
+     * @param canSeek 是否支持seek
+     */
+    public void updateMediaProgress(String key, long position, long duration, boolean canSeek) {
+        mainHandler.post(() -> {
+            FloatingWindowService service = FloatingWindowService.getInstance();
+            if (service != null) {
+                service.updateMediaProgress(key, position, duration, canSeek);
             }
         });
     }
@@ -532,7 +563,14 @@ public class NotificationProcessor {
         mainHandler.postDelayed(() -> {
             FloatingWindowService service = FloatingWindowService.getInstance();
             if (service != null) {
-                service.performThreeCircleClick();
+                // 标记为自动展开
+                service.performThreeCircleClick(true);
+
+                // 自动展开后自动收起
+                if (prefsManager.isAutoCollapseAfterExpand()) {
+                    long duration = (long) (prefsManager.getAutoCollapseDuration() * 1000);
+                    service.scheduleAutoCollapse(duration);
+                }
             }
         }, 300);
     }

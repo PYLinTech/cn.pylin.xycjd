@@ -104,13 +104,13 @@
     <string name="welcome_icon">欢迎图标</string>
     
     <!-- 悬浮窗相关字符串 -->
-    <string name="floating_window_setting">悬浮窗设置</string>
-    <string name="floating_window_size">悬浮窗大小</string>
-    <string name="floating_window_position_x">水平位置</string>
-    <string name="floating_window_position_y">垂直位置</string>
+    <string name="floating_window_setting">超级岛位置配置</string>
+    <string name="floating_window_size">超小岛大小</string>
+    <string name="floating_window_position_x">超小岛水平位置</string>
+    <string name="floating_window_position_y">超小岛垂直位置</string>
     <string name="floating_window_permission_denied">悬浮窗权限被拒绝，请在设置中开启</string>
-    <string name="service_status">悬浮窗状态</string>
-    <string name="service_status_desc">管理悬浮窗服务状态</string>
+    <string name="service_status">超级岛状态</string>
+    <string name="service_status_desc">管理超级岛服务状态</string>
     <string name="service_running">服务正在运行</string>
     <string name="service_stopped">服务已停止</string>
     <string name="start_service">启动服务</string>
@@ -187,7 +187,7 @@
     <string name="custom_prompt_btn">设置自定义提示词</string>
     <string name="custom_prompt_title">自定义提示词</string>
     <string name="custom_prompt_hint">请输入自定义提示词</string>
-    <string name="save">已保存</string>
+    <string name="save">保存</string>
     <string name="reset_to_default_prompt">还原默认提示词</string>
     <string name="default_prompt_content">你是智能通知评分系统,仅输出0.0到10.0的数字,0.0–3.0表示骚扰/垃圾内容(如广告诱导虚假),3.1–5.0为低价值无用通知,5.1–7.0为普通可能有用通知,7.1–9.0为重要通知(如快递支付生活场景),9.1–10.0为关键通知(QQ微信验证码)</string>
     <string name="default_api_url_content" translatable="false">https://api.xiaomimimo.com/v1</string>
@@ -319,14 +319,24 @@
     <string name="super_island_corner_small">超小岛圆角</string>
     <string name="super_island_corner_medium">超中岛圆角</string>
     <string name="super_island_corner_large">超大岛圆角</string>
+    <string name="reset_opacity">还原默认透明度设置</string>
     <string name="super_island_corner_reset">还原默认圆角配置</string>
     <string name="super_island_corner_value" translatable="false">%d%%</string>
     
-    <!-- 超大岛列表相对距离 -->
-    <string name="super_island_list_distance">超大岛列表相对距离</string>
+    <!-- 超大岛列表垂直相对距离 -->
+    <string name="super_island_list_distance">超大岛垂直相对距离</string>
+    <string name="super_island_list_horizontal_distance">超大岛水平相对距离</string>
     <string name="default_list_distance" translatable="false">0</string>
     
     <!-- 基础悬浮窗透明度 -->
     <string name="basic_floating_window_opacity">超小岛透明度</string>
-    <string name="default_opacity" translatable="false">0</string>
+    <string name="medium_floating_window_opacity">超中岛透明度</string>
+    <string name="large_floating_window_opacity">超大岛透明度</string>
+
+    <!-- 超大岛交互配置 -->
+    <string name="interaction_config_title">超大岛交互配置</string>
+    <string name="auto_collapse_after_expand">自动展开后是否自动收起</string>
+    <string name="auto_collapse_duration">自动收起时长</string>
+    <string name="collapse_on_touch_outside">自动展开后是否通过点击空白区域收起</string>
+    <string name="value_seconds" translatable="false">%.1f s</string>
 </resources>
