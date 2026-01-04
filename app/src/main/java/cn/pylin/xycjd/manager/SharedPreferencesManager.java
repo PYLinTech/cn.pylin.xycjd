@@ -120,6 +120,14 @@ public class SharedPreferencesManager {
     private int opacity;
     private int mediumOpacity;
     private int largeOpacity;
+
+    // 超大岛交互配置
+    private static final String PREF_AUTO_COLLAPSE_AFTER_EXPAND = "pref_auto_collapse_after_expand";
+    private static final String PREF_AUTO_COLLAPSE_DURATION = "pref_auto_collapse_duration";
+    private static final String PREF_COLLAPSE_ON_TOUCH_OUTSIDE = "pref_collapse_on_touch_outside";
+    private boolean autoCollapseAfterExpand;
+    private float autoCollapseDuration;
+    private boolean collapseOnTouchOutside;
     
     private SharedPreferencesManager(Context context) {
         // 初始化全局SharedPreferences
@@ -193,6 +201,11 @@ public class SharedPreferencesManager {
         opacity = globalPrefs.getInt(PREF_OPACITY, 0);
         mediumOpacity = globalPrefs.getInt(PREF_MEDIUM_OPACITY, 0);
         largeOpacity = globalPrefs.getInt(PREF_LARGE_OPACITY, 0);
+
+        // 加载超大岛交互配置
+        autoCollapseAfterExpand = globalPrefs.getBoolean(PREF_AUTO_COLLAPSE_AFTER_EXPAND, false);
+        autoCollapseDuration = globalPrefs.getFloat(PREF_AUTO_COLLAPSE_DURATION, 5.0f);
+        collapseOnTouchOutside = globalPrefs.getBoolean(PREF_COLLAPSE_ON_TOUCH_OUTSIDE, true);
     }
     
     // ==================== 全局设置读写方法 ====================
@@ -633,5 +646,34 @@ public class SharedPreferencesManager {
     public void setLargeOpacity(int largeOpacity) {
         this.largeOpacity = largeOpacity;
         globalEditor.putInt(PREF_LARGE_OPACITY, largeOpacity).apply();
+    }
+
+    // ==================== 超大岛交互配置方法 ====================
+
+    public boolean isAutoCollapseAfterExpand() {
+        return autoCollapseAfterExpand;
+    }
+
+    public void setAutoCollapseAfterExpand(boolean enabled) {
+        this.autoCollapseAfterExpand = enabled;
+        globalEditor.putBoolean(PREF_AUTO_COLLAPSE_AFTER_EXPAND, enabled).apply();
+    }
+
+    public float getAutoCollapseDuration() {
+        return autoCollapseDuration;
+    }
+
+    public void setAutoCollapseDuration(float duration) {
+        this.autoCollapseDuration = duration;
+        globalEditor.putFloat(PREF_AUTO_COLLAPSE_DURATION, duration).apply();
+    }
+
+    public boolean isCollapseOnTouchOutside() {
+        return collapseOnTouchOutside;
+    }
+
+    public void setCollapseOnTouchOutside(boolean enabled) {
+        this.collapseOnTouchOutside = enabled;
+        globalEditor.putBoolean(PREF_COLLAPSE_ON_TOUCH_OUTSIDE, enabled).apply();
     }
 }

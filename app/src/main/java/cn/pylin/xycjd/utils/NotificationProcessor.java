@@ -563,7 +563,14 @@ public class NotificationProcessor {
         mainHandler.postDelayed(() -> {
             FloatingWindowService service = FloatingWindowService.getInstance();
             if (service != null) {
-                service.performThreeCircleClick();
+                // 标记为自动展开
+                service.performThreeCircleClick(true);
+
+                // 自动展开后自动收起
+                if (prefsManager.isAutoCollapseAfterExpand()) {
+                    long duration = (long) (prefsManager.getAutoCollapseDuration() * 1000);
+                    service.scheduleAutoCollapse(duration);
+                }
             }
         }, 300);
     }

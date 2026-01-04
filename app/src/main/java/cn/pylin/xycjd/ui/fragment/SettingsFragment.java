@@ -183,6 +183,15 @@ public class SettingsFragment extends Fragment {
     private SeekBar seekBarListHorizontalDistance;
     private ImageButton btnListHorizontalDistanceDecrease;
     private ImageButton btnListHorizontalDistanceIncrease;
+
+    // 超大岛交互配置控件
+    private androidx.appcompat.widget.SwitchCompat switchAutoCollapse;
+    private LinearLayout layoutAutoCollapseDuration;
+    private TextView tvAutoCollapseDurationValue;
+    private SeekBar seekBarAutoCollapseDuration;
+    private ImageButton btnAutoCollapseDecrease;
+    private ImageButton btnAutoCollapseIncrease;
+    private androidx.appcompat.widget.SwitchCompat switchCollapseOnTouchOutside;
     
     // 透明度相关常量
     private static final String PREF_OPACITY = "pref_opacity";
@@ -264,6 +273,9 @@ public class SettingsFragment extends Fragment {
 
         // 设置超大岛列表相对距离初始值
         setupListDistanceControls();
+
+        // 设置超大岛交互配置
+        setupInteractionConfigControls();
 
         return view;
     }
@@ -412,6 +424,14 @@ public class SettingsFragment extends Fragment {
         btnListHorizontalDistanceDecrease = view.findViewById(R.id.btn_list_horizontal_distance_decrease);
         btnListHorizontalDistanceIncrease = view.findViewById(R.id.btn_list_horizontal_distance_increase);
 
+        // 初始化超大岛交互配置控件
+        switchAutoCollapse = view.findViewById(R.id.switch_auto_collapse);
+        layoutAutoCollapseDuration = view.findViewById(R.id.layout_auto_collapse_duration);
+        tvAutoCollapseDurationValue = view.findViewById(R.id.tv_auto_collapse_duration_value);
+        seekBarAutoCollapseDuration = view.findViewById(R.id.seekbar_auto_collapse_duration);
+        btnAutoCollapseDecrease = view.findViewById(R.id.btn_auto_collapse_decrease);
+        btnAutoCollapseIncrease = view.findViewById(R.id.btn_auto_collapse_increase);
+        switchCollapseOnTouchOutside = view.findViewById(R.id.switch_collapse_on_touch_outside);
     }
 
     private void setLanguageSelection() {
@@ -2133,6 +2153,76 @@ public class SettingsFragment extends Fragment {
                 service.updateOpacity(level);
             }
         }
+    }
+
+    /**
+     * 设置超大岛交互配置控件
+     */
+    private void setupInteractionConfigControls() {
+        SharedPreferencesManager manager = SharedPreferencesManager.getInstance(requireContext());
+        
+        // 1. 自动展开后是否自动收起
+        boolean autoCollapse = manager.isAutoCollapseAfterExpand();
+        switchAutoCollapse.setChecked(autoCollapse);
+        layoutAutoCollapseDuration.setVisibility(autoCollapse ? View.VISIBLE : View.GONE);
+        
+        switchAutoCollapse.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            manager.setAutoCollapseAfterExpand(isChecked);
+            layoutAutoCollapseDuration.setVisibility(isChecked ? View.VISIBLE : View.GONE);
+        });
+
+        // 2. 自动收起时长 (3.0 - 30.0s)
+        // SeekBar 0-270, value = 3.0 + progress/10.0
+        float duration = manager.getAutoCollapseDuration();
+        int progress = (int) ((duration - 3.0f) * 10);
+        if (progress < 0) progress = 0;
+        if (progress > 270) progress = 270;
+        
+        seekBarAutoCollapseDuration.setProgress(progress);
+        tvAutoCollapseDurationValue.setText(getString(R.string.value_seconds, duration));
+        
+        seekBarAutoCollapseDuration.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                float value = 3.0f + (progress / 10.0f);
+                tvAutoCollapseDurationValue.setText(getString(R.string.value_seconds, value));
+                if (fromUser) {
+                    manager.setAutoCollapseDuration(value);
+                }
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {}
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {}
+        });
+
+        btnAutoCollapseDecrease.setOnClickListener(v -> {
+            int current = seekBarAutoCollapseDuration.getProgress();
+            if (current > 0) {
+                seekBarAutoCollapseDuration.setProgress(current - 1);
+                float value = 3.0f + ((current - 1) / 10.0f);
+                manager.setAutoCollapseDuration(value);
+            }
+        });
+
+        btnAutoCollapseIncrease.setOnClickListener(v -> {
+            int current = seekBarAutoCollapseDuration.getProgress();
+            if (current < 270) {
+                seekBarAutoCollapseDuration.setProgress(current + 1);
+                float value = 3.0f + ((current + 1) / 10.0f);
+                manager.setAutoCollapseDuration(value);
+            }
+        });
+
+        // 3. 点击空白区域是否自动收起
+        boolean collapseOnTouchOutside = manager.isCollapseOnTouchOutside();
+        switchCollapseOnTouchOutside.setChecked(collapseOnTouchOutside);
+        
+        switchCollapseOnTouchOutside.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            manager.setCollapseOnTouchOutside(isChecked);
+        });
     }
     
 }

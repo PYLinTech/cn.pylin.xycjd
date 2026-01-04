@@ -72,6 +72,11 @@ public class FloatingWindowService extends Service {
     private int lastCornerRadius3 = 0;
     private GestureDetector threeCircleGestureDetector;
 
+    // 自动收起相关
+    private Handler collapseHandler = new Handler(Looper.getMainLooper());
+    private Runnable collapseRunnable;
+    private boolean isAutoExpanded = false; // 标记当前是否为自动展开状态
+
     public static class NotificationInfo {
         private String key;
         private String packageName;
@@ -533,10 +538,16 @@ public class FloatingWindowService extends Service {
     }
 
     public void showNotificationIsland(String packageName, String title, String content) {
+        // 默认是手动展开（通过点击三圆岛或通知卡片触发）
+        showNotificationIsland(packageName, title, content, false);
+    }
+
+    public void showNotificationIsland(String packageName, String title, String content, boolean isAutoExpanded) {
         ensureWindowManager();
         
         // 确保状态复位
         isClosingIsland = false;
+        this.isAutoExpanded = isAutoExpanded;
 
         if (floatingIslandView == null) {
             createFloatingIsland();
@@ -707,9 +718,16 @@ public class FloatingWindowService extends Service {
      */
     public void hideNotificationIsland() {
         if (isClosingIsland) return;
+
+        // 取消可能的自动收起任务
+        if (collapseRunnable != null) {
+            collapseHandler.removeCallbacks(collapseRunnable);
+        }
         
         if (windowManager != null && floatingIslandView != null && floatingIslandView.getParent() != null) {
             isClosingIsland = true;
+            // 重置自动展开状态
+            isAutoExpanded = false;
             
             // 禁用点击事件，防止重复触发
             View islandRoot = floatingIslandView.findViewById(R.id.island_root);
@@ -1024,7 +1042,39 @@ public class FloatingWindowService extends Service {
         // 5. 点击卡片以外的区域收起
         // 将 Window 设置为全屏，并监听根布局点击事件
         View islandRoot = floatingIslandView.findViewById(R.id.island_root);
-        islandRoot.setOnClickListener(v -> hideNotificationIsland());
+        islandRoot.setOnClickListener(v -> {
+            // 逻辑修改：
+            // 1. 如果是手动展开的，点击外部总是允许收起（保持原有符合直觉的交互）
+            // 2. 如果是自动展开的，则受"自动展开后是否通过点击空白区域收起"开关控制
+            if (!isAutoExpanded || manager.isCollapseOnTouchOutside()) {
+                hideNotificationIsland();
+            }
+        });
+
+        // 7. 处理RecyclerView空白区域点击
+        // 即使点击了RecyclerView的非Item区域，也视为点击了外部
+        final GestureDetector recyclerViewGestureDetector = new GestureDetector(this, new SimpleOnGestureListener() {
+            @Override
+            public boolean onSingleTapUp(MotionEvent e) {
+                View child = recyclerView.findChildViewUnder(e.getX(), e.getY());
+                if (child == null) {
+                    // 点击了空白区域，手动触发根布局的点击事件
+                    islandRoot.performClick();
+                    return true;
+                }
+                return false;
+            }
+        });
+
+        recyclerView.addOnItemTouchListener(new RecyclerView.SimpleOnItemTouchListener() {
+            @Override
+            public boolean onInterceptTouchEvent(@NonNull RecyclerView rv, @NonNull MotionEvent e) {
+                if (recyclerViewGestureDetector.onTouchEvent(e)) {
+                    return true;
+                }
+                return false;
+            }
+        });
         
         islandParams = new WindowManager.LayoutParams(
                 WindowManager.LayoutParams.MATCH_PARENT,
@@ -1575,11 +1625,16 @@ public class FloatingWindowService extends Service {
         }
     }
 
-    public void performThreeCircleClick() {
-        if (notificationQueue.isEmpty()) return;
-        NotificationInfo info = notificationQueue.getFirst();
-        showNotificationIsland(info.packageName, info.title, info.content);
-    }
+public void performThreeCircleClick() {
+    // 默认是手动点击
+    performThreeCircleClick(false);
+}
+
+public void performThreeCircleClick(boolean isAuto) {
+    if (notificationQueue.isEmpty()) return;
+    NotificationInfo info = notificationQueue.getFirst();
+    showNotificationIsland(info.packageName, info.title, info.content, isAuto);
+}
     
     /**
      * 更新超大岛列表相对距离
@@ -1639,6 +1694,18 @@ public class FloatingWindowService extends Service {
      * 更新指定悬浮窗层级的透明度
      * @param level 1=基础悬浮窗(超小岛), 2=三圆岛(超中岛), 3=标准岛(超大岛)
      */
+    /**
+     * 调度自动收起
+     * @param delayMillis 延迟时间（毫秒）
+     */
+    public void scheduleAutoCollapse(long delayMillis) {
+        if (collapseRunnable != null) {
+            collapseHandler.removeCallbacks(collapseRunnable);
+        }
+        collapseRunnable = this::hideNotificationIsland;
+        collapseHandler.postDelayed(collapseRunnable, delayMillis);
+    }
+
     public void updateOpacity(int level) {
         switch (level) {
             case 1: // 基础悬浮窗（超小岛）
@@ -1703,10 +1770,12 @@ public class FloatingWindowService extends Service {
                     // 延迟300ms后展开标准岛
                     adjustmentHandler.postDelayed(() -> {
                         if (!notificationQueue.isEmpty()) {
+                            // 这里是用户调整设置导致的展开，视为手动展开（不应该受自动收起逻辑限制）
                             showNotificationIsland(
                                 notificationQueue.getFirst().packageName,
                                 notificationQueue.getFirst().title,
-                                notificationQueue.getFirst().content
+                                notificationQueue.getFirst().content,
+                                false
                             );
                         }
                     }, 300);
