@@ -552,6 +552,9 @@ public class FloatingWindowService extends Service {
         if (floatingIslandView == null) {
             createFloatingIsland();
         }
+
+        // 更新窗口参数（根据交互配置决定是否穿透）
+        updateIslandWindowParams();
         
         updateNotificationContent(packageName, title, content);
         
@@ -567,7 +570,47 @@ public class FloatingWindowService extends Service {
             
             windowManager.addView(floatingIslandView, islandParams);
             floatingIslandView.post(this::startIslandEnterAnimation);
+        } else {
+            // 如果已经在显示，更新布局参数以应用可能的配置变更
+            windowManager.updateViewLayout(floatingIslandView, islandParams);
         }
+    }
+
+    /**
+     * 更新交互配置
+     * 供SettingsFragment调用
+     */
+    public void updateInteractionConfiguration() {
+        if (floatingIslandView != null && floatingIslandView.getParent() != null) {
+            updateIslandWindowParams();
+            if (windowManager != null) {
+                windowManager.updateViewLayout(floatingIslandView, islandParams);
+            }
+        }
+    }
+
+    /**
+     * 根据当前状态和配置更新岛屿窗口参数
+     */
+    private void updateIslandWindowParams() {
+        if (islandParams == null) return;
+
+        boolean collapseOnTouchOutside = manager.isCollapseOnTouchOutside();
+        
+        // 如果是自动展开且关闭了"点击空白收起"，则允许事件穿透（设置高度为WRAP_CONTENT）
+        if (isAutoExpanded && !collapseOnTouchOutside) {
+            islandParams.height = WindowManager.LayoutParams.WRAP_CONTENT;
+            // 添加 FLAG_NOT_TOUCH_MODAL 以允许外部事件穿透（虽然 WRAP_CONTENT 已经让出了空间，但加上这个更保险）
+            islandParams.flags |= WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL;
+        } else {
+            // 否则全屏覆盖以捕获点击
+            islandParams.height = WindowManager.LayoutParams.MATCH_PARENT;
+            islandParams.flags &= ~WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL;
+        }
+        
+        // 保持宽度全屏以支持内容定位（内容本身有边距和偏移）
+        // 注意：这意味着顶部横条区域仍然会阻挡点击，但下方大片空白区域可以穿透
+        islandParams.width = WindowManager.LayoutParams.MATCH_PARENT;
     }
     
     /**
