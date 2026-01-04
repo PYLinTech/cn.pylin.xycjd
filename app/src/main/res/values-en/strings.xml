@@ -290,4 +290,8 @@
     <string name="floating_window_setting">Super Island Location Configuration</string>
     <string name="floating_window_size">Super Small Island Size</string>
     <string name="floating_window_position_x">Super Small Island horizontal position</string>
+    <string name="interaction_config_title">Super Large Island interactive configuration</string>
+    <string name="auto_collapse_after_expand">Auto collapse after auto expand</string>
+    <string name="auto_collapse_duration">Auto-collapse duration</string>
+    <string name="collapse_on_touch_outside">Collapse by clicking the blank area after automatic expansion</string>
 </resources>

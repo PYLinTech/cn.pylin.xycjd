@@ -335,7 +335,6 @@
 
     <!-- 超大岛交互配置 -->
     <string name="interaction_config_title">超大岛交互配置</string>
-    <string name="interaction_config_desc">配置超大岛的交互行为</string>
     <string name="auto_collapse_after_expand">自动展开后是否自动收起</string>
     <string name="auto_collapse_duration">自动收起时长</string>
     <string name="collapse_on_touch_outside">自动展开后是否通过点击空白区域收起</string>
