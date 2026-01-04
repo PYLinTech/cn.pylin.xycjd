@@ -2222,6 +2222,13 @@ public class SettingsFragment extends Fragment {
         
         switchCollapseOnTouchOutside.setOnCheckedChangeListener((buttonView, isChecked) -> {
             manager.setCollapseOnTouchOutside(isChecked);
+            // 通知服务更新交互配置
+            if (FloatingWindowService.isServiceRunning(requireContext())) {
+                FloatingWindowService service = FloatingWindowService.getInstance();
+                if (service != null) {
+                    service.updateInteractionConfiguration();
+                }
+            }
         });
     }
     
