@@ -94,7 +94,7 @@ public class AudioVisualizerView extends View {
 
     public void startAnimation() {
         if (animator != null && animator.isRunning()) {
-            animator.cancel();
+            return;
         }
 
         animator = ValueAnimator.ofFloat(0, 1);
