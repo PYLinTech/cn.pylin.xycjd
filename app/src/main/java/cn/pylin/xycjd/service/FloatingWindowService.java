@@ -1230,43 +1230,31 @@ public class FloatingWindowService extends Service {
      */
     public void updateMediaProgress(String key, long position, long duration, boolean canSeek) {
         new Handler(Looper.getMainLooper()).post(() -> {
-            // 查找对应的通知
             for (int i = 0; i < notificationQueue.size(); i++) {
                 NotificationInfo info = notificationQueue.get(i);
                 if (info.getKey().equals(key)) {
-                    // 更新进度信息
                     info.updateProgress(position, duration, canSeek);
 
-                    // 如果正在显示，更新UI
                     if (floatingIslandView != null && floatingIslandView.getParent() != null && notificationAdapter != null) {
-                        // 只更新对应的位置，避免整个列表刷新
                         if (i == 0) {
-                            // 如果是第一个（当前显示的），直接更新ViewHolder
                             RecyclerView recyclerView = floatingIslandView.findViewById(R.id.notification_recycler_view);
                             if (recyclerView != null) {
                                 RecyclerView.ViewHolder holder = recyclerView.findViewHolderForAdapterPosition(0);
                                 if (holder instanceof NotificationAdapter.ViewHolder) {
                                     NotificationAdapter.ViewHolder viewHolder = (NotificationAdapter.ViewHolder) holder;
-                                    // 更新ViewHolder中的进度显示
-                                    // 检查用户是否正在拖动进度条，如果是则不更新
                                     if (viewHolder.mediaProgress != null && duration > 0 && !viewHolder.isUserSeeking) {
-                                        // 如果有待处理的 seek 操作，不更新
-                                        if (!viewHolder.mediaProgress.hasPendingSeek()) {
-                                            int progress = (int) ((position * 100) / duration);
-                                            viewHolder.mediaProgress.setProgress(progress);
-                                            viewHolder.currentPosition = position;
-                                            viewHolder.totalDuration = duration;
-                                            viewHolder.updateCurrentTimeDisplay();
-                                            viewHolder.updateTotalTimeDisplay();
-                                        }
+                                        int progress = (int) ((position * 100) / duration);
+                                        viewHolder.mediaProgress.setProgress(progress);
+                                        viewHolder.currentPosition = position;
+                                        viewHolder.totalDuration = duration;
+                                        viewHolder.updateCurrentTimeDisplay();
+                                        viewHolder.updateTotalTimeDisplay();
                                     }
                                 } else {
-                                    // 如果找不到ViewHolder，通知adapter刷新
                                     notificationAdapter.notifyItemChanged(0);
                                 }
                             }
                         } else {
-                            // 非当前显示的通知，标记为需要更新
                             notificationAdapter.notifyItemChanged(i);
                         }
                     }
@@ -1426,14 +1414,12 @@ public class FloatingWindowService extends Service {
             TextView tvTotalTime;
             LinearLayout mediaProgressContainer;
 
-            // 新增：进度状态管理
+            // 进度状态管理
             private long currentPosition = 0;
             private long totalDuration = 0;
             private boolean isUserSeeking = false;
             private boolean isPlaying = false;
-            private long updateToken = 0; // 用于识别过期的更新任务
-            private boolean isTimeDisplayDirty = false; // 新增：时间显示是否需要更新（用户拖动时可能需要临时更新）
-            private long pendingTimeDisplay = -1; // 新增：待应用的时间显示值
+            private long updateToken = 0;
 
             // 时间刷新相关
             private java.util.concurrent.atomic.AtomicLong timeUpdateToken = new java.util.concurrent.atomic.AtomicLong(0);
@@ -1453,11 +1439,11 @@ public class FloatingWindowService extends Service {
                 btnPlay = itemView.findViewById(R.id.btn_play);
                 btnNext = itemView.findViewById(R.id.btn_next);
 
-                // 新增：绑定进度条组件
-                mediaProgress = itemView.findViewById(R.id.media_progress);
-                tvCurrentTime = itemView.findViewById(R.id.tv_current_time);
-                tvTotalTime = itemView.findViewById(R.id.tv_total_time);
-                mediaProgressContainer = itemView.findViewById(R.id.media_progress_container);
+                 // 绑定进度条组件
+                 mediaProgress = itemView.findViewById(R.id.media_progress);
+                 tvCurrentTime = itemView.findViewById(R.id.tv_current_time);
+                 tvTotalTime = itemView.findViewById(R.id.tv_total_time);
+                 mediaProgressContainer = itemView.findViewById(R.id.media_progress_container);
 
                 // 初始化时间刷新Handler
                 timeUpdateHandler = new Handler(Looper.getMainLooper());
@@ -1596,11 +1582,9 @@ public class FloatingWindowService extends Service {
                 isPlaying = state.getState() == android.media.session.PlaybackState.STATE_PLAYING;
                 btnPlay.setImageResource(isPlaying ? R.drawable.ic_media_pause : R.drawable.ic_media_play);
 
-                // 新增：更新进度信息
-                // 只有在用户没有在拖动进度条时才更新显示
+                // 更新进度信息
                 if (!isUserSeeking) {
                     currentPosition = state.getPosition();
-                    // 检查是否支持seek
                     boolean canSeek = (state.getActions() & android.media.session.PlaybackState.ACTION_SEEK_TO) != 0;
                     if (mediaProgress != null) {
                         mediaProgress.setEnabled(canSeek);
@@ -1608,7 +1592,6 @@ public class FloatingWindowService extends Service {
 
                     updateProgressDisplay();
 
-                    // 处理进度更新
                     if (isPlaying) {
                         startProgressUpdates();
                     } else {
@@ -1618,10 +1601,9 @@ public class FloatingWindowService extends Service {
             }
 
             private void updateMediaMetadata(android.media.MediaMetadata metadata) {
-                // 使用外部通用方法更新图标
                 updateIcon(icon, metadata, currentPackageName);
 
-                // 新增：更新时长信息
+                // 更新时长信息
                 if (metadata != null) {
                     totalDuration = metadata.getLong(android.media.MediaMetadata.METADATA_KEY_DURATION);
                     if (totalDuration > 0) {
@@ -1631,7 +1613,6 @@ public class FloatingWindowService extends Service {
                             mediaProgressContainer.setVisibility(View.VISIBLE);
                         }
                     } else {
-                        // 无固定时长（如直播），隐藏进度条
                         if (mediaProgressContainer != null) {
                             mediaProgressContainer.setVisibility(View.GONE);
                         }
@@ -1639,28 +1620,17 @@ public class FloatingWindowService extends Service {
                 }
             }
 
-            // 新增：设置进度条监听器
+            // 设置进度条监听器
             private void setupSeekBarListener() {
                 if (mediaProgress == null) return;
 
                 mediaProgress.setOnSeekBarChangeListener(new android.widget.SeekBar.OnSeekBarChangeListener() {
                     @Override
                     public void onProgressChanged(android.widget.SeekBar seekBar, int progress, boolean fromUser) {
-                        if (fromUser && mediaController != null) {
-                            // 检查是否有有效的时长，如果没有则不处理
-                            if (totalDuration > 0) {
-                                // 1. 计算当前拖动位置对应的时间
-                                long seekPosition = (long) (totalDuration * progress / 100.0);
-                                
-                                // 2. 实时更新时间显示（给用户视觉反馈）
-                                if (tvCurrentTime != null) {
-                                    tvCurrentTime.setText(formatTime(seekPosition));
-                                }
-                                
-                                // 3. 缓存最终的进度值和待显示的时间，拖动结束时才真正 seek
-                                mediaProgress.setPendingProgress(progress);
-                                pendingTimeDisplay = seekPosition;
-                                isTimeDisplayDirty = true;
+                        if (fromUser && mediaController != null && totalDuration > 0) {
+                            long seekPosition = (long) (totalDuration * progress / 100.0);
+                            if (tvCurrentTime != null) {
+                                tvCurrentTime.setText(formatTime(seekPosition));
                             }
                         }
                     }
@@ -1668,7 +1638,6 @@ public class FloatingWindowService extends Service {
                     @Override
                     public void onStartTrackingTouch(android.widget.SeekBar seekBar) {
                         isUserSeeking = true;
-                        // 拖拽时停止自动更新
                         stopProgressUpdates();
                     }
 
@@ -1676,60 +1645,31 @@ public class FloatingWindowService extends Service {
                     public void onStopTrackingTouch(android.widget.SeekBar seekBar) {
                         isUserSeeking = false;
                         
-                        // 应用待处理的 seek 操作
-                        // 先检查 hasPendingSeek，再获取 pendingProgress
-                        if (mediaProgress.hasPendingSeek()) {
-                            int finalProgress = mediaProgress.getPendingProgress();
-                            mediaProgress.clearPendingSeek();  // 立即清除，避免竞态条件
-                            
-                            // 清除时间显示的待处理状态
-                            isTimeDisplayDirty = false;
-                            pendingTimeDisplay = -1;
-                            
-                            // 执行实际的 seek
-                            if (mediaController != null && totalDuration > 0 && finalProgress >= 0) {
-                                long seekPosition = (long) (totalDuration * finalProgress / 100.0);
-                                mediaController.getTransportControls().seekTo(seekPosition);
-                            }
-                        } else {
-                            // 没有待处理的 seek，仍然重置时间显示状态
-                            isTimeDisplayDirty = false;
-                            pendingTimeDisplay = -1;
+                        if (mediaController != null && totalDuration > 0) {
+                            int progress = seekBar.getProgress();
+                            long seekPosition = (long) (totalDuration * progress / 100.0);
+                            mediaController.getTransportControls().seekTo(seekPosition);
                         }
                         
-                        // 拖拽结束后，如果是播放状态，恢复自动更新
                         if (isPlaying) {
                             startProgressUpdates();
-                        } else {
-                            // 暂停状态下，更新时间显示以反映实际播放位置
-                            if (mediaController != null) {
-                                android.media.session.PlaybackState state = mediaController.getPlaybackState();
-                                if (state != null) {
-                                    currentPosition = state.getPosition();
-                                    updateCurrentTimeDisplay();
-                                }
-                            }
                         }
                     }
                 });
             }
 
-            // 新增：开始进度更新
+            // 开始进度更新
             private void startProgressUpdates() {
-                // 如果用户正在拖动进度条，不启动自动更新
                 if (isUserSeeking) {
                     return;
                 }
                 
-                stopProgressUpdates(); // 清除任何现有的更新任务
-                updateToken++; // 增加token使旧任务失效
+                stopProgressUpdates();
+                updateToken++;
                 final long currentToken = updateToken;
 
                 new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> {
-                    // 检查是否已过期
                     if (currentToken != updateToken) return;
-
-                    // 如果正在拖动，不更新
                     if (isUserSeeking) return;
 
                     if (mediaController != null && !isUserSeeking && isPlaying) {
@@ -1738,54 +1678,43 @@ public class FloatingWindowService extends Service {
                             currentPosition = state.getPosition();
                             updateProgressDisplay();
 
-                            // 如果仍在播放，继续下一次更新
                             if (state.getState() == android.media.session.PlaybackState.STATE_PLAYING) {
                                 startProgressUpdates();
                             }
                         }
                     }
-                }, 1000); // 1秒后更新
+                }, 1000);
             }
 
-            // 新增：停止进度更新
+            // 停止进度更新
             private void stopProgressUpdates() {
-                updateToken++; // 使所有待处理的更新任务失效
+                updateToken++;
             }
 
-            // 新增：更新进度显示
+            // 更新进度显示
             private void updateProgressDisplay() {
-                // 如果用户正在拖动进度条，不更新进度条（避免覆盖用户的操作）
-                // 但时间显示由 updateCurrentTimeDisplay 处理（可能会使用拖动中的值）
-                if (mediaProgress != null && totalDuration > 0) {
-                    // 只有在没有待处理的 seek 操作时才更新进度条
-                    if (!mediaProgress.hasPendingSeek() || !isUserSeeking) {
-                        int progress = (int) ((currentPosition * 100) / totalDuration);
-                        mediaProgress.setProgress(progress);
-                    }
+                if (mediaProgress != null && totalDuration > 0 && !isUserSeeking) {
+                    int progress = (int) ((currentPosition * 100) / totalDuration);
+                    mediaProgress.setProgress(progress);
                 }
                 updateCurrentTimeDisplay();
             }
 
-            // 新增：更新当前时间显示
+            // 更新当前时间显示
             private void updateCurrentTimeDisplay() {
-                if (tvCurrentTime == null) return;
-                
-                // 如果有待应用的时间显示值（用户拖动中），使用它而不是 currentPosition
-                if (isTimeDisplayDirty && pendingTimeDisplay >= 0) {
-                    tvCurrentTime.setText(formatTime(pendingTimeDisplay));
-                } else {
+                if (tvCurrentTime != null) {
                     tvCurrentTime.setText(formatTime(currentPosition));
                 }
             }
 
-            // 新增：更新总时长显示
+            // 更新总时长显示
             private void updateTotalTimeDisplay() {
                 if (tvTotalTime != null) {
                     tvTotalTime.setText(formatTime(totalDuration));
                 }
             }
 
-            // 新增：格式化时间显示
+            // 格式化时间显示
             private String formatTime(long milliseconds) {
                 long seconds = milliseconds / 1000;
                 long minutes = seconds / 60;
@@ -1793,7 +1722,7 @@ public class FloatingWindowService extends Service {
                 return String.format("%d:%02d", minutes, seconds);
             }
 
-            // 新增：清理资源方法
+            // 清理资源方法
             public void cleanup() {
                 stopProgressUpdates();
                 if (mediaController != null && mediaCallback != null) {
