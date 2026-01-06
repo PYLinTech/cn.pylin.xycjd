@@ -1343,37 +1343,20 @@ public class FloatingWindowService extends Service {
                     String trainingText = (info.title != null ? info.content : "");
                     LocalModelManager.getInstance(FloatingWindowService.this).process(info.title, trainingText, true);
                 }
-                try {
-                    // 优先尝试使用 PendingIntent (响应通知事件)
-                    if (info.pendingIntent != null) {
-                        info.pendingIntent.send();
-                        // 成功响应后，尝试消除系统通知
-                        AppNotificationListenerService listenerService = AppNotificationListenerService.getInstance();
-                        if (listenerService != null) {
-                            listenerService.cancelNotification(info.key);
-                        }
-                    } else {
-                        // 如果没有 PendingIntent，则回退到打开应用
-                        throw new PendingIntent.CanceledException();
-                    }
-                } catch (PendingIntent.CanceledException e) {
-                    // 如果 PendingIntent 发送失败，尝试直接打开应用
-                    Intent launchIntent = getPackageManager().getLaunchIntentForPackage(info.packageName);
-                    if (launchIntent != null) {
-                        launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                        startActivity(launchIntent);
-                        // 打开应用后也尝试消除系统通知（可选，视需求而定，这里保持一致性也消除）
-                        AppNotificationListenerService listenerService = AppNotificationListenerService.getInstance();
-                        if (listenerService != null) {
-                            listenerService.cancelNotification(info.key);
-                        }
-                    }
+
+                // 启动目标APP，AccessibilityService检测到前台变化后会执行PendingIntent
+                Intent launchIntent = getPackageManager().getLaunchIntentForPackage(info.packageName);
+                if (launchIntent != null) {
+                    launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    startActivity(launchIntent);
+
+                    // 通知AccessibilityService准备执行PendingIntent
+                    AppAccessibilityService.getInstance().preparePendingIntent(
+                        info.key,
+                        info.pendingIntent,
+                        info.packageName
+                    );
                 }
-                
-                // 点击后从APP列表中移除该通知
-                removeNotification(info.key);
-                
-                hideNotificationIsland();
             });
         }
 

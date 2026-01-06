@@ -1,6 +1,7 @@
 package cn.pylin.xycjd.service;
 
 import android.accessibilityservice.AccessibilityService;
+import android.accessibilityservice.AccessibilityServiceInfo;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -17,21 +18,39 @@ public class AppAccessibilityService extends AccessibilityService {
 
     private static AppAccessibilityService instance;
 
+    // 待执行的PendingIntent信息
+    private PendingIntent pendingIntentToExecute;
+    private String pendingIntentKey;
+    private String pendingIntentPackage;
+
     public static AppAccessibilityService getInstance() {
         return instance;
+    }
+
+    /**
+     * 准备PendingIntent，待检测到目标APP在前台时执行
+     */
+    public void preparePendingIntent(String key, PendingIntent pendingIntent, String packageName) {
+        this.pendingIntentKey = key;
+        this.pendingIntentToExecute = pendingIntent;
+        this.pendingIntentPackage = packageName;
     }
 
     @Override
     protected void onServiceConnected() {
         super.onServiceConnected();
         instance = this;
+
+        // 配置监听窗口状态变化
+        AccessibilityServiceInfo info = new AccessibilityServiceInfo();
+        info.eventTypes = AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED;
+        info.feedbackType = AccessibilityServiceInfo.FEEDBACK_GENERIC;
+        info.notificationTimeout = 100;
+        setServiceInfo(info);
+
         // 如果悬浮窗服务正在运行，通知其重新创建悬浮窗以提升层级
         FloatingWindowService floatingService = FloatingWindowService.getInstance();
         if (floatingService != null) {
-            // 这里可以通过调用一个方法来刷新悬浮窗，或者简单的让用户重启服务
-            // 为了更好的体验，我们尝试重启悬浮窗逻辑
-            // 但考虑到线程安全和复杂性，暂时只需确保下次创建时生效
-            // 或者，我们可以主动调用 recreateWindow
             floatingService.recreateWindow();
         }
     }
@@ -87,11 +106,32 @@ public class AppAccessibilityService extends AccessibilityService {
 
     @Override
     public void onAccessibilityEvent(AccessibilityEvent event) {
-        // Handle accessibility events here
+        if (event.getEventType() == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) {
+            String packageName = event.getPackageName().toString();
+
+            // 检查是否跳转到目标APP
+            if (packageName.equals(pendingIntentPackage) && pendingIntentToExecute != null) {
+                try {
+                    pendingIntentToExecute.send();
+                    // 成功：从超级岛移除通知
+                    FloatingWindowService.getInstance().removeNotification(pendingIntentKey);
+                } catch (PendingIntent.CanceledException e) {
+                    // 失败：保留通知在超级岛中
+                }
+
+                // 清理
+                pendingIntentToExecute = null;
+                pendingIntentKey = null;
+                pendingIntentPackage = null;
+            }
+        }
     }
 
     @Override
     public void onInterrupt() {
-        // Handle interrupt
+        // 清理待执行的PendingIntent
+        pendingIntentToExecute = null;
+        pendingIntentKey = null;
+        pendingIntentPackage = null;
     }
 }
