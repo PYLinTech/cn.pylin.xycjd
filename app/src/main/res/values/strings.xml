@@ -342,6 +342,10 @@
     <string name="auto_collapse_after_expand">自动展开后是否自动收起</string>
     <string name="auto_collapse_duration">自动收起时长</string>
     <string name="collapse_on_touch_outside">自动展开后是否通过点击空白区域收起</string>
+    <string name="click_response_mode_desc">选择点击通知时的响应方式</string>
+    <string name="click_mode_standard">标准模式</string>
+    <string name="click_mode_compatibility">兼容模式</string>
+    <string name="click_mode_shizuku">Shizuku模式</string>
     <string name="value_seconds" translatable="false">%.1f s</string>
 
     <!-- 通知时间显示 -->

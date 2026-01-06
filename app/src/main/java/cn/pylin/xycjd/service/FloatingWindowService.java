@@ -39,6 +39,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.recyclerview.widget.ItemTouchHelper;
 
+import cn.pylin.xycjd.handler.NotificationClickHandler;
 import cn.pylin.xycjd.model.local.LocalModelManager;
 import cn.pylin.xycjd.R;
 import cn.pylin.xycjd.manager.SharedPreferencesManager;
@@ -155,7 +156,8 @@ public class FloatingWindowService extends Service {
     private String lastNotificationContent;
     
     private SharedPreferencesManager manager;
-    
+    private NotificationClickHandler notificationClickHandler;
+
     private static final int DEFAULT_SIZE = 100;
     private static final int DEFAULT_X = 0;
     private static final int DEFAULT_Y = -100;
@@ -173,6 +175,8 @@ public class FloatingWindowService extends Service {
         instance = this;
         // 初始化SharedPreferences管理器
         manager = SharedPreferencesManager.getInstance(this);
+        // 初始化通知点击处理器
+        notificationClickHandler = new NotificationClickHandler(this);
     }
     
     @Override
@@ -730,8 +734,15 @@ public class FloatingWindowService extends Service {
 
     public void removeNotification(String key) {
         new Handler(Looper.getMainLooper()).post(() -> {
+            // 检查是否为媒体通知，媒体通知不允许通过点击移除
+            if (isMediaNotification(key)) {
+                // 媒体通知不移除，只允许通过左滑/右滑移除
+                hideNotificationIsland();
+                return;
+            }
+
             removeNotificationInternal(key);
-            
+
             if (notificationQueue.isEmpty()) {
                 hideThreeCircleIsland();
                 hideNotificationIsland();
@@ -742,7 +753,7 @@ public class FloatingWindowService extends Service {
                 lastNotificationPackageName = latest.packageName;
                 lastNotificationTitle = latest.title;
                 lastNotificationContent = latest.content;
-                
+
                 updateThreeCircleContent();
                 // 如果展开的悬浮窗正在显示，也更新它
                 if (floatingIslandView != null && floatingIslandView.getParent() != null) {
@@ -761,6 +772,22 @@ public class FloatingWindowService extends Service {
             }
         }
         return -1;
+    }
+
+    /**
+     * 判断指定key的通知是否为媒体通知
+     * @param key 通知的key
+     * @return true如果是媒体通知，false如果不是或找不到
+     */
+    private boolean isMediaNotification(String key) {
+        if (key == null) return false;
+        for (NotificationInfo info : notificationQueue) {
+            if (key.equals(info.key)) {
+                // 有mediaToken就是媒体通知
+                return info.mediaToken != null;
+            }
+        }
+        return false;
     }
 
     /**
@@ -1221,13 +1248,17 @@ public class FloatingWindowService extends Service {
                                 if (holder instanceof NotificationAdapter.ViewHolder) {
                                     NotificationAdapter.ViewHolder viewHolder = (NotificationAdapter.ViewHolder) holder;
                                     // 更新ViewHolder中的进度显示
-                                    if (viewHolder.mediaProgress != null && duration > 0) {
-                                        int progress = (int) ((position * 100) / duration);
-                                        viewHolder.mediaProgress.setProgress(progress);
-                                        viewHolder.currentPosition = position;
-                                        viewHolder.totalDuration = duration;
-                                        viewHolder.updateCurrentTimeDisplay();
-                                        viewHolder.updateTotalTimeDisplay();
+                                    // 检查用户是否正在拖动进度条，如果是则不更新
+                                    if (viewHolder.mediaProgress != null && duration > 0 && !viewHolder.isUserSeeking) {
+                                        // 如果有待处理的 seek 操作，不更新
+                                        if (!viewHolder.mediaProgress.hasPendingSeek()) {
+                                            int progress = (int) ((position * 100) / duration);
+                                            viewHolder.mediaProgress.setProgress(progress);
+                                            viewHolder.currentPosition = position;
+                                            viewHolder.totalDuration = duration;
+                                            viewHolder.updateCurrentTimeDisplay();
+                                            viewHolder.updateTotalTimeDisplay();
+                                        }
                                     }
                                 } else {
                                     // 如果找不到ViewHolder，通知adapter刷新
@@ -1295,7 +1326,8 @@ public class FloatingWindowService extends Service {
                 holder.totalDuration = info.getTotalDuration();
 
                 // 如果ViewHolder中有进度条，更新显示
-                if (holder.mediaProgress != null && holder.totalDuration > 0) {
+                // 检查用户是否正在拖动，如果是则不更新
+                if (holder.mediaProgress != null && holder.totalDuration > 0 && !holder.isUserSeeking) {
                     holder.mediaProgress.setMax(100);
                     int progress = (int) ((holder.currentPosition * 100) / holder.totalDuration);
                     holder.mediaProgress.setProgress(progress);
@@ -1342,31 +1374,19 @@ public class FloatingWindowService extends Service {
             });
 
             holder.container.setOnClickListener(v -> {
-                // 如果正在拖拽进度条，不响应卡片点击
-                if (holder.mediaProgress != null && holder.mediaProgress.isDragging()) {
-                    return;
-                }
+                // 使用NotificationClickHandler处理点击
+                boolean isDragging = holder.mediaProgress != null && holder.mediaProgress.isDragging();
 
-                // 条件：总过滤开启 + 包名过滤开启 + 是本地模型
-                if (manager.isModelFilteringEnabled() && isModelFilterEnabled(info.packageName) && manager.getFilterModel().equals("model_local")) {
-                    // 正向反馈到本地模型 - 使用新的分离接口，参数true表示正向
-                    String trainingText = (info.title != null ? info.content : "");
-                    LocalModelManager.getInstance(FloatingWindowService.this).process(info.title, trainingText, true);
-                }
+                NotificationClickHandler.NotificationClickInfo clickInfo =
+                        new NotificationClickHandler.NotificationClickInfo(
+                                info.key,
+                                info.packageName,
+                                info.title,
+                                info.content,
+                                info.pendingIntent
+                        );
 
-                // 启动目标APP，AccessibilityService检测到前台变化后会执行PendingIntent
-                Intent launchIntent = getPackageManager().getLaunchIntentForPackage(info.packageName);
-                if (launchIntent != null) {
-                    launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                    startActivity(launchIntent);
-
-                    // 通知AccessibilityService准备执行PendingIntent
-                    AppAccessibilityService.getInstance().preparePendingIntent(
-                        info.key,
-                        info.pendingIntent,
-                        info.packageName
-                    );
-                }
+                notificationClickHandler.handleCardClick(clickInfo, isDragging);
             });
         }
 
@@ -1412,6 +1432,8 @@ public class FloatingWindowService extends Service {
             private boolean isUserSeeking = false;
             private boolean isPlaying = false;
             private long updateToken = 0; // 用于识别过期的更新任务
+            private boolean isTimeDisplayDirty = false; // 新增：时间显示是否需要更新（用户拖动时可能需要临时更新）
+            private long pendingTimeDisplay = -1; // 新增：待应用的时间显示值
 
             // 时间刷新相关
             private java.util.concurrent.atomic.AtomicLong timeUpdateToken = new java.util.concurrent.atomic.AtomicLong(0);
@@ -1575,6 +1597,7 @@ public class FloatingWindowService extends Service {
                 btnPlay.setImageResource(isPlaying ? R.drawable.ic_media_pause : R.drawable.ic_media_play);
 
                 // 新增：更新进度信息
+                // 只有在用户没有在拖动进度条时才更新显示
                 if (!isUserSeeking) {
                     currentPosition = state.getPosition();
                     // 检查是否支持seek
@@ -1623,10 +1646,22 @@ public class FloatingWindowService extends Service {
                 mediaProgress.setOnSeekBarChangeListener(new android.widget.SeekBar.OnSeekBarChangeListener() {
                     @Override
                     public void onProgressChanged(android.widget.SeekBar seekBar, int progress, boolean fromUser) {
-                        if (fromUser && mediaController != null && totalDuration > 0) {
-                            // 计算seek位置（毫秒）
-                            long seekPosition = (long) (totalDuration * progress / 100.0);
-                            mediaController.getTransportControls().seekTo(seekPosition);
+                        if (fromUser && mediaController != null) {
+                            // 检查是否有有效的时长，如果没有则不处理
+                            if (totalDuration > 0) {
+                                // 1. 计算当前拖动位置对应的时间
+                                long seekPosition = (long) (totalDuration * progress / 100.0);
+                                
+                                // 2. 实时更新时间显示（给用户视觉反馈）
+                                if (tvCurrentTime != null) {
+                                    tvCurrentTime.setText(formatTime(seekPosition));
+                                }
+                                
+                                // 3. 缓存最终的进度值和待显示的时间，拖动结束时才真正 seek
+                                mediaProgress.setPendingProgress(progress);
+                                pendingTimeDisplay = seekPosition;
+                                isTimeDisplayDirty = true;
+                            }
                         }
                     }
 
@@ -1640,9 +1675,40 @@ public class FloatingWindowService extends Service {
                     @Override
                     public void onStopTrackingTouch(android.widget.SeekBar seekBar) {
                         isUserSeeking = false;
+                        
+                        // 应用待处理的 seek 操作
+                        // 先检查 hasPendingSeek，再获取 pendingProgress
+                        if (mediaProgress.hasPendingSeek()) {
+                            int finalProgress = mediaProgress.getPendingProgress();
+                            mediaProgress.clearPendingSeek();  // 立即清除，避免竞态条件
+                            
+                            // 清除时间显示的待处理状态
+                            isTimeDisplayDirty = false;
+                            pendingTimeDisplay = -1;
+                            
+                            // 执行实际的 seek
+                            if (mediaController != null && totalDuration > 0 && finalProgress >= 0) {
+                                long seekPosition = (long) (totalDuration * finalProgress / 100.0);
+                                mediaController.getTransportControls().seekTo(seekPosition);
+                            }
+                        } else {
+                            // 没有待处理的 seek，仍然重置时间显示状态
+                            isTimeDisplayDirty = false;
+                            pendingTimeDisplay = -1;
+                        }
+                        
                         // 拖拽结束后，如果是播放状态，恢复自动更新
                         if (isPlaying) {
                             startProgressUpdates();
+                        } else {
+                            // 暂停状态下，更新时间显示以反映实际播放位置
+                            if (mediaController != null) {
+                                android.media.session.PlaybackState state = mediaController.getPlaybackState();
+                                if (state != null) {
+                                    currentPosition = state.getPosition();
+                                    updateCurrentTimeDisplay();
+                                }
+                            }
                         }
                     }
                 });
@@ -1650,6 +1716,11 @@ public class FloatingWindowService extends Service {
 
             // 新增：开始进度更新
             private void startProgressUpdates() {
+                // 如果用户正在拖动进度条，不启动自动更新
+                if (isUserSeeking) {
+                    return;
+                }
+                
                 stopProgressUpdates(); // 清除任何现有的更新任务
                 updateToken++; // 增加token使旧任务失效
                 final long currentToken = updateToken;
@@ -1657,6 +1728,9 @@ public class FloatingWindowService extends Service {
                 new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> {
                     // 检查是否已过期
                     if (currentToken != updateToken) return;
+
+                    // 如果正在拖动，不更新
+                    if (isUserSeeking) return;
 
                     if (mediaController != null && !isUserSeeking && isPlaying) {
                         android.media.session.PlaybackState state = mediaController.getPlaybackState();
@@ -1680,16 +1754,26 @@ public class FloatingWindowService extends Service {
 
             // 新增：更新进度显示
             private void updateProgressDisplay() {
+                // 如果用户正在拖动进度条，不更新进度条（避免覆盖用户的操作）
+                // 但时间显示由 updateCurrentTimeDisplay 处理（可能会使用拖动中的值）
                 if (mediaProgress != null && totalDuration > 0) {
-                    int progress = (int) ((currentPosition * 100) / totalDuration);
-                    mediaProgress.setProgress(progress);
+                    // 只有在没有待处理的 seek 操作时才更新进度条
+                    if (!mediaProgress.hasPendingSeek() || !isUserSeeking) {
+                        int progress = (int) ((currentPosition * 100) / totalDuration);
+                        mediaProgress.setProgress(progress);
+                    }
                 }
                 updateCurrentTimeDisplay();
             }
 
             // 新增：更新当前时间显示
             private void updateCurrentTimeDisplay() {
-                if (tvCurrentTime != null) {
+                if (tvCurrentTime == null) return;
+                
+                // 如果有待应用的时间显示值（用户拖动中），使用它而不是 currentPosition
+                if (isTimeDisplayDirty && pendingTimeDisplay >= 0) {
+                    tvCurrentTime.setText(formatTime(pendingTimeDisplay));
+                } else {
                     tvCurrentTime.setText(formatTime(currentPosition));
                 }
             }

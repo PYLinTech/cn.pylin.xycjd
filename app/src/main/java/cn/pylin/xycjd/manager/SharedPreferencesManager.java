@@ -125,9 +125,14 @@ public class SharedPreferencesManager {
     private static final String PREF_AUTO_COLLAPSE_AFTER_EXPAND = "pref_auto_collapse_after_expand";
     private static final String PREF_AUTO_COLLAPSE_DURATION = "pref_auto_collapse_duration";
     private static final String PREF_COLLAPSE_ON_TOUCH_OUTSIDE = "pref_collapse_on_touch_outside";
+    private static final String PREF_CLICK_RESPONSE_MODE = "pref_click_response_mode";
     private boolean autoCollapseAfterExpand;
     private float autoCollapseDuration;
     private boolean collapseOnTouchOutside;
+    private String clickResponseMode;
+    public static final String CLICK_MODE_STANDARD = "click_mode_standard"; // 标准模式
+    public static final String CLICK_MODE_COMPATIBILITY = "click_mode_compatibility"; // 兼容模式
+    public static final String CLICK_MODE_SHIZUKU = "click_mode_shizuku"; // Shizuku模式
     
     private SharedPreferencesManager(Context context) {
         // 初始化全局SharedPreferences
@@ -206,6 +211,7 @@ public class SharedPreferencesManager {
         autoCollapseAfterExpand = globalPrefs.getBoolean(PREF_AUTO_COLLAPSE_AFTER_EXPAND, false);
         autoCollapseDuration = globalPrefs.getFloat(PREF_AUTO_COLLAPSE_DURATION, 5.0f);
         collapseOnTouchOutside = globalPrefs.getBoolean(PREF_COLLAPSE_ON_TOUCH_OUTSIDE, true);
+        clickResponseMode = globalPrefs.getString(PREF_CLICK_RESPONSE_MODE, CLICK_MODE_STANDARD);
     }
     
     // ==================== 全局设置读写方法 ====================
@@ -675,5 +681,28 @@ public class SharedPreferencesManager {
     public void setCollapseOnTouchOutside(boolean enabled) {
         this.collapseOnTouchOutside = enabled;
         globalEditor.putBoolean(PREF_COLLAPSE_ON_TOUCH_OUTSIDE, enabled).apply();
+    }
+
+    // ==================== 点击响应模式方法 ====================
+
+    public String getClickResponseMode() {
+        return clickResponseMode != null ? clickResponseMode : CLICK_MODE_STANDARD;
+    }
+
+    public void setClickResponseMode(String mode) {
+        this.clickResponseMode = mode;
+        globalEditor.putString(PREF_CLICK_RESPONSE_MODE, mode).apply();
+    }
+
+    public boolean isStandardClickMode() {
+        return CLICK_MODE_STANDARD.equals(getClickResponseMode());
+    }
+
+    public boolean isCompatibilityClickMode() {
+        return CLICK_MODE_COMPATIBILITY.equals(getClickResponseMode());
+    }
+
+    public boolean isShizukuClickMode() {
+        return CLICK_MODE_SHIZUKU.equals(getClickResponseMode());
     }
 }

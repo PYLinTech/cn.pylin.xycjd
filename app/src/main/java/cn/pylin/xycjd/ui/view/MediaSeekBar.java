@@ -16,7 +16,10 @@ import cn.pylin.xycjd.R;
 public class MediaSeekBar extends AppCompatSeekBar {
 
     private boolean isDragging = false;
+    private boolean isTouchDown = false;  // 新增：记录触摸是否按下
     private OnSeekBarChangeListener externalListener;
+    private int pendingProgress = -1;  // 新增：待应用的进度值
+    private boolean hasPendingSeek = false;  // 新增：是否有待应用的 seek
 
     public MediaSeekBar(Context context) {
         super(context);
@@ -48,6 +51,7 @@ public class MediaSeekBar extends AppCompatSeekBar {
 
             @Override
             public void onStartTrackingTouch(SeekBar seekBar) {
+                isTouchDown = true;  // 触摸按下
                 isDragging = true;
                 if (externalListener != null) {
                     externalListener.onStartTrackingTouch(seekBar);
@@ -57,6 +61,10 @@ public class MediaSeekBar extends AppCompatSeekBar {
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
                 isDragging = false;
+                isTouchDown = false;  // 触摸释放
+                // 清除待处理状态（不调用 externalListener，让外部自行处理）
+                hasPendingSeek = false;
+                pendingProgress = -1;
                 if (externalListener != null) {
                     externalListener.onStopTrackingTouch(seekBar);
                 }
@@ -128,5 +136,44 @@ public class MediaSeekBar extends AppCompatSeekBar {
      */
     public void setDragging(boolean dragging) {
         this.isDragging = dragging;
+    }
+
+    /**
+     * 检查触摸是否按下
+     */
+    public boolean isTouchDown() {
+        return isTouchDown;
+    }
+
+    /**
+     * 设置待应用的进度值（用于批量处理拖动时的进度更新）
+     * @param progress 进度值
+     */
+    public void setPendingProgress(int progress) {
+        this.pendingProgress = progress;
+        this.hasPendingSeek = true;
+    }
+
+    /**
+     * 获取待应用的进度值
+     * @return 待应用的进度值，如果没有返回 -1
+     */
+    public int getPendingProgress() {
+        return pendingProgress;
+    }
+
+    /**
+     * 检查是否有待应用的 seek
+     */
+    public boolean hasPendingSeek() {
+        return hasPendingSeek;
+    }
+
+    /**
+     * 清除待应用的 seek
+     */
+    public void clearPendingSeek() {
+        hasPendingSeek = false;
+        pendingProgress = -1;
     }
 }

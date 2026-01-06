@@ -303,4 +303,8 @@
     <string name="permission_shizuku">Shizuku permission</string>
     <string name="permission_shizuku_desc">Use Shizuku to bypass restrictions imposed by certain OEM manufacturers</string>
     <string name="shizuku_error">Shizuku is not installed or has permission issues!</string>
+    <string name="click_response_mode_desc">Select the response method for click notifications</string>
+    <string name="click_mode_standard">Standard Mode</string>
+    <string name="click_mode_compatibility">Compatibility Mode</string>
+    <string name="click_mode_shizuku">Shizuku Mode</string>
 </resources>

@@ -261,4 +261,8 @@
     <string name="permission_shizuku">Shizuku 權限</string>
     <string name="permission_shizuku_desc">借助Shizuku來繞過某些OEM廠商的限製</string>
     <string name="shizuku_error">未安裝Shizuku或Shizuku權限異常！</string>
+    <string name="click_response_mode_desc">選擇點擊通知時的響應方式</string>
+    <string name="click_mode_standard">標準模式</string>
+    <string name="click_mode_compatibility">兼容模式</string>
+    <string name="click_mode_shizuku">Shizuku模式</string>
 </resources>
