@@ -1,6 +1,7 @@
 package cn.pylin.xycjd.service;
 
 import android.animation.ValueAnimator;
+import android.annotation.SuppressLint;
 import android.app.ActivityManager;
 import android.app.PendingIntent;
 import android.app.Service;
@@ -1242,13 +1243,15 @@ public class FloatingWindowService extends Service {
                                 RecyclerView.ViewHolder holder = recyclerView.findViewHolderForAdapterPosition(0);
                                 if (holder instanceof NotificationAdapter.ViewHolder) {
                                     NotificationAdapter.ViewHolder viewHolder = (NotificationAdapter.ViewHolder) holder;
-                                    if (viewHolder.mediaProgress != null && duration > 0 && !viewHolder.isUserSeeking) {
-                                        int progress = (int) ((position * 100) / duration);
+                                    // ⭐ 检查用户是否正在拖动当前这个 ViewHolder
+                                    boolean isThisPositionSeeking = viewHolder.isDragging && viewHolder.bindingPosition == i;
+                                    if (viewHolder.mediaProgress != null && duration > 0 && !isThisPositionSeeking) {
+                                        int progress = (int) ((position * 1000) / duration);
                                         viewHolder.mediaProgress.setProgress(progress);
                                         viewHolder.currentPosition = position;
                                         viewHolder.totalDuration = duration;
-                                        viewHolder.updateCurrentTimeDisplay();
-                                        viewHolder.updateTotalTimeDisplay();
+                                        // ⭐ 自动刷新时，只更新进度条，不更新文本
+                                        // 文本更新只在 onProgressChanged(fromUser=true) 中进行
                                     }
                                 } else {
                                     notificationAdapter.notifyItemChanged(0);
@@ -1289,9 +1292,10 @@ public class FloatingWindowService extends Service {
         }
 
         @Override
-        public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
+        public void onBindViewHolder(@NonNull ViewHolder holder, @SuppressLint("RecyclerView") int position) {
             NotificationInfo info = notificationQueue.get(position);
             holder.currentPackageName = info.packageName;
+            holder.bindingPosition = position; // 记录当前绑定的位置
             
             holder.title.setText(info.title != null ? info.title : "");
             holder.content.setText(info.content != null ? info.content : "");
@@ -1314,11 +1318,22 @@ public class FloatingWindowService extends Service {
                 holder.totalDuration = info.getTotalDuration();
 
                 // 如果ViewHolder中有进度条，更新显示
-                // 检查用户是否正在拖动，如果是则不更新
-                if (holder.mediaProgress != null && holder.totalDuration > 0 && !holder.isUserSeeking) {
-                    holder.mediaProgress.setMax(100);
-                    int progress = (int) ((holder.currentPosition * 100) / holder.totalDuration);
-                    holder.mediaProgress.setProgress(progress);
+                // 检查用户是否正在拖动，且是当前正在操作的位置，则不更新
+                boolean isThisPositionSeeking = holder.isUserSeeking && holder.bindingPosition == position;
+                if (holder.mediaProgress != null && holder.totalDuration > 0 && !isThisPositionSeeking) {
+                    holder.mediaProgress.setMax(1000);
+                    // 如果有pendingSeekPosition，恢复用户拖动的位置
+                    if (holder.pendingSeekPosition >= 0) {
+                        int pendingProgress = (int) ((holder.pendingSeekPosition * 1000) / holder.totalDuration);
+                        holder.mediaProgress.setProgress(pendingProgress);
+                        holder.currentPosition = holder.pendingSeekPosition;
+                        if (holder.tvCurrentTime != null) {
+                            holder.tvCurrentTime.setText(holder.formatTime(holder.pendingSeekPosition));
+                        }
+                    } else {
+                        int progress = (int) ((holder.currentPosition * 1000) / holder.totalDuration);
+                        holder.mediaProgress.setProgress(progress);
+                    }
                     holder.updateCurrentTimeDisplay();
                     holder.updateTotalTimeDisplay();
                 }
@@ -1420,6 +1435,11 @@ public class FloatingWindowService extends Service {
             private boolean isUserSeeking = false;
             private boolean isPlaying = false;
             private long updateToken = 0;
+            private int bindingPosition = -1; // 当前绑定的位置，用于精确控制用户操作
+            private boolean isSeekBarListenerSetup = false; // 标记监听器是否已设置
+            // 用户拖动时保存的状态（用于 ViewHolder 复用时恢复）
+            private long pendingSeekPosition = -1; // 待应用的拖动位置
+            private boolean isDragging = false; // 标记用户是否正在拖动 SeekBar（只用于控制文本更新）
 
             // 时间刷新相关
             private java.util.concurrent.atomic.AtomicLong timeUpdateToken = new java.util.concurrent.atomic.AtomicLong(0);
@@ -1512,7 +1532,7 @@ public class FloatingWindowService extends Service {
                     totalDuration = metadata.getLong(android.media.MediaMetadata.METADATA_KEY_DURATION);
                     if (totalDuration > 0) {
                         updateTotalTimeDisplay();
-                        mediaProgress.setMax(100); // 使用0-100的进度范围
+                        mediaProgress.setMax(1000); // 使用0-1000的进度范围
                     } else {
                         // 无固定时长（如直播），隐藏进度条
                         mediaProgressContainer.setVisibility(View.GONE);
@@ -1609,7 +1629,7 @@ public class FloatingWindowService extends Service {
                     if (totalDuration > 0) {
                         updateTotalTimeDisplay();
                         if (mediaProgress != null) {
-                            mediaProgress.setMax(100);
+                            mediaProgress.setMax(1000);
                             mediaProgressContainer.setVisibility(View.VISIBLE);
                         }
                     } else {
@@ -1620,56 +1640,89 @@ public class FloatingWindowService extends Service {
                 }
             }
 
-            // 设置进度条监听器
+            // 设置进度条监听器（只设置一次）
             private void setupSeekBarListener() {
-                if (mediaProgress == null) return;
+                if (mediaProgress == null || isSeekBarListenerSetup) return;
+                isSeekBarListenerSetup = true;
 
                 mediaProgress.setOnSeekBarChangeListener(new android.widget.SeekBar.OnSeekBarChangeListener() {
                     @Override
                     public void onProgressChanged(android.widget.SeekBar seekBar, int progress, boolean fromUser) {
-                        if (fromUser && mediaController != null && totalDuration > 0) {
-                            long seekPosition = (long) (totalDuration * progress / 100.0);
+                        if (!fromUser) return;
+                        
+                        if (mediaController != null && totalDuration > 0) {
+                            long seekPosition = (long) (totalDuration * progress / 1000.0);
+                            // ⭐ 文本只在这里更新
                             if (tvCurrentTime != null) {
                                 tvCurrentTime.setText(formatTime(seekPosition));
                             }
+                            mediaProgress.setProgress(progress);
+                            currentPosition = seekPosition;
+                            pendingSeekPosition = seekPosition;
                         }
                     }
 
                     @Override
                     public void onStartTrackingTouch(android.widget.SeekBar seekBar) {
                         isUserSeeking = true;
+                        isDragging = true;
+                        bindingPosition = getBindingAdapterPosition();
                         stopProgressUpdates();
+                        cancelSeekEndDelay();
                     }
 
                     @Override
                     public void onStopTrackingTouch(android.widget.SeekBar seekBar) {
-                        isUserSeeking = false;
-                        
                         if (mediaController != null && totalDuration > 0) {
                             int progress = seekBar.getProgress();
-                            long seekPosition = (long) (totalDuration * progress / 100.0);
+                            long seekPosition = (long) (totalDuration * progress / 1000.0);
                             mediaController.getTransportControls().seekTo(seekPosition);
+                            currentPosition = seekPosition;
+                            pendingSeekPosition = -1;
                         }
-                        
-                        if (isPlaying) {
-                            startProgressUpdates();
-                        }
+
+                        isDragging = false;
+                        scheduleSeekEndDelay();
                     }
                 });
+            }
+            
+            // 延迟1秒后恢复自动刷新的Runnable
+            private Runnable seekEndDelayRunnable = new Runnable() {
+                @Override
+                public void run() {
+                    isUserSeeking = false;
+                    if (isPlaying) {
+                        startProgressUpdates();
+                    }
+                }
+            };
+
+            // 调度延迟恢复
+            private void scheduleSeekEndDelay() {
+                cancelSeekEndDelay();
+                new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(seekEndDelayRunnable, 1000);
+            }
+
+            // 取消延迟恢复
+            private void cancelSeekEndDelay() {
+                new android.os.Handler(android.os.Looper.getMainLooper()).removeCallbacks(seekEndDelayRunnable);
             }
 
             // 开始进度更新
             private void startProgressUpdates() {
+                // 如果用户正在操作（包括等待恢复期间），不启动自动更新
                 if (isUserSeeking) {
                     return;
                 }
-                
+                 
                 stopProgressUpdates();
                 updateToken++;
                 final long currentToken = updateToken;
 
                 new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> {
                     if (currentToken != updateToken) return;
+                    // 再次检查用户状态，防止在等待期间被标记为seeking
                     if (isUserSeeking) return;
 
                     if (mediaController != null && !isUserSeeking && isPlaying) {
@@ -1693,11 +1746,13 @@ public class FloatingWindowService extends Service {
 
             // 更新进度显示
             private void updateProgressDisplay() {
-                if (mediaProgress != null && totalDuration > 0 && !isUserSeeking) {
-                    int progress = (int) ((currentPosition * 100) / totalDuration);
+                if (mediaProgress != null && totalDuration > 0 && !isDragging) {
+                    int progress = (int) ((currentPosition * 1000) / totalDuration);
                     mediaProgress.setProgress(progress);
                 }
-                updateCurrentTimeDisplay();
+                if (!isDragging) {
+                    updateCurrentTimeDisplay();
+                }
             }
 
             // 更新当前时间显示
@@ -1725,6 +1780,7 @@ public class FloatingWindowService extends Service {
             // 清理资源方法
             public void cleanup() {
                 stopProgressUpdates();
+                cancelSeekEndDelay();
                 if (mediaController != null && mediaCallback != null) {
                     mediaController.unregisterCallback(mediaCallback);
                 }
