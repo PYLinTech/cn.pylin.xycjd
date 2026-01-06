@@ -76,6 +76,10 @@
 
     <string name="permission_battery_optimization">电池优化</string>
     <string name="permission_battery_optimization_desc">关闭电池优化可确保应用在后台正常运行</string>
+    <string name="permission_shizuku">Shizuku 权限</string>
+    <string name="permission_shizuku_desc">借助Shizuku来绕过某些OEM厂商的限制</string>
+    <string name="shizuku_error">未安装Shizuku或Shizuku权限异常！</string>
+    <string name="permission_tag_optional">可选</string>
     <string name="permission_status_granted">已授权</string>
     <string name="permission_status_denied">未授权</string>
     <string name="permission_action_grant">去授权</string>
@@ -338,5 +342,16 @@
     <string name="auto_collapse_after_expand">自动展开后是否自动收起</string>
     <string name="auto_collapse_duration">自动收起时长</string>
     <string name="collapse_on_touch_outside">自动展开后是否通过点击空白区域收起</string>
+    <string name="click_response_mode_desc">选择点击通知时的响应方式</string>
+    <string name="click_mode_standard">标准模式</string>
+    <string name="click_mode_compatibility">兼容模式</string>
+    <string name="click_mode_shizuku">Shizuku模式</string>
     <string name="value_seconds" translatable="false">%.1f s</string>
+
+    <!-- 通知时间显示 -->
+    <string name="time_just_now">刚刚</string>
+    <string name="time_minutes_ago">%d分钟前</string>
+    <string name="time_yesterday">昨天%1$s</string>
+    <string name="time_day_before_yesterday">前天%1$s</string>
+    <string name="time_long_ago">很久以前</string>
 </resources>

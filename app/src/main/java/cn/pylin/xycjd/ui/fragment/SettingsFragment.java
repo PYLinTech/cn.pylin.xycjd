@@ -192,7 +192,11 @@ public class SettingsFragment extends Fragment {
     private ImageButton btnAutoCollapseDecrease;
     private ImageButton btnAutoCollapseIncrease;
     private androidx.appcompat.widget.SwitchCompat switchCollapseOnTouchOutside;
-    
+    private RadioGroup radioGroupClickMode;
+    private RadioButton radioBtnClickModeStandard;
+    private RadioButton radioBtnClickModeCompatibility;
+    private RadioButton radioBtnClickModeShizuku;
+
     // 透明度相关常量
     private static final String PREF_OPACITY = "pref_opacity";
     private static final int DEFAULT_OPACITY = 0;
@@ -432,6 +436,10 @@ public class SettingsFragment extends Fragment {
         btnAutoCollapseDecrease = view.findViewById(R.id.btn_auto_collapse_decrease);
         btnAutoCollapseIncrease = view.findViewById(R.id.btn_auto_collapse_increase);
         switchCollapseOnTouchOutside = view.findViewById(R.id.switch_collapse_on_touch_outside);
+        radioGroupClickMode = view.findViewById(R.id.radio_group_click_mode);
+        radioBtnClickModeStandard = view.findViewById(R.id.radio_btn_click_mode_standard);
+        radioBtnClickModeCompatibility = view.findViewById(R.id.radio_btn_click_mode_compatibility);
+        radioBtnClickModeShizuku = view.findViewById(R.id.radio_btn_click_mode_shizuku);
     }
 
     private void setLanguageSelection() {
@@ -2219,7 +2227,7 @@ public class SettingsFragment extends Fragment {
         // 3. 点击空白区域是否自动收起
         boolean collapseOnTouchOutside = manager.isCollapseOnTouchOutside();
         switchCollapseOnTouchOutside.setChecked(collapseOnTouchOutside);
-        
+
         switchCollapseOnTouchOutside.setOnCheckedChangeListener((buttonView, isChecked) -> {
             manager.setCollapseOnTouchOutside(isChecked);
             // 通知服务更新交互配置
@@ -2230,6 +2238,26 @@ public class SettingsFragment extends Fragment {
                 }
             }
         });
+
+        // 4. 点击响应模式
+        String clickMode = manager.getClickResponseMode();
+        if (SharedPreferencesManager.CLICK_MODE_COMPATIBILITY.equals(clickMode)) {
+            radioBtnClickModeCompatibility.setChecked(true);
+        } else if (SharedPreferencesManager.CLICK_MODE_SHIZUKU.equals(clickMode)) {
+            radioBtnClickModeShizuku.setChecked(true);
+        } else {
+            // 默认选中标准模式
+            radioBtnClickModeStandard.setChecked(true);
+        }
+
+        radioGroupClickMode.setOnCheckedChangeListener((group, checkedId) -> {
+            if (checkedId == R.id.radio_btn_click_mode_standard) {
+                manager.setClickResponseMode(SharedPreferencesManager.CLICK_MODE_STANDARD);
+            } else if (checkedId == R.id.radio_btn_click_mode_compatibility) {
+                manager.setClickResponseMode(SharedPreferencesManager.CLICK_MODE_COMPATIBILITY);
+            } else if (checkedId == R.id.radio_btn_click_mode_shizuku) {
+                manager.setClickResponseMode(SharedPreferencesManager.CLICK_MODE_SHIZUKU);
+            }
+        });
     }
-    
 }

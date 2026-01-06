@@ -63,6 +63,7 @@
     <string name="accessibility_service_desc">Xiaoyu Super Island Accessibility Service, providing automation assistance</string>
     <string name="permission_battery_optimization">Battery Optimization</string>
     <string name="permission_battery_optimization_desc">Disabling battery optimization ensures app runs normally in background</string>
+    <string name="permission_tag_optional">Selectable</string>
     <string name="permission_status_granted">Granted</string>
     <string name="permission_status_denied">Denied</string>
     <string name="permission_action_grant">Grant</string>
@@ -294,4 +295,16 @@
     <string name="auto_collapse_after_expand">Auto collapse after auto expand</string>
     <string name="auto_collapse_duration">Auto-collapse duration</string>
     <string name="collapse_on_touch_outside">Collapse by clicking the blank area after automatic expansion</string>
+    <string name="time_just_now">Just Now</string>
+    <string name="time_minutes_ago">%d Minutes Ago</string>
+    <string name="time_yesterday">Yesterday %1$s</string>
+    <string name="time_day_before_yesterday">Two Days Ago %1$s</string>
+    <string name="time_long_ago">Long Time Ago</string>
+    <string name="permission_shizuku">Shizuku permission</string>
+    <string name="permission_shizuku_desc">Use Shizuku to bypass restrictions imposed by certain OEM manufacturers</string>
+    <string name="shizuku_error">Shizuku is not installed or has permission issues!</string>
+    <string name="click_response_mode_desc">Select the response method for click notifications</string>
+    <string name="click_mode_standard">Standard Mode</string>
+    <string name="click_mode_compatibility">Compatibility Mode</string>
+    <string name="click_mode_shizuku">Shizuku Mode</string>
 </resources>

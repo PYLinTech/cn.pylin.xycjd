@@ -52,6 +52,7 @@
     <string name="accessibility_service_desc">小雨超級島無障礙服務，提供自動化輔助功能</string>
     <string name="permission_battery_optimization">電池優化</string>
     <string name="permission_battery_optimization_desc">關閉電池優化可確保應用在後颱正常運行</string>
+    <string name="permission_tag_optional">可選</string>
     <string name="permission_status_granted">已授權</string>
     <string name="permission_status_denied">未授權</string>
     <string name="permission_action_grant">去授權</string>
@@ -252,4 +253,16 @@
     <string name="auto_collapse_after_expand">自動展開後是否自動收起</string>
     <string name="auto_collapse_duration">自動收起時長</string>
     <string name="collapse_on_touch_outside">自動展開後是否通過點擊空白區域收起</string>
+    <string name="time_just_now">剛剛</string>
+    <string name="time_minutes_ago">%d分鐘前</string>
+    <string name="time_yesterday">昨天%1$s</string>
+    <string name="time_day_before_yesterday">前天%1$s</string>
+    <string name="time_long_ago">很久以前</string>
+    <string name="permission_shizuku">Shizuku 權限</string>
+    <string name="permission_shizuku_desc">借助Shizuku來繞過某些OEM廠商的限製</string>
+    <string name="shizuku_error">未安裝Shizuku或Shizuku權限異常！</string>
+    <string name="click_response_mode_desc">選擇點擊通知時的響應方式</string>
+    <string name="click_mode_standard">標準模式</string>
+    <string name="click_mode_compatibility">兼容模式</string>
+    <string name="click_mode_shizuku">Shizuku模式</string>
 </resources>
