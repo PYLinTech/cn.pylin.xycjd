@@ -339,4 +339,11 @@
     <string name="auto_collapse_duration">自动收起时长</string>
     <string name="collapse_on_touch_outside">自动展开后是否通过点击空白区域收起</string>
     <string name="value_seconds" translatable="false">%.1f s</string>
+
+    <!-- 通知时间显示 -->
+    <string name="time_just_now">刚刚</string>
+    <string name="time_minutes_ago">%d分钟前</string>
+    <string name="time_yesterday">昨天%1$s</string>
+    <string name="time_day_before_yesterday">前天%1$s</string>
+    <string name="time_long_ago">很久以前</string>
 </resources>

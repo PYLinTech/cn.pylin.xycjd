@@ -294,4 +294,9 @@
     <string name="auto_collapse_after_expand">Auto collapse after auto expand</string>
     <string name="auto_collapse_duration">Auto-collapse duration</string>
     <string name="collapse_on_touch_outside">Collapse by clicking the blank area after automatic expansion</string>
+    <string name="time_just_now">Just Now</string>
+    <string name="time_minutes_ago">%d Minutes Ago</string>
+    <string name="time_yesterday">Yesterday %1$s</string>
+    <string name="time_day_before_yesterday">Two Days Ago %1$s</string>
+    <string name="time_long_ago">Long Time Ago</string>
 </resources>

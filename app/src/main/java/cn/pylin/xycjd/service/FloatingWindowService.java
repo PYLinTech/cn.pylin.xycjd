@@ -85,6 +85,9 @@ public class FloatingWindowService extends Service {
         private PendingIntent pendingIntent;
         private android.media.session.MediaSession.Token mediaToken;
 
+        // 通知到达时间戳（毫秒）
+        private long timestamp;
+
         // 新增：媒体进度相关字段
         private long currentPosition;     // 当前播放位置（毫秒）
         private long totalDuration;       // 总时长（毫秒）
@@ -105,6 +108,8 @@ public class FloatingWindowService extends Service {
             this.currentPosition = 0;
             this.totalDuration = 0;
             this.isSeekable = false;
+            // 初始化时间戳为当前时间
+            this.timestamp = System.currentTimeMillis();
         }
 
         // Public getters
@@ -114,6 +119,7 @@ public class FloatingWindowService extends Service {
         public String getContent() { return content; }
         public PendingIntent getPendingIntent() { return pendingIntent; }
         public android.media.session.MediaSession.Token getMediaToken() { return mediaToken; }
+        public long getTimestamp() { return timestamp; }
 
         // 新增：进度相关getter
         public long getCurrentPosition() { return currentPosition; }
@@ -127,6 +133,7 @@ public class FloatingWindowService extends Service {
         public void setContent(String content) { this.content = content; }
         public void setPendingIntent(PendingIntent pendingIntent) { this.pendingIntent = pendingIntent; }
         public void setMediaToken(android.media.session.MediaSession.Token mediaToken) { this.mediaToken = mediaToken; }
+        public void setTimestamp(long timestamp) { this.timestamp = timestamp; }
 
         // 新增：进度相关setter
         public void setCurrentPosition(long currentPosition) { this.currentPosition = currentPosition; }
@@ -1269,7 +1276,10 @@ public class FloatingWindowService extends Service {
             
             holder.title.setText(info.title != null ? info.title : "");
             holder.content.setText(info.content != null ? info.content : "");
-            
+
+            // 绑定时间戳并启动定时刷新
+            holder.bindTimestamp(info.getTimestamp());
+
             // 绑定媒体控制器（内部会处理图标显示）
             holder.bindMediaController(info.mediaToken);
             // 如果没有 token，bindMediaController 可能直接返回了，需要在这里确保图标被设置
@@ -1369,6 +1379,9 @@ public class FloatingWindowService extends Service {
         public void onViewRecycled(@NonNull ViewHolder holder) {
             super.onViewRecycled(holder);
 
+            // 停止时间刷新
+            holder.stopTimeUpdates();
+
             // 调用ViewHolder的清理方法
             holder.cleanup();
         }
@@ -1378,6 +1391,7 @@ public class FloatingWindowService extends Service {
             ImageView icon;
             TextView title;
             TextView content;
+            TextView timeText; // 通知时间
             LinearLayout mediaControls;
             ImageView btnPrev;
             ImageView btnPlay;
@@ -1399,12 +1413,19 @@ public class FloatingWindowService extends Service {
             private boolean isPlaying = false;
             private long updateToken = 0; // 用于识别过期的更新任务
 
+            // 时间刷新相关
+            private java.util.concurrent.atomic.AtomicLong timeUpdateToken = new java.util.concurrent.atomic.AtomicLong(0);
+            private Handler timeUpdateHandler;
+            private Runnable timeUpdateRunnable;
+            private long boundTimestamp = 0; // 绑定时记录的时间戳
+
             ViewHolder(View itemView) {
                 super(itemView);
                 container = itemView.findViewById(R.id.island_container);
                 icon = itemView.findViewById(R.id.app_icon);
                 title = itemView.findViewById(R.id.notification_title);
                 content = itemView.findViewById(R.id.notification_content);
+                timeText = itemView.findViewById(R.id.notification_time);
                 mediaControls = itemView.findViewById(R.id.media_controls);
                 btnPrev = itemView.findViewById(R.id.btn_prev);
                 btnPlay = itemView.findViewById(R.id.btn_play);
@@ -1415,6 +1436,45 @@ public class FloatingWindowService extends Service {
                 tvCurrentTime = itemView.findViewById(R.id.tv_current_time);
                 tvTotalTime = itemView.findViewById(R.id.tv_total_time);
                 mediaProgressContainer = itemView.findViewById(R.id.media_progress_container);
+
+                // 初始化时间刷新Handler
+                timeUpdateHandler = new Handler(Looper.getMainLooper());
+                timeUpdateRunnable = new Runnable() {
+                    @Override
+                    public void run() {
+                        // 检查是否已被回收或Token已过期
+                        if (timeUpdateToken.get() < 0) return;
+
+                        // 更新时间显示
+                        if (timeText != null) {
+                            timeText.setText(formatNotificationTime(boundTimestamp));
+                        }
+
+                        // 继续定时刷新（每30秒刷新一次）
+                        timeUpdateHandler.postDelayed(this, 30000);
+                    }
+                };
+            }
+
+            /**
+             * 绑定时间戳并启动定时刷新
+             */
+            void bindTimestamp(long timestamp) {
+                boundTimestamp = timestamp;
+                timeUpdateToken.incrementAndGet();
+                if (timeText != null) {
+                    timeText.setText(formatNotificationTime(timestamp));
+                }
+                // 立即启动定时刷新
+                timeUpdateHandler.post(timeUpdateRunnable);
+            }
+
+            /**
+             * 停止时间刷新
+             */
+            void stopTimeUpdates() {
+                timeUpdateToken.incrementAndGet(); // 使当前Runnable失效
+                timeUpdateHandler.removeCallbacks(timeUpdateRunnable);
             }
 
             void bindMediaController(android.media.session.MediaSession.Token token) {
@@ -1675,7 +1735,57 @@ public class FloatingWindowService extends Service {
         if (speed <= 0) speed = 0.1f;
         return (long) (baseDuration / speed);
     }
-    
+
+    /**
+     * 格式化通知时间显示
+     * @param timestamp 通知到达时间戳（毫秒）
+     * @return 格式化后的时间字符串
+     */
+    private String formatNotificationTime(long timestamp) {
+        long now = System.currentTimeMillis();
+        long diff = now - timestamp;
+        long oneMinute = 60 * 1000L;
+        long fiveMinutes = 5 * 60 * 1000L;
+        long oneDay = 24 * 60 * 60 * 1000L;
+        long twoDays = 2 * oneDay;
+
+        java.util.Calendar nowCalendar = java.util.Calendar.getInstance();
+        java.util.Calendar timestampCalendar = java.util.Calendar.getInstance();
+        timestampCalendar.setTimeInMillis(timestamp);
+
+        // 判断是否是当天
+        if (nowCalendar.get(java.util.Calendar.YEAR) == timestampCalendar.get(java.util.Calendar.YEAR) &&
+            nowCalendar.get(java.util.Calendar.DAY_OF_YEAR) == timestampCalendar.get(java.util.Calendar.DAY_OF_YEAR)) {
+            // 当天
+            if (diff < oneMinute) {
+                return getString(R.string.time_just_now); // "刚刚"
+            } else if (diff < fiveMinutes) {
+                long minutes = diff / oneMinute;
+                return getString(R.string.time_minutes_ago, minutes); // "X分钟前"
+            } else {
+                // 显示 HH:mm 格式
+                java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("HH:mm", java.util.Locale.getDefault());
+                return sdf.format(new java.util.Date(timestamp));
+            }
+        }
+        // 判断是否是昨天
+        else if (nowCalendar.get(java.util.Calendar.YEAR) == timestampCalendar.get(java.util.Calendar.YEAR) &&
+                 nowCalendar.get(java.util.Calendar.DAY_OF_YEAR) - timestampCalendar.get(java.util.Calendar.DAY_OF_YEAR) == 1) {
+            java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("HH:mm", java.util.Locale.getDefault());
+            return getString(R.string.time_yesterday, sdf.format(new java.util.Date(timestamp)));
+        }
+        // 判断是否是前天
+        else if (nowCalendar.get(java.util.Calendar.YEAR) == timestampCalendar.get(java.util.Calendar.YEAR) &&
+                 nowCalendar.get(java.util.Calendar.DAY_OF_YEAR) - timestampCalendar.get(java.util.Calendar.DAY_OF_YEAR) == 2) {
+            java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("HH:mm", java.util.Locale.getDefault());
+            return getString(R.string.time_day_before_yesterday, sdf.format(new java.util.Date(timestamp)));
+        }
+        // 更早
+        else {
+            return getString(R.string.time_long_ago);
+        }
+    }
+
     /**
      * 显示三圆灵动岛悬浮窗
      */

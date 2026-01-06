@@ -252,4 +252,9 @@
     <string name="auto_collapse_after_expand">自動展開後是否自動收起</string>
     <string name="auto_collapse_duration">自動收起時長</string>
     <string name="collapse_on_touch_outside">自動展開後是否通過點擊空白區域收起</string>
+    <string name="time_just_now">剛剛</string>
+    <string name="time_minutes_ago">%d分鐘前</string>
+    <string name="time_yesterday">昨天%1$s</string>
+    <string name="time_day_before_yesterday">前天%1$s</string>
+    <string name="time_long_ago">很久以前</string>
 </resources>
