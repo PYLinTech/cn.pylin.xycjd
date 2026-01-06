@@ -76,6 +76,10 @@
 
     <string name="permission_battery_optimization">电池优化</string>
     <string name="permission_battery_optimization_desc">关闭电池优化可确保应用在后台正常运行</string>
+    <string name="permission_shizuku">Shizuku 权限</string>
+    <string name="permission_shizuku_desc">借助Shizuku来绕过某些OEM厂商的限制</string>
+    <string name="shizuku_error">未安装Shizuku或Shizuku权限异常！</string>
+    <string name="permission_tag_optional">可选</string>
     <string name="permission_status_granted">已授权</string>
     <string name="permission_status_denied">未授权</string>
     <string name="permission_action_grant">去授权</string>

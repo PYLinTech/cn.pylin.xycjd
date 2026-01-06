@@ -12,6 +12,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 import android.Manifest;
 
 import androidx.annotation.NonNull;
@@ -32,6 +33,7 @@ public class PermissionFragment extends Fragment {
     private Runnable permissionCheckRunnable;
     private static final int PERMISSION_CHECK_INTERVAL = 1000;
     private static final int REQUEST_POST_NOTIFICATIONS = 1001;
+    private static final int REQUEST_SHIZUKU = 1002;
 
     private androidx.cardview.widget.CardView permissionItemNotification;
     private TextView notificationStatus;
@@ -51,6 +53,10 @@ public class PermissionFragment extends Fragment {
     private TextView batteryOptimizationStatus;
     private Button batteryOptimizationBtn;
 
+    private androidx.cardview.widget.CardView permissionItemShizuku;
+    private TextView shizukuStatus;
+    private Button shizukuBtn;
+
     @Override
     public void onAttach(@NonNull Context context) {
         super.onAttach(context);
@@ -68,10 +74,54 @@ public class PermissionFragment extends Fragment {
         return view;
     }
     
+    private final rikka.shizuku.Shizuku.OnRequestPermissionResultListener REQUEST_PERMISSION_RESULT_LISTENER =
+        new rikka.shizuku.Shizuku.OnRequestPermissionResultListener() {
+            @Override
+            public void onRequestPermissionResult(int requestCode, int grantResult) {
+                if (requestCode == REQUEST_SHIZUKU) {
+                    // Update UI immediately
+                    updatePermissionStatus();
+                }
+            }
+        };
+
+    private final rikka.shizuku.Shizuku.OnBinderReceivedListener BINDER_RECEIVED_LISTENER =
+        new rikka.shizuku.Shizuku.OnBinderReceivedListener() {
+            @Override
+            public void onBinderReceived() {
+                // Update UI when Shizuku service is connected
+                if (isAdded() && mContext != null) {
+                    updatePermissionStatus();
+                }
+            }
+        };
+
+    private final rikka.shizuku.Shizuku.OnBinderDeadListener BINDER_DEAD_LISTENER =
+        new rikka.shizuku.Shizuku.OnBinderDeadListener() {
+            @Override
+            public void onBinderDead() {
+                // Update UI when Shizuku service is disconnected
+                if (isAdded() && mContext != null) {
+                    updatePermissionStatus();
+                }
+            }
+        };
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        rikka.shizuku.Shizuku.addRequestPermissionResultListener(REQUEST_PERMISSION_RESULT_LISTENER);
+        rikka.shizuku.Shizuku.addBinderReceivedListener(BINDER_RECEIVED_LISTENER);
+        rikka.shizuku.Shizuku.addBinderDeadListener(BINDER_DEAD_LISTENER);
+    }
+
     @Override
     public void onDestroy() {
         super.onDestroy();
         stopPermissionCheckTimer();
+        rikka.shizuku.Shizuku.removeRequestPermissionResultListener(REQUEST_PERMISSION_RESULT_LISTENER);
+        rikka.shizuku.Shizuku.removeBinderReceivedListener(BINDER_RECEIVED_LISTENER);
+        rikka.shizuku.Shizuku.removeBinderDeadListener(BINDER_DEAD_LISTENER);
     }
     
     private void initPermissionCheckTimer() {
@@ -115,6 +165,10 @@ public class PermissionFragment extends Fragment {
         permissionItemBatteryOptimization = view.findViewById(R.id.permission_item_battery_optimization);
         batteryOptimizationStatus = view.findViewById(R.id.battery_optimization_status);
         batteryOptimizationBtn = view.findViewById(R.id.battery_optimization_btn);
+
+        permissionItemShizuku = view.findViewById(R.id.permission_item_shizuku);
+        shizukuStatus = view.findViewById(R.id.shizuku_status);
+        shizukuBtn = view.findViewById(R.id.shizuku_btn);
     }
 
     private void setListeners() {
@@ -123,6 +177,7 @@ public class PermissionFragment extends Fragment {
         setPermissionClickListener(permissionItemOverlay, overlayBtn, this::openOverlaySettings);
         setPermissionClickListener(permissionItemAccessibility, accessibilityBtn, this::openAccessibilitySettings);
         setPermissionClickListener(permissionItemBatteryOptimization, batteryOptimizationBtn, this::openBatteryOptimizationSettings);
+        setPermissionClickListener(permissionItemShizuku, shizukuBtn, this::requestShizukuPermission);
     }
     
     private void setPermissionClickListener(androidx.cardview.widget.CardView cardView, Button button, Runnable action) {
@@ -146,6 +201,7 @@ public class PermissionFragment extends Fragment {
         updatePermissionUI(overlayStatus, overlayBtn, status.hasOverlayPermission);
         updatePermissionUI(accessibilityStatus, accessibilityBtn, status.hasAccessibilityPermission);
         updatePermissionUI(batteryOptimizationStatus, batteryOptimizationBtn, status.hasBatteryOptimizationDisabled);
+        updatePermissionUI(shizukuStatus, shizukuBtn, status.hasShizukuPermission);
     }
     
     private void updatePermissionUI(TextView statusView, Button buttonView, boolean isGranted) {
@@ -182,5 +238,11 @@ public class PermissionFragment extends Fragment {
 
     private void openBatteryOptimizationSettings() {
         PermissionChecker.openBatteryOptimizationSettings(mActivity);
+    }
+
+    private void requestShizukuPermission() {
+        if (!PermissionChecker.requestShizukuPermission(REQUEST_SHIZUKU)) {
+            Toast.makeText(mContext, R.string.shizuku_error, Toast.LENGTH_SHORT).show();
+        }
     }
 }

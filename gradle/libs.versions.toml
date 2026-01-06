@@ -4,12 +4,24 @@ appcompat = "1.7.1"
 material = "1.13.0"
 constraintlayout = "2.2.0"
 cardview = "1.0.0"
+shizuku-api = "13.1.5"
+shizuku-provider = "13.1.5"
+dynamicanimation = "1.1.0"
+viewpager2 = "1.1.0"
+fragment = "1.8.0"
+okhttp = "4.12.0"
 
 [libraries]
 appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "constraintlayout" }
 cardview = { group = "androidx.cardview", name = "cardview", version.ref = "cardview" }
+shizuku-api = { group = "dev.rikka.shizuku", name = "api", version.ref = "shizuku-api" }
+shizuku-provider = { group = "dev.rikka.shizuku", name = "provider", version.ref = "shizuku-provider" }
+dynamicanimation = { group = "androidx.dynamicanimation", name = "dynamicanimation", version.ref = "dynamicanimation" }
+viewpager2 = { group = "androidx.viewpager2", name = "viewpager2", version.ref = "viewpager2" }
+fragment = { group = "androidx.fragment", name = "fragment", version.ref = "fragment" }
+okhttp = { group = "com.squareup.okhttp3", name = "okhttp", version.ref = "okhttp" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

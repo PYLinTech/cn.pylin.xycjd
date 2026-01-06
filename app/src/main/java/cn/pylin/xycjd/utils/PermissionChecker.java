@@ -21,14 +21,16 @@ public class PermissionChecker {
         public boolean hasOverlayPermission;
         public boolean hasAccessibilityPermission;
         public boolean hasBatteryOptimizationDisabled;
+        public boolean hasShizukuPermission;
         public int deniedCount;
         
-        public PermissionStatus(boolean notification, boolean notificationPost, boolean overlay, boolean accessibility, boolean battery) {
+        public PermissionStatus(boolean notification, boolean notificationPost, boolean overlay, boolean accessibility, boolean battery, boolean shizuku) {
             this.hasNotificationPermission = notification;
             this.hasNotificationPostPermission = notificationPost;
             this.hasOverlayPermission = overlay;
             this.hasAccessibilityPermission = accessibility;
             this.hasBatteryOptimizationDisabled = battery;
+            this.hasShizukuPermission = shizuku;
             
             this.deniedCount = 0;
             if (!notification) {
@@ -62,8 +64,42 @@ public class PermissionChecker {
         boolean hasOverlay = Settings.canDrawOverlays(context);
         boolean hasAccessibility = isAccessibilitySettingsOn(context);
         boolean hasBattery = isIgnoringBatteryOptimizations(context);
+        boolean hasShizuku = checkShizukuPermission();
         
-        return new PermissionStatus(hasNotification, hasNotificationPost, hasOverlay, hasAccessibility, hasBattery);
+        return new PermissionStatus(hasNotification, hasNotificationPost, hasOverlay, hasAccessibility, hasBattery, hasShizuku);
+    }
+
+    public static boolean checkShizukuPermission() {
+        try {
+            if (rikka.shizuku.Shizuku.isPreV11()) {
+                return false;
+            }
+            if (rikka.shizuku.Shizuku.pingBinder()) {
+                return rikka.shizuku.Shizuku.checkSelfPermission() == PackageManager.PERMISSION_GRANTED;
+            }
+        } catch (Throwable ignored) {
+        }
+        return false;
+    }
+
+    public static boolean requestShizukuPermission(int requestCode) {
+        try {
+            if (rikka.shizuku.Shizuku.isPreV11()) {
+                return false;
+            }
+            if (rikka.shizuku.Shizuku.checkSelfPermission() == PackageManager.PERMISSION_GRANTED) {
+                return true;
+            } else if (rikka.shizuku.Shizuku.shouldShowRequestPermissionRationale()) {
+                // Should show rationale, but we just request for now or let caller handle UI
+                rikka.shizuku.Shizuku.requestPermission(requestCode);
+                return true;
+            } else {
+                rikka.shizuku.Shizuku.requestPermission(requestCode);
+                return true;
+            }
+        } catch (Throwable ignored) {
+        }
+        return false;
     }
 
     public static boolean isAccessibilitySettingsOn(Context context) {
