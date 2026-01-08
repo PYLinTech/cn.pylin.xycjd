@@ -4,6 +4,8 @@ import android.app.ActivityManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
 import android.widget.Toast;
 
 import java.util.List;
@@ -92,49 +94,30 @@ public class NotificationClickHandler {
      */
     private void launchTargetAppStandard(NotificationClickInfo notificationInfo) {
         // 直接执行PendingIntent
-        try {
-            if (notificationInfo.getPendingIntent() != null) {
+        if (notificationInfo.getPendingIntent() != null) {
+            try {
                 notificationInfo.getPendingIntent().send();
+            } catch (PendingIntent.CanceledException e) {
+                throw new RuntimeException(e);
             }
-        } catch (PendingIntent.CanceledException e) {
-            // 如果PendingIntent失效，尝试直接启动APP
+        }
+    }
+
+    /**
+     * 兼容模式：普通方法打开APP，再执行PendingIntent
+     */
+    private void launchTargetAppCompatibility(NotificationClickInfo notificationInfo) {
+        try {
+            // 1. 启动APP
             Intent launchIntent = context.getPackageManager()
                     .getLaunchIntentForPackage(notificationInfo.getPackageName());
             if (launchIntent != null) {
                 launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 context.startActivity(launchIntent);
             }
-        }
-    }
-
-    /**
-     * 兼容模式：普通方法打开APP，无障碍检测是否成功拉起，再执行PendingIntent
-     */
-    private void launchTargetAppCompatibility(NotificationClickInfo notificationInfo) {
-        try {
-            // 1. 检查目标APP是否已在前台
-            if (isAppInForeground(notificationInfo.getPackageName()) && notificationInfo.getPendingIntent() != null) {
-                // APP已在前台，直接执行PendingIntent
+            // 2. 直接执行PendingIntent
+            if (notificationInfo.getPendingIntent() != null) {
                 notificationInfo.getPendingIntent().send();
-            } else {
-                // 2. APP不在前台，启动APP并通知AccessibilityService准备执行PendingIntent
-                Intent launchIntent = context.getPackageManager()
-                        .getLaunchIntentForPackage(notificationInfo.getPackageName());
-
-                if (launchIntent != null) {
-                    launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                    context.startActivity(launchIntent);
-
-                    // 通知AccessibilityService准备执行PendingIntent（带超时机制）
-                    AppAccessibilityService accessibilityService = AppAccessibilityService.getInstance();
-                    if (accessibilityService != null) {
-                        accessibilityService.preparePendingIntent(
-                                notificationInfo.getKey(),
-                                notificationInfo.getPendingIntent(),
-                                notificationInfo.getPackageName()
-                        );
-                    }
-                }
             }
         } catch (Exception e) {
             // 执行失败，降级标准方法
@@ -143,50 +126,34 @@ public class NotificationClickHandler {
     }
 
     /**
-     * 检查指定包名的APP是否在前台
-     */
-    private boolean isAppInForeground(String packageName) {
-        ActivityManager activityManager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
-        if (activityManager == null) {
-            return false;
-        }
-
-        List<ActivityManager.RunningAppProcessInfo> runningProcesses =
-                activityManager.getRunningAppProcesses();
-
-        if (runningProcesses == null) {
-            return false;
-        }
-
-        for (ActivityManager.RunningAppProcessInfo processInfo : runningProcesses) {
-            if (processInfo.processName.equals(packageName)
-                    && processInfo.importance == ActivityManager.RunningAppProcessInfo.IMPORTANCE_FOREGROUND) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-
-    /**
      * Shizuku模式：使用Shizuku执行Monkey方法拉起应用程序之后执行PendingIntent
      */
 
     private void launchTargetAppShizuku(NotificationClickInfo info) {
-        // 构造 Monkey 命令
-        String cmd = "monkey -p " + info.getPackageName() + " -c android.intent.category.LAUNCHER 1";
+        // 1. 获取 launcher Activity
+        String packageName = info.getPackageName();
+        String launcherActivity = getLauncherActivity(packageName);
+        if (launcherActivity == null) {
+            // 找不到 Launcher Activity → 降级
+            launchTargetAppCompatibility(info);
+            return;
+        }
 
-        ShizukuShellHelper.getInstance(context).execCommand(cmd, 5000, new ShizukuShellHelper.Callback() {
+        // 2. 构造 am start 命令
+        String cmd = "am start -a " + android.content.Intent.ACTION_MAIN +
+                " -c " + android.content.Intent.CATEGORY_LAUNCHER +
+                " -n " + packageName + "/" + launcherActivity;
+
+        // 3. 使用 ShizukuShellHelper 执行
+        ShizukuShellHelper.getInstance(context).execCommand(cmd, 3000, new ShizukuShellHelper.Callback() {
             @Override
             public void onResult(@NonNull String result) {
-                // 命令执行成功，执行 PendingIntent 并移除通知
-                PendingIntent pi = info.getPendingIntent();
-                if (pi != null) {
+                // 命令执行成功，执行 PendingIntent
+                if (info.getPendingIntent() != null) {
                     try {
-                        pi.send();
+                        info.getPendingIntent().send();
                     } catch (PendingIntent.CanceledException e) {
-                        //PendingIntent 失效
+                        // PendingIntent 失效
                     }
                 }
             }
@@ -199,6 +166,23 @@ public class NotificationClickHandler {
                 launchTargetAppCompatibility(info);
             }
         });
+    }
+
+    /**
+     * 获取目标应用的 launcher Activity
+     */
+    private String getLauncherActivity(String packageName) {
+        PackageManager pm = context.getPackageManager();
+        Intent intent = new Intent(Intent.ACTION_MAIN);
+        intent.addCategory(Intent.CATEGORY_LAUNCHER);
+        intent.setPackage(packageName);
+
+        List<ResolveInfo> resolveInfos = pm.queryIntentActivities(intent, 0);
+        if (resolveInfos == null || resolveInfos.isEmpty()) return null;
+
+        // 返回第一个匹配的 Activity 的全类名
+        ResolveInfo info = resolveInfos.get(0);
+        return info.activityInfo.name;
     }
 
     /**

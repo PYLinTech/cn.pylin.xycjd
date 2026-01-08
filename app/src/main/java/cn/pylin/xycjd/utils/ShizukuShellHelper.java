@@ -144,7 +144,7 @@ public class ShizukuShellHelper {
         Handler mainHandler = new Handler(Looper.getMainLooper());
 
         mainHandler.postDelayed(() -> {
-            if (!finished.getAndSet(true)) callback.onError("命令执行超时");
+            if (!finished.getAndSet(true)) callback.onError(context.getString(R.string.shizuku_service_error));
         }, timeoutMs);
 
         new Thread(() -> {
@@ -152,7 +152,7 @@ public class ShizukuShellHelper {
                 String output = userService.execLine(command);
                 if (!finished.getAndSet(true)) mainHandler.post(() -> callback.onResult(output != null ? output : ""));
             } catch (Exception e) {
-                if (!finished.getAndSet(true)) mainHandler.post(() -> callback.onError(e.getMessage() != null ? e.getMessage() : "未知错误"));
+                if (!finished.getAndSet(true)) mainHandler.post(() -> callback.onError(context.getString(R.string.shizuku_service_error)));
             }
         }).start();
     }
