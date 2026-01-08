@@ -235,7 +235,7 @@
 
     <!-- 超級島樣式配置 -->
     <string name="super_island_style_title">超級島樣式配置</string>
-    <string name="super_island_style_desc">個性化你的超級島</string>
+    <string name="super_island_corner_title">圓角</string>
     <string name="super_island_corner_small">超小島圓角</string>
     <string name="super_island_corner_medium">超中島圓角</string>
     <string name="super_island_corner_large">超大島圓角</string>
@@ -243,6 +243,7 @@
     <string name="super_island_corner_reset">還原默認圓角配置</string>
     <string name="super_island_list_distance">超大島垂直相對距離</string>
     <string name="super_island_list_horizontal_distance">超大島水平相對距離</string>
+    <string name="super_island_opacity_title">透明度</string>
     <string name="basic_floating_window_opacity">超小島透明度</string>
     <string name="medium_floating_window_opacity">超中島透明度</string>
     <string name="large_floating_window_opacity">超大島透明度</string>
@@ -268,4 +269,17 @@
     <string name="shizuku_not_run">Shizuku服務未運行</string>
     <string name="shizuku_not_authorized">Shizuku服務未授權</string>
     <string name="shizuku_service_error">Shizuku服務異常</string>
+    <string name="super_island_blur_title">模糊度</string>
+    <string name="basic_floating_window_blur">超小島模糊度</string>
+    <string name="medium_floating_window_blur">超中島模糊度</string>
+    <string name="large_floating_window_blur">超大島模糊度</string>
+    <string name="reset_blur">還原默認模糊度設置</string>
+    <string name="super_island_color_desc">當前顔色</string>
+    <string name="super_island_color_title">超級島顔色</string>
+    <string name="super_island_color_select">選擇顔色</string>
+    <string name="super_island_color_default">默認顔色</string>
+    <string name="super_island_color_preset">預設顔色</string>
+    <string name="super_island_color_custom">自定義顔色</string>
+    <string name="settings_fragment_color_please_input">請輸入顔色值</string>
+    <string name="settings_fragment_color_input_error">顔色值錯誤，請重新輸入</string>
 </resources>

@@ -173,6 +173,25 @@ public class SettingsFragment extends Fragment {
     private Button btnResetSuperIslandCorners;
     private Button btnResetOpacity;
     
+    // 超级岛模糊度相关控件
+    private TextView tvBlurValue;
+    private SeekBar seekBarBlur;
+    private ImageButton btnBlurDecrease;
+    private ImageButton btnBlurIncrease;
+    private TextView tvMediumBlurValue;
+    private SeekBar seekBarMediumBlur;
+    private ImageButton btnMediumBlurDecrease;
+    private ImageButton btnMediumBlurIncrease;
+    private TextView tvLargeBlurValue;
+    private SeekBar seekBarLargeBlur;
+    private ImageButton btnLargeBlurDecrease;
+    private ImageButton btnLargeBlurIncrease;
+    private Button btnResetBlur;
+    
+    // 超级岛颜色相关控件
+    private Button btnColorPicker;
+    private View viewColorPreview;
+    
     // 悬浮窗相关控件 - 超大岛列表相对距离
     private TextView tvListDistanceValue;
     private SeekBar seekBarListDistance;
@@ -416,6 +435,25 @@ public class SettingsFragment extends Fragment {
         btnCornerRadius3Increase = view.findViewById(R.id.btn_corner_radius_3_increase);
         btnResetSuperIslandCorners = view.findViewById(R.id.btn_reset_super_island_corners);
         btnResetOpacity = view.findViewById(R.id.btn_reset_opacity);
+        
+        // 初始化超级岛模糊度相关控件
+        tvBlurValue = view.findViewById(R.id.tv_blur_value);
+        seekBarBlur = view.findViewById(R.id.seekbar_blur);
+        btnBlurDecrease = view.findViewById(R.id.btn_blur_decrease);
+        btnBlurIncrease = view.findViewById(R.id.btn_blur_increase);
+        tvMediumBlurValue = view.findViewById(R.id.tv_medium_blur_value);
+        seekBarMediumBlur = view.findViewById(R.id.seekbar_medium_blur);
+        btnMediumBlurDecrease = view.findViewById(R.id.btn_medium_blur_decrease);
+        btnMediumBlurIncrease = view.findViewById(R.id.btn_medium_blur_increase);
+        tvLargeBlurValue = view.findViewById(R.id.tv_large_blur_value);
+        seekBarLargeBlur = view.findViewById(R.id.seekbar_large_blur);
+        btnLargeBlurDecrease = view.findViewById(R.id.btn_large_blur_decrease);
+        btnLargeBlurIncrease = view.findViewById(R.id.btn_large_blur_increase);
+        btnResetBlur = view.findViewById(R.id.btn_reset_blur);
+        
+        // 初始化超级岛颜色相关控件
+        btnColorPicker = view.findViewById(R.id.btn_color_picker);
+        viewColorPreview = view.findViewById(R.id.view_color_preview);
         
         // 初始化超大岛列表相对距离相关控件
         tvListDistanceValue = view.findViewById(R.id.tv_list_distance_value);
@@ -1825,6 +1863,335 @@ public class SettingsFragment extends Fragment {
             updateBasicFloatingWindowCornerRadius(defaultRadius1);
             updateIslandCornerRadius();
         });
+
+        // ==================== 模糊度设置 ====================
+
+        // 从SharedPreferences管理器获取模糊度设置
+        int blur = SharedPreferencesManager.getInstance(requireContext()).getBlur();
+        int mediumBlur = SharedPreferencesManager.getInstance(requireContext()).getMediumBlur();
+        int largeBlur = SharedPreferencesManager.getInstance(requireContext()).getLargeBlur();
+
+        // 设置模糊度初始值
+        seekBarBlur.setProgress(blur);
+        tvBlurValue.setText(getString(R.string.super_island_corner_value, blur));
+
+        // 设置超中岛模糊度初始值
+        seekBarMediumBlur.setProgress(mediumBlur);
+        tvMediumBlurValue.setText(getString(R.string.super_island_corner_value, mediumBlur));
+
+        // 设置超大岛模糊度初始值
+        seekBarLargeBlur.setProgress(largeBlur);
+        tvLargeBlurValue.setText(getString(R.string.super_island_corner_value, largeBlur));
+
+        // 设置超小岛模糊度滑块监听器（实时保存）
+        seekBarBlur.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                tvBlurValue.setText(getString(R.string.super_island_corner_value, progress));
+                if (fromUser) {
+                    // 实时保存到SharedPreferences
+                    SharedPreferencesManager.getInstance(requireContext()).setBlur(progress);
+                    // 模糊度设置（暂不实现实际效果，仅保存）
+                }
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {}
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {}
+        });
+
+        // 设置超中岛模糊度滑块监听器（实时保存）
+        seekBarMediumBlur.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                tvMediumBlurValue.setText(getString(R.string.super_island_corner_value, progress));
+                if (fromUser) {
+                    // 实时保存到SharedPreferences
+                    SharedPreferencesManager.getInstance(requireContext()).setMediumBlur(progress);
+                    // 模糊度设置（暂不实现实际效果，仅保存）
+                }
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {}
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {}
+        });
+
+        // 设置超大岛模糊度滑块监听器（实时保存）
+        seekBarLargeBlur.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                tvLargeBlurValue.setText(getString(R.string.super_island_corner_value, progress));
+                if (fromUser) {
+                    // 实时保存到SharedPreferences
+                    SharedPreferencesManager.getInstance(requireContext()).setLargeBlur(progress);
+                    // 模糊度设置（暂不实现实际效果，仅保存）
+                }
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {}
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {}
+        });
+
+        // 设置模糊度加减按钮点击事件（每次调整1%）
+        btnBlurDecrease.setOnClickListener(v -> {
+            int currentProgress = seekBarBlur.getProgress();
+            if (currentProgress > 0) {
+                int newProgress = currentProgress - 1;
+                seekBarBlur.setProgress(newProgress);
+                tvBlurValue.setText(getString(R.string.super_island_corner_value, newProgress));
+                SharedPreferencesManager.getInstance(requireContext()).setBlur(newProgress);
+            }
+        });
+
+        btnBlurIncrease.setOnClickListener(v -> {
+            int currentProgress = seekBarBlur.getProgress();
+            if (currentProgress < 100) {
+                int newProgress = currentProgress + 1;
+                seekBarBlur.setProgress(newProgress);
+                tvBlurValue.setText(getString(R.string.super_island_corner_value, newProgress));
+                SharedPreferencesManager.getInstance(requireContext()).setBlur(newProgress);
+            }
+        });
+
+        // 设置超中岛模糊度加减按钮点击事件（每次调整1%）
+        btnMediumBlurDecrease.setOnClickListener(v -> {
+            int currentProgress = seekBarMediumBlur.getProgress();
+            if (currentProgress > 0) {
+                int newProgress = currentProgress - 1;
+                seekBarMediumBlur.setProgress(newProgress);
+                tvMediumBlurValue.setText(getString(R.string.super_island_corner_value, newProgress));
+                SharedPreferencesManager.getInstance(requireContext()).setMediumBlur(newProgress);
+            }
+        });
+
+        btnMediumBlurIncrease.setOnClickListener(v -> {
+            int currentProgress = seekBarMediumBlur.getProgress();
+            if (currentProgress < 100) {
+                int newProgress = currentProgress + 1;
+                seekBarMediumBlur.setProgress(newProgress);
+                tvMediumBlurValue.setText(getString(R.string.super_island_corner_value, newProgress));
+                SharedPreferencesManager.getInstance(requireContext()).setMediumBlur(newProgress);
+            }
+        });
+
+        // 设置超大岛模糊度加减按钮点击事件（每次调整1%）
+        btnLargeBlurDecrease.setOnClickListener(v -> {
+            int currentProgress = seekBarLargeBlur.getProgress();
+            if (currentProgress > 0) {
+                int newProgress = currentProgress - 1;
+                seekBarLargeBlur.setProgress(newProgress);
+                tvLargeBlurValue.setText(getString(R.string.super_island_corner_value, newProgress));
+                SharedPreferencesManager.getInstance(requireContext()).setLargeBlur(newProgress);
+            }
+        });
+
+        btnLargeBlurIncrease.setOnClickListener(v -> {
+            int currentProgress = seekBarLargeBlur.getProgress();
+            if (currentProgress < 100) {
+                int newProgress = currentProgress + 1;
+                seekBarLargeBlur.setProgress(newProgress);
+                tvLargeBlurValue.setText(getString(R.string.super_island_corner_value, newProgress));
+                SharedPreferencesManager.getInstance(requireContext()).setLargeBlur(newProgress);
+            }
+        });
+
+        // 设置重置模糊度按钮点击事件
+        btnResetBlur.setOnClickListener(v -> {
+            // 恢复默认模糊度值：0, 0, 0
+            int defaultBlur = 0;
+            int defaultMediumBlur = 0;
+            int defaultLargeBlur = 0;
+
+            // 更新滑块位置
+            seekBarBlur.setProgress(defaultBlur);
+            seekBarMediumBlur.setProgress(defaultMediumBlur);
+            seekBarLargeBlur.setProgress(defaultLargeBlur);
+
+            // 更新显示值
+            tvBlurValue.setText(getString(R.string.super_island_corner_value, defaultBlur));
+            tvMediumBlurValue.setText(getString(R.string.super_island_corner_value, defaultMediumBlur));
+            tvLargeBlurValue.setText(getString(R.string.super_island_corner_value, defaultLargeBlur));
+
+            // 保存到SharedPreferences
+            SharedPreferencesManager manager = SharedPreferencesManager.getInstance(requireContext());
+            manager.setBlur(defaultBlur);
+            manager.setMediumBlur(defaultMediumBlur);
+            manager.setLargeBlur(defaultLargeBlur);
+        });
+
+        // ==================== 超级岛颜色设置 ====================
+
+        // 设置颜色选择按钮点击事件
+        btnColorPicker.setOnClickListener(v -> {
+            // 使用自定义布局的弹窗
+            showColorPickerDialog();
+        });
+
+        // 初始化颜色预览显示
+        String savedColor = SharedPreferencesManager.getInstance(requireContext()).getSuperIslandColor();
+        if (savedColor != null) {
+            try {
+                int color = android.graphics.Color.parseColor(savedColor);
+                setPreviewCircleColor(color);
+            } catch (Exception e) {
+                // 如果颜色解析失败，使用默认黑色
+                setPreviewCircleColor(android.graphics.Color.BLACK);
+            }
+        } else {
+            setPreviewCircleColor(android.graphics.Color.BLACK);
+        }
+    }
+
+    /**
+     * 显示颜色选择器对话框
+     */
+    private void showColorPickerDialog() {
+        // 使用自定义布局创建对话框
+        android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(requireContext());
+        
+        // 加载自定义布局
+        android.view.LayoutInflater inflater = LayoutInflater.from(requireContext());
+        android.view.View dialogView = inflater.inflate(R.layout.dialog_color_picker, null);
+        builder.setView(dialogView);
+        
+        // 创建对话框
+        final android.app.AlertDialog dialog = builder.create();
+        
+        // 设置透明背景，让布局的圆角背景显示
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT));
+        }
+        
+        // 获取控件
+        LinearLayout layoutPresetColors = dialogView.findViewById(R.id.layout_preset_colors);
+        EditText etColorInput = dialogView.findViewById(R.id.et_color_input);
+        Button btnDefaultColor = dialogView.findViewById(R.id.btn_default_color);
+        Button btnCancel = dialogView.findViewById(R.id.btn_cancel_color);
+        Button btnConfirm = dialogView.findViewById(R.id.btn_confirm_color);
+        
+        // 预设颜色按钮
+        String[] presetColors = {
+            "#000000", "#FFFFFF", "#FF0000", "#00FF00", "#0000FF", 
+            "#FFFF00", "#FF00FF", "#00FFFF", "#FFA500", "#808080"
+        };
+        
+        // 动态创建预设颜色按钮
+        for (String colorHex : presetColors) {
+            android.widget.Button colorBtn = new android.widget.Button(requireContext());
+            int color = android.graphics.Color.parseColor(colorHex);
+            
+            // 创建圆形背景
+            android.graphics.drawable.GradientDrawable circleBg = new android.graphics.drawable.GradientDrawable();
+            circleBg.setShape(android.graphics.drawable.GradientDrawable.OVAL);
+            circleBg.setColor(color);
+            circleBg.setStroke(2, android.graphics.Color.WHITE); // 白色边框
+            
+            colorBtn.setBackground(circleBg);
+            colorBtn.setWidth(40);
+            colorBtn.setHeight(40);
+            colorBtn.setPadding(0, 0, 0, 0);
+            colorBtn.setAllCaps(false);
+            colorBtn.setText(""); // 不显示文字
+            
+            // 设置边距
+            android.view.ViewGroup.MarginLayoutParams params = new android.view.ViewGroup.MarginLayoutParams(40, 40);
+            params.setMargins(8, 8, 8, 8);
+            colorBtn.setLayoutParams(params);
+            
+            // 点击预设颜色时，更新输入框
+            colorBtn.setOnClickListener(v -> {
+                etColorInput.setText(colorHex);
+            });
+            
+            layoutPresetColors.addView(colorBtn);
+        }
+        
+        // 默认颜色按钮点击事件
+        btnDefaultColor.setOnClickListener(v -> {
+            // 清除颜色设置（使用null表示默认）
+            SharedPreferencesManager.getInstance(requireContext()).setSuperIslandColor(null);
+            // 重置预览圆圈为默认黑色
+            setPreviewCircleColor(android.graphics.Color.BLACK);
+            // 关闭对话框
+            dialog.dismiss();
+        });
+        
+        // 取消按钮点击事件
+        btnCancel.setOnClickListener(v -> {
+            dialog.dismiss();
+        });
+        
+        // 确定按钮点击事件
+        btnConfirm.setOnClickListener(v -> {
+            String input = etColorInput.getText().toString().trim();
+            
+            if (input.isEmpty()) {
+                Toast.makeText(requireContext(), R.string.settings_fragment_color_please_input, Toast.LENGTH_SHORT).show();
+                return;
+            }
+            
+            // 验证颜色格式
+            if (!input.startsWith("#")) {
+                Toast.makeText(requireContext(), R.string.settings_fragment_color_input_error, Toast.LENGTH_SHORT).show();
+                return;
+            }
+            
+            try {
+                int color = android.graphics.Color.parseColor(input);
+                String hexColor = input;
+                
+                // 保存到SharedPreferences
+                SharedPreferencesManager.getInstance(requireContext()).setSuperIslandColor(hexColor);
+                
+                // 更新预览圆圈颜色
+                setPreviewCircleColor(color);
+                
+                // 关闭对话框
+                dialog.dismiss();
+                
+            } catch (IllegalArgumentException e) {
+                Toast.makeText(requireContext(), R.string.settings_fragment_color_input_error, Toast.LENGTH_SHORT).show();
+            }
+        });
+        
+        dialog.show();
+    }
+
+    /**
+     * 更新悬浮窗模糊度（占位方法，实际实现待后续开发）
+     * @param level 1=基础悬浮窗(超小岛), 2=三圆岛(超中岛), 3=标准岛(超大岛)
+     */
+    private void updateFloatingWindowBlur(int level) {
+        // 模糊度设置占位方法
+        // 实际实现将在后续开发中添加
+    }
+
+    /**
+     * 更新超级岛颜色（占位方法，实际实现待后续开发）
+     */
+    private void updateSuperIslandColor() {
+        // 颜色设置占位方法
+        // 实际实现将在后续开发中添加
+    }
+
+    /**
+     * 设置预览圆圈颜色（圆形背景）
+     * @param color 颜色值
+     */
+    private void setPreviewCircleColor(int color) {
+        // 创建圆形背景
+        android.graphics.drawable.GradientDrawable circleBg = new android.graphics.drawable.GradientDrawable();
+        circleBg.setShape(android.graphics.drawable.GradientDrawable.OVAL);
+        circleBg.setColor(color);
+        viewColorPreview.setBackground(circleBg);
     }
 
     /**

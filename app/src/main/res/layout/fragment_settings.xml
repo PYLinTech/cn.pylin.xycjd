@@ -1396,14 +1396,16 @@
                     android:textStyle="bold"
                     android:textColor="?android:attr/textColorPrimary"
                     android:layout_marginBottom="8dp" />
-
+                <!-- 超级岛透明度标题 -->
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/super_island_style_desc"
+                    android:text="@string/super_island_opacity_title"
                     android:textSize="14sp"
+                    android:textStyle="bold"
                     android:textColor="?android:attr/textColorSecondary"
-                    android:layout_marginBottom="16dp" />
+                    android:layout_marginTop="12dp"
+                    android:layout_marginBottom="8dp" />
 
                 <!-- 超小岛透明度 -->
                 <LinearLayout
@@ -1615,6 +1617,17 @@
                     </LinearLayout>
                 </LinearLayout>
 
+                <!-- 超级岛圆角标题 -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/super_island_corner_title"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:textColor="?android:attr/textColorSecondary"
+                    android:layout_marginTop="12dp"
+                    android:layout_marginBottom="8dp" />
+
                 <!-- 超小岛圆角 -->
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -1755,105 +1768,392 @@
                     </LinearLayout>
                 </LinearLayout>
 
-                <!-- 超大岛圆角 -->
-                <LinearLayout
-                    android:layout_width="match_parent"
+                 <!-- 超大岛圆角 -->
+                 <LinearLayout
+                     android:layout_width="match_parent"
+                     android:layout_height="wrap_content"
+                     android:orientation="vertical"
+                     android:layout_marginBottom="12dp">
+
+                     <LinearLayout
+                         android:layout_width="match_parent"
+                         android:layout_height="wrap_content"
+                         android:orientation="horizontal"
+                         android:gravity="center_vertical"
+                         android:layout_marginBottom="4dp">
+
+                         <TextView
+                             android:layout_width="0dp"
+                             android:layout_height="wrap_content"
+                             android:layout_weight="1"
+                             android:text="@string/super_island_corner_large"
+                             android:textSize="14sp"
+                             android:textColor="?android:attr/textColorSecondary" />
+
+                         <TextView
+                             android:id="@+id/tv_corner_radius_3_value"
+                             android:layout_width="wrap_content"
+                             android:layout_height="wrap_content"
+                             android:text="45%"
+                             android:textSize="14sp"
+                             android:textColor="?android:attr/textColorPrimary" />
+                     </LinearLayout>
+
+                     <LinearLayout
+                         android:layout_width="match_parent"
+                         android:layout_height="wrap_content"
+                         android:orientation="horizontal"
+                         android:gravity="center_vertical">
+
+                         <ImageButton
+                             android:id="@+id/btn_corner_radius_3_decrease"
+                             android:layout_width="36dp"
+                             android:layout_height="36dp"
+                             android:src="@drawable/ic_remove"
+                             android:background="?attr/selectableItemBackgroundBorderless"
+                             android:contentDescription="@string/decrease"
+                             app:tint="?android:attr/textColorSecondary" />
+
+                         <SeekBar
+                             android:id="@+id/seekbar_corner_radius_3"
+                             android:layout_width="0dp"
+                             android:layout_height="wrap_content"
+                             android:layout_weight="1"
+                             android:layout_marginStart="8dp"
+                             android:layout_marginEnd="8dp"
+                             android:max="100"
+                             android:progress="45"
+                             android:progressTint="@color/colorPrimary"
+                             android:thumbTint="@color/colorPrimary"
+                             android:progressBackgroundTint="?android:attr/textColorSecondary" />
+
+                         <ImageButton
+                             android:id="@+id/btn_corner_radius_3_increase"
+                             android:layout_width="36dp"
+                             android:layout_height="36dp"
+                             android:src="@drawable/ic_add"
+                             android:background="?attr/selectableItemBackgroundBorderless"
+                             android:contentDescription="@string/increase"
+                             app:tint="?android:attr/textColorSecondary" />
+                     </LinearLayout>
+                 </LinearLayout>
+
+                <!-- 超级岛模糊度标题 -->
+                <TextView
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:layout_marginBottom="12dp">
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical"
-                        android:layout_marginBottom="4dp">
-
-                        <TextView
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="@string/super_island_corner_large"
-                            android:textSize="14sp"
-                            android:textColor="?android:attr/textColorSecondary" />
-
-                        <TextView
-                            android:id="@+id/tv_corner_radius_3_value"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="45%"
-                            android:textSize="14sp"
-                            android:textColor="?android:attr/textColorPrimary" />
-                    </LinearLayout>
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical">
-
-                        <ImageButton
-                            android:id="@+id/btn_corner_radius_3_decrease"
-                            android:layout_width="36dp"
-                            android:layout_height="36dp"
-                            android:src="@drawable/ic_remove"
-                            android:background="?attr/selectableItemBackgroundBorderless"
-                            android:contentDescription="@string/decrease"
-                            app:tint="?android:attr/textColorSecondary" />
-
-                        <SeekBar
-                            android:id="@+id/seekbar_corner_radius_3"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:layout_marginStart="8dp"
-                            android:layout_marginEnd="8dp"
-                            android:max="100"
-                            android:progress="45"
-                            android:progressTint="@color/colorPrimary"
-                            android:thumbTint="@color/colorPrimary"
-                            android:progressBackgroundTint="?android:attr/textColorSecondary" />
-
-                        <ImageButton
-                            android:id="@+id/btn_corner_radius_3_increase"
-                            android:layout_width="36dp"
-                            android:layout_height="36dp"
-                            android:src="@drawable/ic_add"
-                            android:background="?attr/selectableItemBackgroundBorderless"
-                            android:contentDescription="@string/increase"
-                            app:tint="?android:attr/textColorSecondary" />
-                    </LinearLayout>
-                </LinearLayout>
-
-                <!-- 还原默认透明度设置按钮 -->
-                <Button
-                    android:id="@+id/btn_reset_opacity"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:text="@string/reset_opacity"
+                    android:text="@string/super_island_blur_title"
                     android:textSize="14sp"
-                    android:textColor="@color/colorPrimary"
-                    android:background="?attr/selectableItemBackground"
-                    android:paddingStart="16dp"
-                    android:paddingEnd="16dp"
-                    android:paddingTop="8dp"
-                    android:paddingBottom="8dp" />
+                    android:textStyle="bold"
+                    android:textColor="?android:attr/textColorSecondary"
+                    android:layout_marginTop="12dp"
+                    android:layout_marginBottom="8dp" />
 
-                <!-- 重置按钮 -->
-                <Button
-                    android:id="@+id/btn_reset_super_island_corners"
-                    android:layout_width="match_parent"
+                 <!-- 超小岛模糊度 -->
+                 <LinearLayout
+                     android:layout_width="match_parent"
+                     android:layout_height="wrap_content"
+                     android:orientation="vertical"
+                     android:layout_marginBottom="12dp">
+
+                     <LinearLayout
+                         android:layout_width="match_parent"
+                         android:layout_height="wrap_content"
+                         android:orientation="horizontal"
+                         android:gravity="center_vertical"
+                         android:layout_marginBottom="4dp">
+
+                         <TextView
+                             android:layout_width="0dp"
+                             android:layout_height="wrap_content"
+                             android:layout_weight="1"
+                             android:text="@string/basic_floating_window_blur"
+                             android:textSize="14sp"
+                             android:textColor="?android:attr/textColorSecondary" />
+
+                         <TextView
+                             android:id="@+id/tv_blur_value"
+                             android:layout_width="wrap_content"
+                             android:layout_height="wrap_content"
+                             android:text="0%"
+                             android:textSize="14sp"
+                             android:textColor="?android:attr/textColorPrimary" />
+                     </LinearLayout>
+
+                     <LinearLayout
+                         android:layout_width="match_parent"
+                         android:layout_height="wrap_content"
+                         android:orientation="horizontal"
+                         android:gravity="center_vertical">
+
+                         <ImageButton
+                             android:id="@+id/btn_blur_decrease"
+                             android:layout_width="36dp"
+                             android:layout_height="36dp"
+                             android:src="@drawable/ic_remove"
+                             android:background="?attr/selectableItemBackgroundBorderless"
+                             android:contentDescription="@string/decrease"
+                             app:tint="?android:attr/textColorSecondary" />
+
+                         <SeekBar
+                             android:id="@+id/seekbar_blur"
+                             android:layout_width="0dp"
+                             android:layout_height="wrap_content"
+                             android:layout_weight="1"
+                             android:layout_marginStart="8dp"
+                             android:layout_marginEnd="8dp"
+                             android:max="100"
+                             android:progress="0"
+                             android:progressTint="@color/colorPrimary"
+                             android:thumbTint="@color/colorPrimary"
+                             android:progressBackgroundTint="?android:attr/textColorSecondary" />
+
+                         <ImageButton
+                             android:id="@+id/btn_blur_increase"
+                             android:layout_width="36dp"
+                             android:layout_height="36dp"
+                             android:src="@drawable/ic_add"
+                             android:background="?attr/selectableItemBackgroundBorderless"
+                             android:contentDescription="@string/increase"
+                             app:tint="?android:attr/textColorSecondary" />
+                     </LinearLayout>
+                 </LinearLayout>
+
+                 <!-- 超中岛模糊度 -->
+                 <LinearLayout
+                     android:layout_width="match_parent"
+                     android:layout_height="wrap_content"
+                     android:orientation="vertical"
+                     android:layout_marginBottom="12dp">
+
+                     <LinearLayout
+                         android:layout_width="match_parent"
+                         android:layout_height="wrap_content"
+                         android:orientation="horizontal"
+                         android:gravity="center_vertical"
+                         android:layout_marginBottom="4dp">
+
+                         <TextView
+                             android:layout_width="0dp"
+                             android:layout_height="wrap_content"
+                             android:layout_weight="1"
+                             android:text="@string/medium_floating_window_blur"
+                             android:textSize="14sp"
+                             android:textColor="?android:attr/textColorSecondary" />
+
+                         <TextView
+                             android:id="@+id/tv_medium_blur_value"
+                             android:layout_width="wrap_content"
+                             android:layout_height="wrap_content"
+                             android:text="0%"
+                             android:textSize="14sp"
+                             android:textColor="?android:attr/textColorPrimary" />
+                     </LinearLayout>
+
+                     <LinearLayout
+                         android:layout_width="match_parent"
+                         android:layout_height="wrap_content"
+                         android:orientation="horizontal"
+                         android:gravity="center_vertical">
+
+                         <ImageButton
+                             android:id="@+id/btn_medium_blur_decrease"
+                             android:layout_width="36dp"
+                             android:layout_height="36dp"
+                             android:src="@drawable/ic_remove"
+                             android:background="?attr/selectableItemBackgroundBorderless"
+                             android:contentDescription="@string/decrease"
+                             app:tint="?android:attr/textColorSecondary" />
+
+                         <SeekBar
+                             android:id="@+id/seekbar_medium_blur"
+                             android:layout_width="0dp"
+                             android:layout_height="wrap_content"
+                             android:layout_weight="1"
+                             android:layout_marginStart="8dp"
+                             android:layout_marginEnd="8dp"
+                             android:max="100"
+                             android:progress="0"
+                             android:progressTint="@color/colorPrimary"
+                             android:thumbTint="@color/colorPrimary"
+                             android:progressBackgroundTint="?android:attr/textColorSecondary" />
+
+                         <ImageButton
+                             android:id="@+id/btn_medium_blur_increase"
+                             android:layout_width="36dp"
+                             android:layout_height="36dp"
+                             android:src="@drawable/ic_add"
+                             android:background="?attr/selectableItemBackgroundBorderless"
+                             android:contentDescription="@string/increase"
+                             app:tint="?android:attr/textColorSecondary" />
+                     </LinearLayout>
+                 </LinearLayout>
+
+                 <!-- 超大岛模糊度 -->
+                 <LinearLayout
+                     android:layout_width="match_parent"
+                     android:layout_height="wrap_content"
+                     android:orientation="vertical"
+                     android:layout_marginBottom="12dp">
+
+                     <LinearLayout
+                         android:layout_width="match_parent"
+                         android:layout_height="wrap_content"
+                         android:orientation="horizontal"
+                         android:gravity="center_vertical"
+                         android:layout_marginBottom="4dp">
+
+                         <TextView
+                             android:layout_width="0dp"
+                             android:layout_height="wrap_content"
+                             android:layout_weight="1"
+                             android:text="@string/large_floating_window_blur"
+                             android:textSize="14sp"
+                             android:textColor="?android:attr/textColorSecondary" />
+
+                         <TextView
+                             android:id="@+id/tv_large_blur_value"
+                             android:layout_width="wrap_content"
+                             android:layout_height="wrap_content"
+                             android:text="0%"
+                             android:textSize="14sp"
+                             android:textColor="?android:attr/textColorPrimary" />
+                     </LinearLayout>
+
+                     <LinearLayout
+                         android:layout_width="match_parent"
+                         android:layout_height="wrap_content"
+                         android:orientation="horizontal"
+                         android:gravity="center_vertical">
+
+                         <ImageButton
+                             android:id="@+id/btn_large_blur_decrease"
+                             android:layout_width="36dp"
+                             android:layout_height="36dp"
+                             android:src="@drawable/ic_remove"
+                             android:background="?attr/selectableItemBackgroundBorderless"
+                             android:contentDescription="@string/decrease"
+                             app:tint="?android:attr/textColorSecondary" />
+
+                         <SeekBar
+                             android:id="@+id/seekbar_large_blur"
+                             android:layout_width="0dp"
+                             android:layout_height="wrap_content"
+                             android:layout_weight="1"
+                             android:layout_marginStart="8dp"
+                             android:layout_marginEnd="8dp"
+                             android:max="100"
+                             android:progress="0"
+                             android:progressTint="@color/colorPrimary"
+                             android:thumbTint="@color/colorPrimary"
+                             android:progressBackgroundTint="?android:attr/textColorSecondary" />
+
+                         <ImageButton
+                             android:id="@+id/btn_large_blur_increase"
+                             android:layout_width="36dp"
+                             android:layout_height="36dp"
+                             android:src="@drawable/ic_add"
+                             android:background="?attr/selectableItemBackgroundBorderless"
+                             android:contentDescription="@string/increase"
+                             app:tint="?android:attr/textColorSecondary" />
+                     </LinearLayout>
+                 </LinearLayout>
+
+                <!-- 超级岛颜色标题 -->
+                <TextView
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:text="@string/super_island_corner_reset"
+                    android:text="@string/super_island_color_title"
                     android:textSize="14sp"
-                    android:textColor="@color/colorPrimary"
-                    android:background="?attr/selectableItemBackground"
-                    android:paddingStart="16dp"
-                    android:paddingEnd="16dp"
-                    android:paddingTop="8dp"
-                    android:paddingBottom="8dp" />
+                    android:textStyle="bold"
+                    android:textColor="?android:attr/textColorSecondary"
+                    android:layout_marginTop="12dp"
+                    android:layout_marginBottom="8dp" />
+
+                 <!-- 超级岛颜色选择 -->
+                 <LinearLayout
+                     android:layout_width="match_parent"
+                     android:layout_height="wrap_content"
+                     android:orientation="horizontal"
+                     android:gravity="center_vertical"
+                     android:layout_marginBottom="12dp">
+
+                     <TextView
+                         android:layout_width="wrap_content"
+                         android:layout_height="wrap_content"
+                         android:text="@string/super_island_color_desc"
+                         android:textSize="14sp"
+                         android:textColor="?android:attr/textColorSecondary" />
+                     <!-- 颜色预览圆圈（在按钮左侧） -->
+                     <View
+                         android:id="@+id/view_color_preview"
+                         android:layout_width="16dp"
+                         android:layout_height="16dp"
+                         android:layout_marginStart="16dp"
+                         android:background="@drawable/circle_black_background" />
+
+                     <View
+                         android:layout_width="0dp"
+                         android:layout_height="wrap_content"
+                         android:layout_weight="1" />
+
+                     <!-- 颜色选择按钮 -->
+                     <Button
+                         android:id="@+id/btn_color_picker"
+                         android:layout_width="wrap_content"
+                         android:layout_height="36dp"
+                         android:text="@string/super_island_color_select"
+                         android:textSize="14sp"
+                         android:textColor="@android:color/white"
+                         android:background="@drawable/btn_primary_background"
+                         android:paddingStart="16dp"
+                         android:paddingEnd="16dp" />
+                 </LinearLayout>
+
+                 <!-- 还原默认透明度设置按钮 -->
+                 <Button
+                     android:id="@+id/btn_reset_opacity"
+                     android:layout_width="match_parent"
+                     android:layout_height="wrap_content"
+                     android:layout_marginTop="8dp"
+                     android:text="@string/reset_opacity"
+                     android:textSize="14sp"
+                     android:textColor="@color/colorPrimary"
+                     android:background="?attr/selectableItemBackground"
+                     android:paddingStart="16dp"
+                     android:paddingEnd="16dp"
+                     android:paddingTop="8dp"
+                     android:paddingBottom="8dp" />
+
+                 <!-- 重置圆角按钮 -->
+                 <Button
+                     android:id="@+id/btn_reset_super_island_corners"
+                     android:layout_width="match_parent"
+                     android:layout_height="wrap_content"
+                     android:layout_marginTop="8dp"
+                     android:text="@string/super_island_corner_reset"
+                     android:textSize="14sp"
+                     android:textColor="@color/colorPrimary"
+                     android:background="?attr/selectableItemBackground"
+                     android:paddingStart="16dp"
+                     android:paddingEnd="16dp"
+                     android:paddingTop="8dp"
+                     android:paddingBottom="8dp" />
+
+                 <!-- 重置模糊度按钮 -->
+                 <Button
+                     android:id="@+id/btn_reset_blur"
+                     android:layout_width="match_parent"
+                     android:layout_height="wrap_content"
+                     android:layout_marginTop="8dp"
+                     android:text="@string/reset_blur"
+                     android:textSize="14sp"
+                     android:textColor="@color/colorPrimary"
+                     android:background="?attr/selectableItemBackground"
+                     android:paddingStart="16dp"
+                     android:paddingEnd="16dp"
+                     android:paddingTop="8dp"
+                     android:paddingBottom="8dp" />
             </LinearLayout>
         </androidx.cardview.widget.CardView>
 

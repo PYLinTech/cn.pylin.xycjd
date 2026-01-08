@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingHorizontal="48dp"
+    android:paddingVertical="24dp"
+    android:background="@drawable/dialog_background">
+
+    <!-- 标题 -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/super_island_color_select"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:textColor="?android:attr/textColorPrimary"
+        android:layout_marginBottom="16dp" />
+
+    <!-- 预设颜色区域标题 -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/super_island_color_preset"
+        android:textSize="14sp"
+        android:textColor="?android:attr/textColorSecondary"
+        android:layout_marginBottom="8dp" />
+
+    <!-- 预设颜色选择器 -->
+    <LinearLayout
+        android:id="@+id/layout_preset_colors"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:layout_marginBottom="16dp"
+        android:layout_marginTop="4dp">
+
+        <!-- 颜色按钮将通过代码动态添加 -->
+    </LinearLayout>
+
+    <!-- 默认颜色按钮 -->
+    <Button
+        android:id="@+id/btn_default_color"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:text="@string/super_island_color_default"
+        android:textSize="14sp"
+        android:textColor="@color/colorPrimary"
+        android:background="@drawable/btn_secondary_background"
+        android:layout_marginBottom="16dp" />
+
+    <!-- 自定义颜色输入区域标题 -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/super_island_color_custom"
+        android:textSize="14sp"
+        android:textColor="?android:attr/textColorSecondary"
+        android:layout_marginBottom="8dp" />
+
+    <!-- 自定义颜色输入 -->
+    <EditText
+        android:id="@+id/et_color_input"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="@string/super_island_color_hint"
+        android:inputType="text"
+        android:maxLength="7"
+        android:background="@drawable/edit_text_background"
+        android:padding="12dp"
+        android:textColor="?android:attr/textColorPrimary"
+        android:textColorHint="?android:attr/textColorSecondary"
+        android:layout_marginBottom="16dp" />
+
+    <!-- 按钮区域 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="end">
+
+        <Button
+            android:id="@+id/btn_cancel_color"
+            android:layout_width="wrap_content"
+            android:layout_height="36dp"
+            android:text="@string/cancel"
+            android:background="@drawable/btn_secondary_background"
+            android:textColor="@color/colorOnSurfaceSecondary"
+            android:textSize="14sp"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:layout_marginEnd="8dp" />
+
+        <Button
+            android:id="@+id/btn_confirm_color"
+            android:layout_width="wrap_content"
+            android:layout_height="36dp"
+            android:text="@string/confirm"
+            android:textColor="@android:color/white"
+            android:textSize="14sp"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:background="@drawable/btn_primary_background" />
+    </LinearLayout>
+
+</LinearLayout>
