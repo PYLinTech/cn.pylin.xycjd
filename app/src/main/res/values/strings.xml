@@ -354,4 +354,7 @@
     <string name="time_yesterday">昨天%1$s</string>
     <string name="time_day_before_yesterday">前天%1$s</string>
     <string name="time_long_ago">很久以前</string>
+    <string name="shizuku_not_run">Shizuku服务未运行</string>
+    <string name="shizuku_not_authorized">Shizuku服务未授权</string>
+    <string name="shizuku_service_error">Shizuku服务异常</string>
 </resources>

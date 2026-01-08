@@ -39,6 +39,7 @@ import cn.pylin.xycjd.manager.SharedPreferencesManager;
 import cn.pylin.xycjd.service.FloatingWindowService;
 import cn.pylin.xycjd.ui.activity.IntroActivity;
 import cn.pylin.xycjd.ui.activity.MainActivity;
+import cn.pylin.xycjd.utils.ShizukuShellHelper;
 
 public class SettingsFragment extends Fragment {
 
@@ -2253,8 +2254,10 @@ public class SettingsFragment extends Fragment {
         radioGroupClickMode.setOnCheckedChangeListener((group, checkedId) -> {
             if (checkedId == R.id.radio_btn_click_mode_standard) {
                 manager.setClickResponseMode(SharedPreferencesManager.CLICK_MODE_STANDARD);
+                ShizukuShellHelper.getInstance().unbindService(true);
             } else if (checkedId == R.id.radio_btn_click_mode_compatibility) {
                 manager.setClickResponseMode(SharedPreferencesManager.CLICK_MODE_COMPATIBILITY);
+                ShizukuShellHelper.getInstance().unbindService(true);
             } else if (checkedId == R.id.radio_btn_click_mode_shizuku) {
                 manager.setClickResponseMode(SharedPreferencesManager.CLICK_MODE_SHIZUKU);
             }

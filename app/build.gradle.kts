@@ -28,6 +28,8 @@ android {
     }
     buildFeatures {
         viewBinding = false
+        buildConfig = true
+        aidl = true
     }
     dependenciesInfo {
         includeInBundle = false
