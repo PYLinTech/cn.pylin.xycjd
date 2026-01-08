@@ -307,4 +307,7 @@
     <string name="click_mode_standard">Standard Mode</string>
     <string name="click_mode_compatibility">Compatibility Mode</string>
     <string name="click_mode_shizuku">Shizuku Mode</string>
+    <string name="shizuku_not_run">Shizuku service is not running</string>
+    <string name="shizuku_not_authorized">Shizuku service is not authorized</string>
+    <string name="shizuku_service_error">Shizuku service is unavailable</string>
 </resources>

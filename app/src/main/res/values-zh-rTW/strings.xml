@@ -265,4 +265,7 @@
     <string name="click_mode_standard">標準模式</string>
     <string name="click_mode_compatibility">兼容模式</string>
     <string name="click_mode_shizuku">Shizuku模式</string>
+    <string name="shizuku_not_run">Shizuku服務未運行</string>
+    <string name="shizuku_not_authorized">Shizuku服務未授權</string>
+    <string name="shizuku_service_error">Shizuku服務異常</string>
 </resources>

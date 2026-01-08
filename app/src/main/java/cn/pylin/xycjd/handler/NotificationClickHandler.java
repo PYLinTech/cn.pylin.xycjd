@@ -4,11 +4,15 @@ import android.app.ActivityManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.widget.Toast;
+
 import java.util.List;
 import cn.pylin.xycjd.manager.SharedPreferencesManager;
 import cn.pylin.xycjd.model.local.LocalModelManager;
 import cn.pylin.xycjd.service.AppAccessibilityService;
 import cn.pylin.xycjd.service.FloatingWindowService;
+import cn.pylin.xycjd.utils.ShizukuShellHelper;
+import androidx.annotation.NonNull;
 
 /**
  * 通知卡片点击处理器
@@ -38,6 +42,9 @@ public class NotificationClickHandler {
 
         // 处理模型训练反馈（如果启用）
         handleModelFeedback(notificationInfo);
+
+        // 从超级岛移除通知
+        FloatingWindowService.getInstance().removeNotification(notificationInfo.getKey());
 
         // 启动目标APP
         launchTargetApp(notificationInfo);
@@ -88,8 +95,6 @@ public class NotificationClickHandler {
         try {
             if (notificationInfo.getPendingIntent() != null) {
                 notificationInfo.getPendingIntent().send();
-                // 成功：从超级岛移除通知
-                FloatingWindowService.getInstance().removeNotification(notificationInfo.getKey());
             }
         } catch (PendingIntent.CanceledException e) {
             // 如果PendingIntent失效，尝试直接启动APP
@@ -98,8 +103,6 @@ public class NotificationClickHandler {
             if (launchIntent != null) {
                 launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 context.startActivity(launchIntent);
-                //从超级岛移除通知
-                FloatingWindowService.getInstance().removeNotification(notificationInfo.getKey());
             }
         }
     }
@@ -113,8 +116,6 @@ public class NotificationClickHandler {
             if (isAppInForeground(notificationInfo.getPackageName()) && notificationInfo.getPendingIntent() != null) {
                 // APP已在前台，直接执行PendingIntent
                 notificationInfo.getPendingIntent().send();
-                // 成功：从超级岛移除通知
-                FloatingWindowService.getInstance().removeNotification(notificationInfo.getKey());
             } else {
                 // 2. APP不在前台，启动APP并通知AccessibilityService准备执行PendingIntent
                 Intent launchIntent = context.getPackageManager()
@@ -172,13 +173,32 @@ public class NotificationClickHandler {
      * Shizuku模式：使用Shizuku执行Monkey方法拉起应用程序之后执行PendingIntent
      */
 
-    private void launchTargetAppShizuku(NotificationClickInfo notificationInfo) {
-        try {
+    private void launchTargetAppShizuku(NotificationClickInfo info) {
+        // 构造 Monkey 命令
+        String cmd = "monkey -p " + info.getPackageName() + " -c android.intent.category.LAUNCHER 1";
 
-        } catch (Exception e) {
-            // 执行失败，降级标准方法
-            launchTargetAppStandard(notificationInfo);
-        }
+        ShizukuShellHelper.getInstance(context).execCommand(cmd, 5000, new ShizukuShellHelper.Callback() {
+            @Override
+            public void onResult(@NonNull String result) {
+                // 命令执行成功，执行 PendingIntent 并移除通知
+                PendingIntent pi = info.getPendingIntent();
+                if (pi != null) {
+                    try {
+                        pi.send();
+                    } catch (PendingIntent.CanceledException e) {
+                        //PendingIntent 失效
+                    }
+                }
+            }
+
+            @Override
+            public void onError(@NonNull String error) {
+                // 显示 Toast
+                Toast.makeText(context.getApplicationContext(), error, Toast.LENGTH_SHORT).show();
+                // 执行失败 → 降级到兼容方式
+                launchTargetAppCompatibility(info);
+            }
+        });
     }
 
     /**
