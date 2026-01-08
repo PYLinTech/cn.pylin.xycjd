@@ -319,7 +319,7 @@
 
     <!-- 超级岛样式配置 -->
     <string name="super_island_style_title">超级岛样式配置</string>
-    <string name="super_island_style_desc">个性化你的超级岛</string>
+    <string name="super_island_corner_title">圆角</string>
     <string name="super_island_corner_small">超小岛圆角</string>
     <string name="super_island_corner_medium">超中岛圆角</string>
     <string name="super_island_corner_large">超大岛圆角</string>
@@ -333,9 +333,26 @@
     <string name="default_list_distance" translatable="false">0</string>
     
     <!-- 基础悬浮窗透明度 -->
+    <string name="super_island_opacity_title">透明度</string>
     <string name="basic_floating_window_opacity">超小岛透明度</string>
     <string name="medium_floating_window_opacity">超中岛透明度</string>
     <string name="large_floating_window_opacity">超大岛透明度</string>
+
+    <!-- 基础悬浮窗模糊度 -->
+    <string name="super_island_blur_title">模糊度</string>
+    <string name="basic_floating_window_blur">超小岛模糊度</string>
+    <string name="medium_floating_window_blur">超中岛模糊度</string>
+    <string name="large_floating_window_blur">超大岛模糊度</string>
+    <string name="reset_blur">还原默认模糊度设置</string>
+
+    <!-- 超级岛颜色 -->
+    <string name="super_island_color_desc">当前颜色</string>
+    <string name="super_island_color_title">超级岛颜色</string>
+    <string name="super_island_color_select">选择颜色</string>
+    <string name="super_island_color_default">默认颜色</string>
+    <string name="super_island_color_preset">预设颜色</string>
+    <string name="super_island_color_custom">自定义颜色</string>
+    <string name="super_island_color_hint" translatable="false">#RRGGBB</string>
 
     <!-- 超大岛交互配置 -->
     <string name="interaction_config_title">超大岛交互配置</string>
@@ -357,4 +374,6 @@
     <string name="shizuku_not_run">Shizuku服务未运行</string>
     <string name="shizuku_not_authorized">Shizuku服务未授权</string>
     <string name="shizuku_service_error">Shizuku服务异常</string>
+    <string name="settings_fragment_color_please_input">请输入颜色值</string>
+    <string name="settings_fragment_color_input_error">颜色值错误，请重新输入</string>
 </resources>

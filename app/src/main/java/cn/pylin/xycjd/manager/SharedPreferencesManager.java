@@ -121,6 +121,18 @@ public class SharedPreferencesManager {
     private int mediumOpacity;
     private int largeOpacity;
 
+    // 模糊度存储值（0-100%）
+    private static final String PREF_BLUR = "pref_blur";
+    private static final String PREF_MEDIUM_BLUR = "pref_medium_blur";
+    private static final String PREF_LARGE_BLUR = "pref_large_blur";
+    private int blur;
+    private int mediumBlur;
+    private int largeBlur;
+
+    // 超级岛颜色存储值（十六进制颜色值，如 #FF0000）
+    private static final String PREF_SUPER_ISLAND_COLOR = "pref_super_island_color";
+    private String superIslandColor;
+
     // 超大岛交互配置
     private static final String PREF_AUTO_COLLAPSE_AFTER_EXPAND = "pref_auto_collapse_after_expand";
     private static final String PREF_AUTO_COLLAPSE_DURATION = "pref_auto_collapse_duration";
@@ -206,6 +218,14 @@ public class SharedPreferencesManager {
         opacity = globalPrefs.getInt(PREF_OPACITY, 0);
         mediumOpacity = globalPrefs.getInt(PREF_MEDIUM_OPACITY, 0);
         largeOpacity = globalPrefs.getInt(PREF_LARGE_OPACITY, 0);
+
+        // 加载模糊度（默认值：0% - 不模糊，100% - 完全模糊）
+        blur = globalPrefs.getInt(PREF_BLUR, 0);
+        mediumBlur = globalPrefs.getInt(PREF_MEDIUM_BLUR, 0);
+        largeBlur = globalPrefs.getInt(PREF_LARGE_BLUR, 0);
+
+        // 加载超级岛颜色（默认值：null表示使用默认黑色）
+        superIslandColor = globalPrefs.getString(PREF_SUPER_ISLAND_COLOR, null);
 
         // 加载超大岛交互配置
         autoCollapseAfterExpand = globalPrefs.getBoolean(PREF_AUTO_COLLAPSE_AFTER_EXPAND, false);
@@ -652,6 +672,46 @@ public class SharedPreferencesManager {
     public void setLargeOpacity(int largeOpacity) {
         this.largeOpacity = largeOpacity;
         globalEditor.putInt(PREF_LARGE_OPACITY, largeOpacity).apply();
+    }
+
+    // ==================== 模糊度方法 ====================
+    
+    public int getBlur() {
+        return blur;
+    }
+    
+    public void setBlur(int blur) {
+        this.blur = blur;
+        globalEditor.putInt(PREF_BLUR, blur).apply();
+    }
+    
+    public int getMediumBlur() {
+        return mediumBlur;
+    }
+    
+    public void setMediumBlur(int mediumBlur) {
+        this.mediumBlur = mediumBlur;
+        globalEditor.putInt(PREF_MEDIUM_BLUR, mediumBlur).apply();
+    }
+    
+    public int getLargeBlur() {
+        return largeBlur;
+    }
+    
+    public void setLargeBlur(int largeBlur) {
+        this.largeBlur = largeBlur;
+        globalEditor.putInt(PREF_LARGE_BLUR, largeBlur).apply();
+    }
+
+    // ==================== 超级岛颜色方法 ====================
+    
+    public String getSuperIslandColor() {
+        return superIslandColor;
+    }
+    
+    public void setSuperIslandColor(String color) {
+        this.superIslandColor = color;
+        globalEditor.putString(PREF_SUPER_ISLAND_COLOR, color).apply();
     }
 
     // ==================== 超大岛交互配置方法 ====================
